@@ -1,5 +1,18 @@
+1.-Objetivo del proyecto
+Desarrollar una plataforma web interactiva que integre un mentor
+digital con inteligencia artificial y visualización 3D en tiempo real con
+el fin de orientar y capacitar a los usuarios en el armado,
+personalización y mantenimiento de computadoras de escritorio,
+fortaleciendo su confianza, conocimiento técnico y autonomía en el
+proceso.
 
-Instrucciones para Clonar y Ejecutar el Proyecto
+2.-Integrantes:
+Romero Escamilla Oscar Eduardo 		#22110112
+Medina Rubio Eduardo Rafael 		#22310398
+Soto Rodríguez Bryan Nicolás 		#22310373
+Corona Gómez Diego Jahir 			#22310358
+
+4.-Instrucciones para Clonar y Ejecutar el Proyecto
 1. Requisitos Previos
 
 Antes de comenzar, asegúrate de tener instaladas las siguientes herramientas:
