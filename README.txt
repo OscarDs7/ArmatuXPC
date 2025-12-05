@@ -1,3 +1,5 @@
+Nombre del proyecto: ArmatuXPC
+
 1.-Objetivo del proyecto
 Desarrollar una plataforma web interactiva que integre un mentor
 digital con inteligencia artificial y visualización 3D en tiempo real con
