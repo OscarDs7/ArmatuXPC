@@ -10,6 +10,7 @@ function App() {
       <Route path="/" element={<MenuRoles />} />
       <Route path="/login-usuario" element={<LoginUsuario />} />
       <Route path="/login-admin" element={<LoginAdmin />} />
+      <Route path="/roles" element={<MenuRoles />} />
     </Routes>
   );
 }

@@ -3,6 +3,7 @@ import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/aut
 import { auth } from "../utilidades/firebase";
 import logoAdmin from "../imagenes/LogoAdmin.png"; // imagen del logo del proyecto
 import fondoProyecto from "../imagenes/fondo1.jpg"; // imagen de fondo del proyecto
+import BackButton from "../utilidades/BackButton"; // Botón para regresar al menú de roles
 import "../estilos/LoginAdmin.css";
 
 
@@ -42,6 +43,8 @@ export default function LoginAdmin() {
 
   return (
     <div className="login-container" style={{ backgroundImage: `url(${fondoProyecto})`, }}>
+      <BackButton to="/roles" label="Regresar" />
+
       <div className="login-card">
         <h2>Login Administrador</h2>
 
