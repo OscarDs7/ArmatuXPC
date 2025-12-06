@@ -9,6 +9,7 @@ import {
 import { sendPasswordResetEmail } from "firebase/auth";
 import { auth, db } from "../utilidades/firebase";
 import fondoProyecto from "../imagenes/fondo1.jpg"; // imagen de fondo del proyecto
+import BackButton from "../utilidades/BackButton"; // Botón para regresar al menú de roles
 
 import "../estilos/LoginUser.css";
 import logoUser from "../imagenes/LogoUser.png";
@@ -131,6 +132,7 @@ export default function LoginUser() {
 
   return (
     <div className="login-container" style={{ backgroundImage: `url(${fondoProyecto})`, }}>
+     <BackButton to="/roles" label="Regresar" />
 
       <div className="login-card">
         <h2>{modoRegistro ? "Registro de Usuario" : "Login Usuario"}</h2>
