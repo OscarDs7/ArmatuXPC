@@ -1,24 +1,16 @@
-import logo from './logo.svg';
-import './App.css';
+import { Routes, Route } from "react-router-dom";
+
+import MenuRoles from "./interfaces/MenuRoles";
+import LoginUsuario from "./interfaces/LoginUser";
+import LoginAdmin from "./interfaces/LoginAdmin";
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Hello Team ArmatuXPC, welcome to your React application!!!
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Routes>
+      <Route path="/" element={<MenuRoles />} />
+      <Route path="/login-usuario" element={<LoginUsuario />} />
+      <Route path="/login-admin" element={<LoginAdmin />} />
+    </Routes>
   );
 }
 
