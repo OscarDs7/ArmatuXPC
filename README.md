@@ -108,26 +108,26 @@ cd nombre-del-proyecto
 
 **3. Instalar Dependencias**
 
-**Si el proyecto es Node.js**
+Si el proyecto es Node.js:
 
 npm install
 
-**Si es Python**
+Si es Python:
 
 pip install -r requirements.txt
 
-**Si es Java (Maven)**
+Si es Java (Maven):
 
 mvn install
 
-**Si es PHP**
+Si es PHP:
 No requiere instalación; solo coloca la carpeta en el directorio del servidor (htdocs en XAMPP).
 
 Cambia esta sección a lo que tu proyecto use.
 
 **4. Configurar el Archivo de Entorno (Opcional)**
 
-**Si tu proyecto utiliza variables de entorno:**
+Si tu proyecto utiliza variables de entorno:
 
 Copia el archivo de ejemplo:
 
@@ -155,19 +155,19 @@ Importa el archivo:
 
 **6. Ejecutar el Proyecto**
 
-**Para Node.js:**
+Para Node.js:
 
 npm start
 
-**Para Python:**
+Para Python:
 
 python main.py
 
-**Para Java:**
+Para Java:
 
 mvn spring-boot:run
 
-**Para PHP:**
+Para PHP:
 
 Inicia XAMPP/WAMP
 
@@ -201,6 +201,7 @@ Reinstala dependencias
 Revisa el archivo .env
 
 Revisa la configuración de la base de datos
+
 
 
 
