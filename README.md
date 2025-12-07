@@ -1,8 +1,8 @@
-1.- Objetivo del proyecto
+**1.- Objetivo del proyecto**
 
 Desarrollar una plataforma web interactiva que integre un mentor digital con inteligencia artificial y visualización 3D en tiempo real con el fin de orientar y capacitar a los usuarios en el armado, personalización y mantenimiento de computadoras de escritorio, fortaleciendo su confianza, conocimiento técnico y autonomía en el proceso.
 
-2.- Integrantes
+**2.- Integrantes**
 
 Romero Escamilla Oscar Eduardo — #22110112
 
@@ -11,56 +11,63 @@ Medina Rubio Eduardo Rafael — #22310398
 Soto Rodríguez Bryan Nicolás — #22310373
 
 Corona Gómez Diego Jahir — #22310358
-3.- Tecnologias usadas
+
+**3.- Tecnologias usadas**
 Lenguaje(s) de programación seleccionados
 
-HTML y CSS: Se usan como base para la estructura y el estilo del módulo de presentación.
+**HTML y CSS:** Se usan como base para la estructura y el estilo del módulo de presentación.
 
-JavaScript: Importante para la lógica del front-end, la interacción del usuario y la comunicación de datos con el backend.
+**JavaScript:** Importante para la lógica del front-end, la interacción del usuario y la comunicación de datos con el backend.
 
-Python: Se utiliza específicamente para el desarrollo del mentor digital (IA), implementando el procesamiento de lenguaje natural (NLP) y las reglas algorítmicas de compatibilidad de hardware.
+**Python:** Se utiliza específicamente para el desarrollo del mentor digital (IA), implementando el procesamiento de lenguaje natural (NLP) y las reglas algorítmicas de compatibilidad de hardware.
 
-C#: Permite construir la API del módulo de lógica (back-end) principal utilizando ASP.NET Core, manejando la gestión de sesiones y la lógica de negocio central, dada su robustez y rendimiento.
+**C#:** Permite construir la API del módulo de lógica (back-end) principal utilizando ASP.NET Core, manejando la gestión de sesiones y la lógica de negocio central, dada su robustez y rendimiento.
 
-Frameworks o librerías necesarias
+**Frameworks o librerías necesarias**
 
-React: El framework principal del front-end para construir la interfaz de usuario de manera modular y escalable.
+**React:** El framework principal del front-end para construir la interfaz de usuario de manera modular y escalable.
 
-Three.js: Es la librería JavaScript crucial para el renderizado 3D interactivo en el navegador, permitiendo la manipulación de los modelos de componentes de PC.
+**Three.js:** Es la librería JavaScript crucial para el renderizado 3D interactivo en el navegador, permitiendo la manipulación de los modelos de componentes de PC.
 
-Tailwind CSS: Se utiliza para la maquetación y el diseño rápido de la interfaz.
+**Tailwind CSS:** Se utiliza para la maquetación y el diseño rápido de la interfaz.
 
-ASP.NET Core: El framework del backend en C# que gestiona la API y la capa de autenticación.
+**ASP.NET Core:** El framework del backend en C# que gestiona la API y la capa de autenticación.
 
-Versiones específicas de herramientas
+**Versiones específicas de herramientas**
 
-Firebase Authentication: Servicio de autenticación gestionado para manejar el login con correo/contraseña y cuentas de Google.
+**Cloud Firestore (Firebase):** Servicio en la nube para el almacenamiento de usuarios normales y para su control de tokens de armado.
 
-Firebase Storage: El servicio de almacenamiento en la nube para alojar los archivos estáticos grandes, específicamente los modelos 3D.
+**Firebase Authentication:** Servicio de autenticación gestionado para manejar el login con correo/contraseña y cuentas de Google.
 
-PostgreSQL: La base de datos relacional elegida para almacenar el catálogo de hardware y los perfiles de usuario.
+**Firebase Storage:** El servicio de almacenamiento en la nube para alojar los archivos estáticos grandes, específicamente los modelos 3D.
 
-Blender: El software de diseño y modelado 3D esencial para crear los assets de los componentes de PC.
+**PostgreSQL:** La base de datos relacional elegida para almacenar el catálogo de hardware y los perfiles de usuario.
 
-Control de dependencias
+**Blender:** El software de diseño y modelado 3D esencial para crear los assets de los componentes de PC.
 
-npm (Node Package Manager): Se utiliza para gestionar las dependencias de JavaScript como React o Three.js.
+**Control de dependencias**
 
-pip (Python Package Installer): Se utiliza para gestionar las librerías del Mentor Digital de  IA (Pandas, SciPy, etc.).
+**npm (Node Package Manager):** Se utiliza para gestionar las dependencias de JavaScript como React o Three.js.
 
-Git & GitHub: Se usan para el control de versiones y la colaboración. GitHub actúa como el repositorio central y es la plataforma donde se ejecutan los pipelines de CI/CD (GitHub Actions).
+**pip (Python Package Installer):** Se utiliza para gestionar las librerías del Mentor Digital de  IA (Pandas, SciPy, etc.).
 
-Entorno local para prueba
+**Git & GitHub:** Se usan para el control de versiones y la colaboración. GitHub actúa como el repositorio central y es la plataforma donde se ejecutan los pipelines de CI/CD (GitHub Actions).
 
-IDE: Visual Studio Code (VS Code) para la edición y depuración del código.
+**Entorno local para prueba**
 
-Servidores de Despliegue:
+**IDE:** Visual Studio Code (VS Code) para la edición y depuración del código.
 
-Vercel: Plataforma para el hosting del front-end (React) y la distribución rápida a través de CDN.
+**Servidores de Despliegue:**
 
-Render: Plataforma para el hosting del back-end (ASP.NET/Python API).
+**Vercel:** Plataforma para el hosting del front-end (React) y la distribución rápida a través de CDN.
 
-Funcionamiento local: Para las pruebas, los servidores de desarrollo de React y ASP.NET/Python se ejecutan localmente, simulando la arquitectura de producción. Esto permite probar la Visualización 3D interactiva y la Validación de Compatibilidad antes de subir el código.
+**Render:** Plataforma para el hosting del back-end (ASP.NET/Python API).
+
+**Funcionamiento local:** Para las pruebas, los servidores de desarrollo de React y ASP.NET/Python se ejecutan localmente, simulando la arquitectura de producción. Esto permite probar la Visualización 3D interactiva y la Validación de Compatibilidad antes de subir el código.
+
+**Herramienta necesaria para el desarrollo y prueba de la aplicación**
+
+**Node.js:** Es un entorno de ejecución de JavaScript de código abierto y multiplataforma que permite ejecutar código JavaScript fuera del navegador, lo que lo hace ideal para desarrollar aplicaciones del servidor y backend. Asimismo, cuenta con librerías, dependencias y gestores de paquetes como “npm” que sirven para la creación, instalación y ejecución de proyectos con frameworks como React.js
 
 
 4.- Instrucciones para Clonar y Ejecutar el Proyecto
@@ -200,6 +207,7 @@ El servidor no inicia
 Revisa el archivo .env
 
 Revisa la configuración de la base de datos
+
 
 
 
