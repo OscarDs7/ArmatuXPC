@@ -25,29 +25,41 @@ C#: Permite construir la API del módulo de lógica (back-end) principal utiliza
 Frameworks o librerías necesarias
 
 React: El framework principal del front-end para construir la interfaz de usuario de manera modular y escalable.
+
 Three.js: Es la librería JavaScript crucial para el renderizado 3D interactivo en el navegador, permitiendo la manipulación de los modelos de componentes de PC.
+
 Tailwind CSS: Se utiliza para la maquetación y el diseño rápido de la interfaz.
+
 ASP.NET Core: El framework del backend en C# que gestiona la API y la capa de autenticación.
 
 Versiones específicas de herramientas
 
 Firebase Authentication: Servicio de autenticación gestionado para manejar el login con correo/contraseña y cuentas de Google.
+
 Firebase Storage: El servicio de almacenamiento en la nube para alojar los archivos estáticos grandes, específicamente los modelos 3D.
+
 PostgreSQL: La base de datos relacional elegida para almacenar el catálogo de hardware y los perfiles de usuario.
+
 Blender: El software de diseño y modelado 3D esencial para crear los assets de los componentes de PC.
 
 Control de dependencias
 
 npm (Node Package Manager): Se utiliza para gestionar las dependencias de JavaScript como React o Three.js.
+
 pip (Python Package Installer): Se utiliza para gestionar las librerías del Mentor Digital de  IA (Pandas, SciPy, etc.).
+
 Git & GitHub: Se usan para el control de versiones y la colaboración. GitHub actúa como el repositorio central y es la plataforma donde se ejecutan los pipelines de CI/CD (GitHub Actions).
+
 Entorno local para prueba
+
 IDE: Visual Studio Code (VS Code) para la edición y depuración del código.
 
 Servidores de Despliegue:
 
 Vercel: Plataforma para el hosting del front-end (React) y la distribución rápida a través de CDN.
+
 Render: Plataforma para el hosting del back-end (ASP.NET/Python API).
+
 Funcionamiento local: Para las pruebas, los servidores de desarrollo de React y ASP.NET/Python se ejecutan localmente, simulando la arquitectura de producción. Esto permite probar la Visualización 3D interactiva y la Validación de Compatibilidad antes de subir el código.
 
 
@@ -188,5 +200,6 @@ El servidor no inicia
 Revisa el archivo .env
 
 Revisa la configuración de la base de datos
+
 
 
