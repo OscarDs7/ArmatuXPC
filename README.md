@@ -15,8 +15,11 @@ Corona Gómez Diego Jahir — #22310358
 Lenguaje(s) de programación seleccionados
 
 HTML y CSS: Se usan como base para la estructura y el estilo del módulo de presentación.
+
 JavaScript: Importante para la lógica del front-end, la interacción del usuario y la comunicación de datos con el backend.
+
 Python: Se utiliza específicamente para el desarrollo del mentor digital (IA), implementando el procesamiento de lenguaje natural (NLP) y las reglas algorítmicas de compatibilidad de hardware.
+
 C#: Permite construir la API del módulo de lógica (back-end) principal utilizando ASP.NET Core, manejando la gestión de sesiones y la lógica de negocio central, dada su robustez y rendimiento.
 
 Frameworks o librerías necesarias
@@ -185,4 +188,5 @@ El servidor no inicia
 Revisa el archivo .env
 
 Revisa la configuración de la base de datos
+
 
