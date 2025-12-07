@@ -1,3 +1,5 @@
+**Nombre de Proyecto:** ArmatuXPC
+
 **1.- Objetivo del proyecto**
 
 Desarrollar una plataforma web interactiva que integre un mentor digital con inteligencia artificial y visualización 3D en tiempo real con el fin de orientar y capacitar a los usuarios en el armado, personalización y mantenimiento de computadoras de escritorio, fortaleciendo su confianza, conocimiento técnico y autonomía en el proceso.
@@ -12,8 +14,7 @@ Soto Rodríguez Bryan Nicolás — #22310373
 
 Corona Gómez Diego Jahir — #22310358
 
-**3.- Tecnologias usadas**
-Lenguaje(s) de programación seleccionados
+**3.- Tecnologias usadas - Lenguaje(s) de programación seleccionados**
 
 **HTML y CSS:** Se usan como base para la estructura y el estilo del módulo de presentación.
 
@@ -207,6 +208,7 @@ El servidor no inicia
 Revisa el archivo .env
 
 Revisa la configuración de la base de datos
+
 
 
 
