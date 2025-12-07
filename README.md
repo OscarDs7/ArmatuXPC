@@ -73,8 +73,9 @@ Corona Gómez Diego Jahir — #22310358
 **Node.js:** Es un entorno de ejecución de JavaScript de código abierto y multiplataforma que permite ejecutar código JavaScript fuera del navegador, lo que lo hace ideal para desarrollar aplicaciones del servidor y backend. Asimismo, cuenta con librerías, dependencias y gestores de paquetes como “npm” que sirven para la creación, instalación y ejecución de proyectos con frameworks como React.js
 
 
-4.- Instrucciones para Clonar y Ejecutar el Proyecto
-1. Requisitos Previos
+**4.- Instrucciones para Clonar y Ejecutar el Proyecto**
+
+**1. Requisitos Previos**
 
 Antes de comenzar, asegúrate de tener instaladas las siguientes herramientas:
 
@@ -95,47 +96,42 @@ MySQL, PostgreSQL, MongoDB, etc.
 
 Ajusta esta sección según lo que usa tu proyecto.
 
-2. Clonar el Repositorio
+**2. Clonar el Repositorio**
 
 Abre una terminal y ejecuta:
 
 git clone https://github.com/usuario/nombre-del-proyecto.git
 
-
 Luego entra a la carpeta:
 
 cd nombre-del-proyecto
 
-3. Instalar Dependencias
+**3. Instalar Dependencias**
 
-Si el proyecto es Node.js
+**Si el proyecto es Node.js**
 
 npm install
 
-
-Si es Python
+**Si es Python**
 
 pip install -r requirements.txt
 
-
-Si es Java (Maven)
+**Si es Java (Maven)**
 
 mvn install
 
-
-Si es PHP
+**Si es PHP**
 No requiere instalación; solo coloca la carpeta en el directorio del servidor (htdocs en XAMPP).
 
 Cambia esta sección a lo que tu proyecto use.
 
-4. Configurar el Archivo de Entorno (Opcional)
+**4. Configurar el Archivo de Entorno (Opcional)**
 
-Si tu proyecto utiliza variables de entorno:
+**Si tu proyecto utiliza variables de entorno:**
 
 Copia el archivo de ejemplo:
 
 cp .env.example .env
-
 
 Edita el archivo .env con tus credenciales:
 
@@ -145,7 +141,7 @@ Llaves de API
 
 Configuración del servidor
 
-5. Configurar la Base de Datos (si aplica)
+**5. Configurar la Base de Datos (si aplica)**
 
 Para importar un archivo SQL:
 
@@ -157,24 +153,21 @@ Importa el archivo:
 
 /database/nombre.sql
 
-6. Ejecutar el Proyecto
+**6. Ejecutar el Proyecto**
 
-Para Node.js:
+**Para Node.js:**
 
 npm start
 
-
-Para Python:
+**Para Python:**
 
 python main.py
 
-
-Para Java:
+**Para Java:**
 
 mvn spring-boot:run
 
-
-Para PHP:
+**Para PHP:**
 
 Inicia XAMPP/WAMP
 
@@ -182,34 +175,33 @@ Abre en el navegador:
 
 http://localhost/nombre-del-proyecto
 
-7. Estructura del Proyecto (Opcional en tu README)
+**7. Estructura del Proyecto (Opcional en tu README)**
 /src
 /database
 /public
 /README.md
 
-
 Explica brevemente para qué sirve cada carpeta.
 
-8. Problemas Comunes
+**8. Problemas Comunes**
 
-"Permission denied"
+**"Permission denied"**
+
 Ejecuta:
-
 chmod +x nombre.sh
 
-
-Error de dependencias
+**Error de dependencias**
 
 Actualiza node/npm/pip
 
 Reinstala dependencias
 
-El servidor no inicia
+**El servidor no inicia**
 
 Revisa el archivo .env
 
 Revisa la configuración de la base de datos
+
 
 
 
