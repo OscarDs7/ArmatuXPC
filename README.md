@@ -14,7 +14,9 @@ Soto Rodríguez Bryan Nicolás — #22310373
 
 Corona Gómez Diego Jahir — #22310358
 
-**3.- Tecnologias usadas - Lenguaje(s) de programación seleccionados**
+**3.- Tecnologias usadas**
+
+**Lenguaje(s) de programación seleccionados**
 
 **HTML y CSS:** Se usan como base para la estructura y el estilo del módulo de presentación.
 
@@ -208,6 +210,7 @@ El servidor no inicia
 Revisa el archivo .env
 
 Revisa la configuración de la base de datos
+
 
 
 
