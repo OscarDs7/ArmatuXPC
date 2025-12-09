@@ -5,13 +5,14 @@ import logoAdmin from "../imagenes/LogoAdmin.png"; // imagen del logo del proyec
 import fondoProyecto from "../imagenes/fondo1.jpg"; // imagen de fondo del proyecto
 import BackButton from "../utilidades/BackButton"; // Botón para regresar al menú de roles
 import "../estilos/LoginAdmin.css";
-
+import { useNavigate } from "react-router-dom";
 
 export default function LoginAdmin() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [resetMessage, setResetMessage] = useState("");
+  const navigate = useNavigate();
 
   const handleLogin = async (e) => {
     e.preventDefault();
@@ -20,6 +21,7 @@ export default function LoginAdmin() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       alert("Bienvenido Administrador!");
+      navigate("/check-admin", { state: { nombre: "Administrador" } });
     } catch (err) {
       console.error(err);
       setError("Correo o contraseña incorrectos.");
