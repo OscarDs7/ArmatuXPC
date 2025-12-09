@@ -43,7 +43,7 @@ export default function LoginUser() {
       // Verificar si el usuario existe por correo
       if (querySnap.empty) {
         manejarIntentoFallido();
-        return setError("El usuario no existe.");
+        return setError("El correo no está registrado o es incorrecto.");
       }
       // Obtener datos del usuario
       const usuario = querySnap.docs[0].data();
@@ -51,7 +51,7 @@ export default function LoginUser() {
       // Validar contraseña
       if (usuario.Contrasena !== password) {
         manejarIntentoFallido();
-        return setError("Contraseña incorrecta.");
+        return setError("La contraseña es incorrecta.");
       }
 
       alert(`Bienvenido ${usuario.Nombre} ✨`);
