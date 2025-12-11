@@ -6,7 +6,7 @@ import {
   getDocs,
   addDoc,
 } from "firebase/firestore";
-import { sendPasswordResetEmail } from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail} from "firebase/auth";
 import { auth, db } from "../utilidades/firebase";
 import fondoProyecto from "../imagenes/fondo1.jpg"; // imagen de fondo del proyecto
 import BackButton from "../utilidades/BackButton"; // Botón para regresar al menú de roles
@@ -37,38 +37,40 @@ export default function LoginUser() {
   // FUNCIÓN PARA MANEJAR EL LOGIN
   // ------------------------------------------------
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setError("");
-    setResetMessage("");
+  e.preventDefault();
+  setError("");
+  setResetMessage("");
 
-    try {
-      // Buscar usuario por correo
-      const q = query(coleccionUsuarios, where("Correo", "==", email));
-      const querySnap = await getDocs(q);
+  try {
+    // 1️⃣ Iniciar sesión en Firebase Auth
+    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const uid = cred.user.uid;
 
-      // Verificar si el usuario existe por correo
-      if (querySnap.empty) {
-        manejarIntentoFallido();
-        return setError("El correo no está registrado o es incorrecto.");
-      }
-      // Obtener datos del usuario
-      const usuario = querySnap.docs[0].data();
+    // 2️⃣ Buscar usuario en Firestore por UID
+    const q = query(coleccionUsuarios, where("UID", "==", uid));
+    const querySnap = await getDocs(q);
 
-      // Validar contraseña
-      if (usuario.Contrasena !== password) {
-        manejarIntentoFallido();
-        return setError("La contraseña es incorrecta.");
-      }
-
-      alert(`Bienvenido ${usuario.Nombre} ✨`);
-      // Redirigir aquí a dashboard si se desea
-      navigate("/check-user", { state: { nombre: usuario.Nombre } });
-
-    } catch (err) {
-      console.error(err);
-      setError("Error al iniciar sesión.");
+    if (querySnap.empty) {
+      return setError("No se encontró tu perfil en la base de datos.");
     }
-  };
+
+    const usuario = querySnap.docs[0].data();
+
+    alert(`Bienvenido ${usuario.Nombre} ✨`);
+    navigate("/check-user", { state: { nombre: usuario.Nombre } });
+
+  } catch (err) {
+    console.error(err);
+
+    if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
+      manejarIntentoFallido();
+      return setError("Correo o contraseña incorrectos.");
+    }
+
+    setError("Error al iniciar sesión.");
+  }
+}; // fin handleLogin
+
 
   // ------------------------------------------------
   // FUNCIÓN PARA MANEJAR INTENTOS FALLIDOS
@@ -86,38 +88,39 @@ export default function LoginUser() {
   // FUNCIÓN PARA REGISTRAR USUARIO
   // ------------------------------------------------
   const handleRegistro = async (e) => {
-    e.preventDefault();
-    setError("");
+  e.preventDefault();
+  setError("");
 
-    try {
-      if (!nombre.trim()) return setError("Ingresa tu nombre.");
-      if (!email.trim()) return setError("Ingresa tu correo.");
-      if (!password.trim()) return setError("Ingresa una contraseña.");
+  try {
+    if (!nombre.trim()) return setError("Ingresa tu nombre.");
+    if (!email.trim()) return setError("Ingresa tu correo.");
+    if (!password.trim()) return setError("Ingresa una contraseña.");
 
-      // Verificar si ya existe el correo
-      const q = query(coleccionUsuarios, where("Correo", "==", email));
-      const snap = await getDocs(q);
+    // 1️⃣ Crear usuario en Firebase Auth
+    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const uid = cred.user.uid;
 
-      if (!snap.empty) {
-        return setError("Este correo ya está registrado.");
-      }
+    // 2️⃣ Guardar datos del usuario en Firestore
+    await addDoc(coleccionUsuarios, {
+      UID: uid,
+      Nombre: nombre,
+      Correo: email,
+      FechaRegistro: new Date(),
+    });
 
-      // Registrar usuario
-      await addDoc(coleccionUsuarios, {
-        Nombre: nombre,
-        Correo: email,
-        Contrasena: password,
-        FechaRegistro: new Date(),
-      });
+    alert("Registro exitoso 🎉 Ya puedes iniciar sesión.");
+    setModoRegistro(false);
 
-      alert("Registro exitoso 🎉 Ya puedes iniciar sesión.");
-      setModoRegistro(false);
+  } catch (err) {
+    console.error("ERROR REGISTRO:", err);
 
-    } catch (err) {
-      console.error("ERROR REGISTRO:", err);
-      setError("Error al registrar usuario.");
+    if (err.code === "auth/email-already-in-use") {
+      return setError("Este correo ya está registrado.");
     }
-  };
+
+    setError("Error al registrar usuario.");
+  }
+}; // fin handleRegistro
 
   // ------------------------------------------------
   // FUNCIÓN PARA RECUPERAR CONTRASEÑA (AUTH)
