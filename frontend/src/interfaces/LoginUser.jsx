@@ -54,21 +54,32 @@ export default function LoginUser() {
       return setError("No se encontró tu perfil en la base de datos.");
     }
 
-    const usuario = querySnap.docs[0].data();
+    const usuario = querySnap.docs[0].data(); // Obtener datos del usuario
+
+    //Validar rol según la ventana donde inicia sesión
+    if (!usuario.Rol || usuario.Rol !== "user") {
+      return setError("No tienes permisos para acceder aquí.");
+    }
 
     alert(`Bienvenido ${usuario.Nombre} ✨`);
     navigate("/check-user", { state: { nombre: usuario.Nombre } });
 
   } catch (err) {
-    console.error(err);
+  console.error("Login error:", err.code);
 
-    if (err.code === "auth/user-not-found" || err.code === "auth/wrong-password") {
+    if (
+      err.code === "auth/invalid-credential" ||
+      err.code === "auth/user-not-found" ||
+      err.code === "auth/wrong-password"
+    ) {
       manejarIntentoFallido();
-      return setError("Correo o contraseña incorrectos.");
+      setError("Correo o contraseña incorrectos.");
+      return;
     }
 
-    setError("Error al iniciar sesión.");
-  }
+    setError("Error inesperado. Intenta más tarde.");
+  } // fin-catch
+
 }; // fin handleLogin
 
 
@@ -105,6 +116,7 @@ export default function LoginUser() {
       UID: uid,
       Nombre: nombre,
       Correo: email,
+      Rol: "user",
       FechaRegistro: new Date(),
     });
 
@@ -158,6 +170,8 @@ export default function LoginUser() {
               placeholder="Correo"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete = "username"
+              required
             />
 
             <input
@@ -165,6 +179,8 @@ export default function LoginUser() {
               placeholder="Contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="current-password"
+              required
             />
 
             <button type="submit">Ingresar</button>
@@ -186,6 +202,8 @@ export default function LoginUser() {
               placeholder="Correo"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              autoComplete = "username"
+              required
             />
 
             <input
@@ -193,6 +211,8 @@ export default function LoginUser() {
               placeholder="Contraseña"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              autoComplete="new-password"
+              required
             />
 
             <button type="submit">Registrar</button>
