@@ -1,9 +1,19 @@
 import React, { useState } from "react";
-import { signInWithEmailAndPassword, sendPasswordResetEmail } from "firebase/auth";
-import { auth } from "../utilidades/firebase";
-import logoAdmin from "../imagenes/LogoAdmin.png"; // imagen del logo del proyecto
-import fondoProyecto from "../imagenes/fondo1.jpg"; // imagen de fondo del proyecto
-import BackButton from "../utilidades/BackButton"; // Botón para regresar al menú de roles
+import {
+  signInWithEmailAndPassword,
+  sendPasswordResetEmail
+} from "firebase/auth";
+import {
+  collection,
+  query,
+  where,
+  getDocs
+} from "firebase/firestore";
+
+import { auth, db } from "../utilidades/firebase";
+import logoAdmin from "../imagenes/LogoAdmin.png";
+import fondoProyecto from "../imagenes/fondo1.jpg";
+import BackButton from "../utilidades/BackButton";
 import "../estilos/LoginAdmin.css";
 import { useNavigate } from "react-router-dom";
 
@@ -19,9 +29,29 @@ export default function LoginAdmin() {
     setError("");
 
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      // 1. Autenticación
+      const userCred = await signInWithEmailAndPassword(auth, email, password); // Iniciar sesión
+      const uid = userCred.user.uid; // Obtener UID
+
+      // 2. Buscar si es un usuario normal en Firestore
+      const ref = collection(db, "Usuario");
+      const q = query(ref, where("UID", "==", uid));
+      const snap = await getDocs(q);
+
+      if (!snap.empty) {
+        const data = snap.docs[0].data();
+
+        // 👇 CORRECTO: verificar rol en minúscula
+        if (data.Rol === "user") {
+          setError("Acceso denegado: no tienes permisos de administrador.");
+          return;
+        }
+      }
+
+      // 3. Si NO existe → automáticamente es administrador
       alert("Bienvenido Administrador!");
       navigate("/check-admin", { state: { nombre: "Administrador" } });
+
     } catch (err) {
       console.error(err);
       setError("Correo o contraseña incorrectos.");
@@ -30,28 +60,30 @@ export default function LoginAdmin() {
 
   const handlePasswordReset = async () => {
     if (!email) {
-      setResetMessage("Por favor ingresa tu correo para recuperar la contraseña.");
+      setResetMessage("Ingresa tu correo para recuperar la contraseña.");
       return;
     }
 
     try {
       await sendPasswordResetEmail(auth, email);
-      setResetMessage("Se ha enviado un enlace de recuperación a tu correo.");
+      setResetMessage("Se ha enviado un enlace de recuperación.");
     } catch (err) {
       console.error(err);
-      setResetMessage("Error al enviar el correo. Verifica que sea válido.");
+      setResetMessage("Error al enviar el correo. Verifica tu correo.");
     }
   };
 
   return (
-    <div className="login-container" style={{ backgroundImage: `url(${fondoProyecto})`, }}>
+    <div
+      className="login-container"
+      style={{ backgroundImage: `url(${fondoProyecto})` }}
+    >
       <BackButton to="/roles" label="Regresar" />
 
       <div className="login-card">
         <h2>Login Administrador</h2>
 
-        {/* LOGO DEL ADMIN*/}
-        <img src={logoAdmin} alt="Logo de Admin" className="logo-admin" />
+        <img src={logoAdmin} alt="Logo Admin" className="logo-admin" />
 
         <form onSubmit={handleLogin}>
           <input
@@ -59,6 +91,7 @@ export default function LoginAdmin() {
             placeholder="Correo"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
+            autoComplete = "username"
             required
           />
 
@@ -67,13 +100,13 @@ export default function LoginAdmin() {
             placeholder="Contraseña"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            autoComplete="current-password"
             required
           />
 
           <button type="submit">Ingresar</button>
         </form>
 
-        {/* Enlace de recuperación */}
         <p className="forgot-password" onClick={handlePasswordReset}>
           ¿Olvidaste tu contraseña?
         </p>
