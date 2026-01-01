@@ -1,0 +1,11 @@
+{
+  "version": 2,
+  "dgSpecHash": "Gzd54Ed/Fto=",
+  "success": true,
+  "projectFilePath": "C:\\Users\\Oscar\\Downloads\\ArmatuXPC-Platform\\backend\\ArmatuXPC.Backend\\ArmatuXPC.Backend.csproj",
+  "expectedPackageFiles": [
+    "C:\\Users\\Oscar\\.nuget\\packages\\microsoft.aspnetcore.openapi\\9.0.6\\microsoft.aspnetcore.openapi.9.0.6.nupkg.sha512",
+    "C:\\Users\\Oscar\\.nuget\\packages\\microsoft.openapi\\1.6.17\\microsoft.openapi.1.6.17.nupkg.sha512"
+  ],
+  "logs": []
+}
