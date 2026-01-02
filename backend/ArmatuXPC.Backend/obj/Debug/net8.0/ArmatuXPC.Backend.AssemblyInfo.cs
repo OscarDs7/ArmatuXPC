@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("ArmatuXPC.Backend")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+226ee24e74c69906eb97d469ab1eed0c0031f4a4")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+aef87af84a1b3bfa2df06a7360b835caa7466ba8")]
 [assembly: System.Reflection.AssemblyProductAttribute("ArmatuXPC.Backend")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ArmatuXPC.Backend")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
