@@ -1,0 +1,4 @@
+# Ignorar archivos de configuración y secretos
+appsettings.json
+.env
+appsettings.Development.json
