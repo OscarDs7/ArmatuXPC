@@ -1,4 +1,10 @@
-# Ignorar archivos de configuración y secretos
-appsettings.json
-\.env
-appsettings.Development.json
+# Environment variables
+.env
+frontend/.env
+
+# Node
+node_modules/
+
+# .NET
+bin/
+obj/
