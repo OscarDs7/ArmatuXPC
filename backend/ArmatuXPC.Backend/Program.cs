@@ -1,14 +1,17 @@
 using ArmatuXPC.Backend.Data;
 using Microsoft.EntityFrameworkCore;
+using DotNetEnv;
 
-var builder = WebApplication.CreateBuilder(args);
+Env.Load(); // Cargar variables de entorno desde el archivo .env
+
+var builder = WebApplication.CreateBuilder(args); // Crear el constructor de la aplicación
 
 // Controllers
 builder.Services.AddControllers();
 
 // Swagger / OpenAPI (estable)
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
+builder.Services.AddEndpointsApiExplorer(); // Explorador de puntos finales API
+builder.Services.AddSwaggerGen(); // Generador de Swagger
 
 // EF Core + PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -17,7 +20,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
-var app = builder.Build();
+var app = builder.Build(); // Construir la aplicación
 
 // Pipeline HTTP
 if (app.Environment.IsDevelopment())
@@ -26,9 +29,9 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
+app.UseHttpsRedirection(); // Redirección HTTPS
 
 // Map Controllers
 app.MapControllers();
 
-app.Run();
+app.Run(); // Ejecutar la aplicación
