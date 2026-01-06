@@ -22,5 +22,5 @@ npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 
-# Cerrar envío de archivo firebase.js de carpeta src/utilidades
-/src/utilidades/firebase.js
+# Cerrar envío de archivo .env
+/.env
