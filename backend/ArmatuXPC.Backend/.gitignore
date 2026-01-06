@@ -2,3 +2,6 @@
 appsettings.json
 .env
 appsettings.Development.json
+# .NET build artifacts
+**/bin/
+**/obj/
