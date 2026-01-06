@@ -5,15 +5,14 @@ import { getFirestore } from "firebase/firestore";
 
 // Configuración de Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyArEVoYIds1Ae-0jvO0TEqTu9WxfBIg4v8",
-  authDomain: "armatuxpc.firebaseapp.com",
-  projectId: "armatuxpc",
-  storageBucket: "armatuxpc.firebasestorage.app",
-  messagingSenderId: "464173166625",
-  appId: "1:464173166625:web:62b197b76854f51ed0b360",
-  measurementId: "G-8LL633GXM1"
+  apiKey: process.env.REACT_APP_FIREBASE_API_KEY,
+  authDomain: process.env.REACT_APP_FIREBASE_AUTH_DOMAIN,
+  projectId: process.env.REACT_APP_FIREBASE_PROJECT_ID,
+  storageBucket: process.env.REACT_APP_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: process.env.REACT_APP_FIREBASE_MESSAGING_SENDER_ID,
+  appId: process.env.REACT_APP_FIREBASE_APP_ID,
+  measurementId: process.env.REACT_APP_FIREBASE_MEASUREMENT_ID
 };
-
 
 // Inicializar Firebase
 const app = initializeApp(firebaseConfig);
