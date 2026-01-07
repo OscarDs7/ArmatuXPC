@@ -1,0 +1,13 @@
+# Ignore environment variable files
+.env
+frontend/.env
+
+# Node
+node_modules/
+
+# .NET
+bin/
+obj/
+
+# Ignore configuration and secret files
+docker-compose.yml
