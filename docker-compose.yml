@@ -4,6 +4,8 @@ services:
   postgres:
     image: postgres:16
     container_name: armatuxpc-postgres
+    ports:
+      - "5432:5432"
     restart: always
     environment:
       POSTGRES_DB: ${POSTGRES_DB}
@@ -13,7 +15,7 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - armatuxpc-net
-    # ❌ NO exponemos el puerto
+    # ❌ NO exponemos el puerto en producción / solo en desarrollo para pruebas locales
 
   backend:
     build:
