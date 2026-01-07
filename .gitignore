@@ -8,3 +8,6 @@ node_modules/
 # .NET
 bin/
 obj/
+
+# Ignore configuration and secret files
+docker-compose.yml
