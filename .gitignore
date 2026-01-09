@@ -6,9 +6,9 @@ frontend/.env
 node_modules/
 
 # .NET
-bin/
-obj/
+backend/ArmatuXPC.Backend/obj/
+backend/ArmatuXPC.Backend/bin/
 
 # Ignore configuration and secret files
-docker-compose.yml
-docker-compose-development.yml
+docker-compose*.yml
+docker-compose-development*.yml
