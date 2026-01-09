@@ -11,3 +11,4 @@ obj/
 
 # Ignore configuration and secret files
 docker-compose.yml
+docker-compose-development.yml
