@@ -46,11 +46,17 @@ namespace ArmatuXPC.Backend.Controllers
             _context.Armados.Add(armado);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(
-                nameof(GetArmado),
-                new { id = armado.ArmadoId },
-                armado
-            );
+            var armadoCompleto = await _context.Armados
+                .Include(a => a.Gabinete)
+                .Include(a => a.PlacaBase)
+                .Include(a => a.FuentePoder)
+                .Include(a => a.MemoriaRam)
+                .Include(a => a.Procesador)
+                .Include(a => a.Almacenamiento)
+                .Include(a => a.GPU)
+                .FirstAsync(a => a.ArmadoId == armado.ArmadoId);
+
+            return Ok(armadoCompleto);
         }
 
         // PUT: api/Armados/5 -> Actualiza un armado

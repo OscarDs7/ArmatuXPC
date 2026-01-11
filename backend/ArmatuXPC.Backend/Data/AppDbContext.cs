@@ -15,43 +15,43 @@ namespace ArmatuXPC.Backend.Data
 
         // Configuración de las relaciones entre entidades o tablas
         protected override void OnModelCreating(ModelBuilder modelBuilder)
-{
+        {
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<Armado>(entity =>
             {
                 entity.HasOne(a => a.Gabinete)
-                    .WithMany()
+                    .WithMany(c => c.ComoGabinete)
                     .HasForeignKey(a => a.GabineteId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(a => a.PlacaBase)
-                    .WithMany()
+                    .WithMany(c => c.ComoPlacaBase)
                     .HasForeignKey(a => a.PlacaBaseId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(a => a.FuentePoder)
-                    .WithMany()
+                    .WithMany(c => c.ComoFuentePoder)
                     .HasForeignKey(a => a.FuentePoderId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(a => a.MemoriaRam)
-                    .WithMany()
+                    .WithMany(c => c.ComoMemoriaRam)
                     .HasForeignKey(a => a.MemoriaRamId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(a => a.Procesador)
-                    .WithMany()
+                    .WithMany(c => c.ComoProcesador)
                     .HasForeignKey(a => a.ProcesadorId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(a => a.Almacenamiento)
-                    .WithMany()
+                    .WithMany(c => c.ComoAlmacenamiento)
                     .HasForeignKey(a => a.AlmacenamientoId)
                     .OnDelete(DeleteBehavior.Restrict);
 
                 entity.HasOne(a => a.GPU)
-                    .WithMany()
+                    .WithMany(c => c.ComoGPU)
                     .HasForeignKey(a => a.GPUId)
                     .OnDelete(DeleteBehavior.Restrict);
             });
