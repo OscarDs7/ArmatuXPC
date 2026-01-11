@@ -21,7 +21,15 @@ namespace ArmatuXPC.Backend.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Armado>>> GetArmados()
         {
-            return await _context.Armados.ToListAsync();
+            return await _context.Armados
+            .Include(a => a.Gabinete)
+            .Include(a => a.PlacaBase)
+            .Include(a => a.FuentePoder)
+            .Include(a => a.MemoriaRam)
+            .Include(a => a.Procesador)
+            .Include(a => a.Almacenamiento)
+            .Include(a => a.GPU)
+            .ToListAsync();
         }
 
         // GET: api/Armados/5 -> Obtiene un armado por ID
@@ -29,12 +37,17 @@ namespace ArmatuXPC.Backend.Controllers
         public async Task<ActionResult<Armado>> GetArmado(int id)
         {
             var armado = await _context.Armados
+                .Include(a => a.Gabinete)
+                .Include(a => a.PlacaBase)
+                .Include(a => a.FuentePoder)
+                .Include(a => a.MemoriaRam)
+                .Include(a => a.Procesador)
+                .Include(a => a.Almacenamiento)
+                .Include(a => a.GPU)
                 .FirstOrDefaultAsync(a => a.ArmadoId == id);
 
             if (armado == null)
-            {
                 return NotFound();
-            }
 
             return armado;
         }
@@ -59,35 +72,32 @@ namespace ArmatuXPC.Backend.Controllers
             return Ok(armadoCompleto);
         }
 
-        // PUT: api/Armados/5 -> Actualiza un armado
+       // PUT: api/Armados/5 -> Actualiza un armado
         [HttpPut("{id}")]
         public async Task<IActionResult> PutArmado(int id, Armado armado)
         {
             if (id != armado.ArmadoId)
-            {
                 return BadRequest("El ID no coincide");
-            }
 
-            _context.Entry(armado).State = EntityState.Modified;
+            var armadoDb = await _context.Armados.FindAsync(id);
+            if (armadoDb == null)
+                return NotFound();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ArmadoExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            // Actualizar solo los campos permitidos
+            armadoDb.NombreArmado = armado.NombreArmado;
+            armadoDb.GabineteId = armado.GabineteId;
+            armadoDb.PlacaBaseId = armado.PlacaBaseId;
+            armadoDb.FuentePoderId = armado.FuentePoderId;
+            armadoDb.MemoriaRamId = armado.MemoriaRamId;
+            armadoDb.ProcesadorId = armado.ProcesadorId;
+            armadoDb.AlmacenamientoId = armado.AlmacenamientoId;
+            armadoDb.GPUId = armado.GPUId;
+
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
+
 
         // DELETE: api/Armados/5 -> Elimina un armado
         [HttpDelete("{id}")]
