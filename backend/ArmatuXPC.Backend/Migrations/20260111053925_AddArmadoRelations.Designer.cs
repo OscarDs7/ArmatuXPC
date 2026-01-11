@@ -2,6 +2,7 @@
 using ArmatuXPC.Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -10,9 +11,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArmatuXPC.Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260111053925_AddArmadoRelations")]
+    partial class AddArmadoRelations
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -140,43 +143,43 @@ namespace ArmatuXPC.Backend.Migrations
             modelBuilder.Entity("ArmatuXPC.Backend.Models.Armado", b =>
                 {
                     b.HasOne("ArmatuXPC.Backend.Models.Componente", "Almacenamiento")
-                        .WithMany("ComoAlmacenamiento")
+                        .WithMany()
                         .HasForeignKey("AlmacenamientoId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ArmatuXPC.Backend.Models.Componente", "FuentePoder")
-                        .WithMany("ComoFuentePoder")
+                        .WithMany()
                         .HasForeignKey("FuentePoderId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ArmatuXPC.Backend.Models.Componente", "GPU")
-                        .WithMany("ComoGPU")
+                        .WithMany()
                         .HasForeignKey("GPUId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ArmatuXPC.Backend.Models.Componente", "Gabinete")
-                        .WithMany("ComoGabinete")
+                        .WithMany()
                         .HasForeignKey("GabineteId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ArmatuXPC.Backend.Models.Componente", "MemoriaRam")
-                        .WithMany("ComoMemoriaRam")
+                        .WithMany()
                         .HasForeignKey("MemoriaRamId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ArmatuXPC.Backend.Models.Componente", "PlacaBase")
-                        .WithMany("ComoPlacaBase")
+                        .WithMany()
                         .HasForeignKey("PlacaBaseId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ArmatuXPC.Backend.Models.Componente", "Procesador")
-                        .WithMany("ComoProcesador")
+                        .WithMany()
                         .HasForeignKey("ProcesadorId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
@@ -205,23 +208,6 @@ namespace ArmatuXPC.Backend.Migrations
                         .IsRequired();
 
                     b.Navigation("Componente");
-                });
-
-            modelBuilder.Entity("ArmatuXPC.Backend.Models.Componente", b =>
-                {
-                    b.Navigation("ComoAlmacenamiento");
-
-                    b.Navigation("ComoFuentePoder");
-
-                    b.Navigation("ComoGPU");
-
-                    b.Navigation("ComoGabinete");
-
-                    b.Navigation("ComoMemoriaRam");
-
-                    b.Navigation("ComoPlacaBase");
-
-                    b.Navigation("ComoProcesador");
                 });
 #pragma warning restore 612, 618
         }
