@@ -54,9 +54,22 @@ namespace ArmatuXPC.Backend.Data
                     .WithMany(c => c.ComoGPU)
                     .HasForeignKey(a => a.GPUId)
                     .OnDelete(DeleteBehavior.Restrict);
-            });
-        }
+            }); // Configuración específica para la entidad Armado
 
+            modelBuilder.Entity<Compatibilidad>()
+                .HasOne(c => c.ComponenteA)
+                .WithMany()
+                .HasForeignKey(c => c.ComponenteAId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-    }
-}
+            modelBuilder.Entity<Compatibilidad>()
+                .HasOne(c => c.ComponenteB)
+                .WithMany()
+                .HasForeignKey(c => c.ComponenteBId)
+                .OnDelete(DeleteBehavior.Restrict);
+                
+            } // fin de OnModelCreating
+
+    } // fin de AppDbContext
+
+} // fin de namespace ArmatuXPC.Backend.Data
