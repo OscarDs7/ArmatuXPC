@@ -83,7 +83,7 @@ namespace ArmatuXPC.Backend.Controllers
             if (armadoDb == null)
                 return NotFound();
 
-            // Actualizar solo los campos permitidos
+            // Actualizar solo los campos permitidos - evitar sobreescritura de relaciones
             armadoDb.NombreArmado = armado.NombreArmado;
             armadoDb.GabineteId = armado.GabineteId;
             armadoDb.PlacaBaseId = armado.PlacaBaseId;
