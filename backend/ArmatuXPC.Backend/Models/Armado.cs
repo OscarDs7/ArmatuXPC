@@ -13,43 +13,43 @@ namespace ArmatuXPC.Backend.Models
         // LLAVES FORÁNEAS HACIA COMPONENTES //
 
         // === GABINETE ===
-        public int GabineteId { get; set; }
+        public int? GabineteId { get; set; }
 
         [ForeignKey(nameof(GabineteId))]
         public Componente? Gabinete { get; set; }
 
         // === PLACA BASE ===
-        public int PlacaBaseId { get; set; }
+        public int? PlacaBaseId { get; set; }
 
         [ForeignKey(nameof(PlacaBaseId))]
         public Componente? PlacaBase { get; set; }
 
         // === FUENTE ===
-        public int FuentePoderId { get; set; }
+        public int? FuentePoderId { get; set; }
 
         [ForeignKey(nameof(FuentePoderId))]
         public Componente? FuentePoder { get; set; }
 
         // === RAM ===
-        public int MemoriaRamId { get; set; }
+        public int? MemoriaRamId { get; set; }
 
         [ForeignKey(nameof(MemoriaRamId))]
         public Componente? MemoriaRam { get; set; }
 
         // === CPU ===
-        public int ProcesadorId { get; set; }
+        public int? ProcesadorId { get; set; }
 
         [ForeignKey(nameof(ProcesadorId))]
         public Componente? Procesador { get; set; }
 
         // === STORAGE ===
-        public int AlmacenamientoId { get; set; }
+        public int? AlmacenamientoId { get; set; }
 
         [ForeignKey(nameof(AlmacenamientoId))]
         public Componente? Almacenamiento { get; set; }
 
         // === GPU ===
-        public int GPUId { get; set; }
+        public int? GPUId { get; set; } 
 
         [ForeignKey(nameof(GPUId))]
         public Componente? GPU { get; set; }
