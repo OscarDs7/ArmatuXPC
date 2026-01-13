@@ -5,7 +5,6 @@ using ArmatuXPC.Backend.Models;
 
 namespace ArmatuXPC.Backend.Controllers
 {
-    // API controller for managing 'Armado' entities
     [ApiController]
     [Route("api/[controller]")]
     public class CompatibilidadesController : ControllerBase
@@ -17,83 +16,69 @@ namespace ArmatuXPC.Backend.Controllers
             _context = context;
         }
 
-        // GET: api/Compatibilidades -> Obtiene todos las compatibilidades entre componentes
+        // GET: api/Compatibilidades
         [HttpGet]
         public async Task<ActionResult<IEnumerable<Compatibilidad>>> GetCompatibilidades()
         {
             return await _context.Compatibilidades.ToListAsync();
         }
 
-        // GET: api/Compatibilidades/5 -> Obtiene un armado por ID
+        // GET: api/Compatibilidades/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<Compatibilidad>> GetCompatibilidades(int id)
+        public async Task<ActionResult<Compatibilidad>> GetCompatibilidad(int id)
         {
             var compatibilidad = await _context.Compatibilidades
-                .FirstOrDefaultAsync(a => a.CompatibilidadId == id);
+                .FirstOrDefaultAsync(c => c.CompatibilidadId == id);
 
             if (compatibilidad == null)
-            {
                 return NotFound();
-            }
 
             return compatibilidad;
         }
 
-        // POST: api/Compatibilidad -> Crea un nuevo armado
+        // POST: api/Compatibilidades
         [HttpPost]
-        public async Task<ActionResult<Armado>> PostArmado(Compatibilidad compatibilidad)
+        public async Task<ActionResult<Compatibilidad>> PostCompatibilidad(Compatibilidad compatibilidad)
         {
             _context.Compatibilidades.Add(compatibilidad);
             await _context.SaveChangesAsync();
 
             return CreatedAtAction(
-                nameof(GetCompatibilidades),
+                nameof(GetCompatibilidad),
                 new { id = compatibilidad.CompatibilidadId },
                 compatibilidad
             );
         }
 
-        // PUT: api/Armados/5 -> Actualiza un armado
+        // PUT: api/Compatibilidades/5
         [HttpPut("{id}")]
         public async Task<IActionResult> PutCompatibilidad(int id, Compatibilidad compatibilidad)
         {
             if (id != compatibilidad.CompatibilidadId)
-            {
                 return BadRequest("El ID no coincide");
-            }
 
-            _context.Entry(compatibilidad).State = EntityState.Modified;
+            var db = await _context.Compatibilidades.FindAsync(id);
+            if (db == null)
+                return NotFound();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!CompatibilidadExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            // Actualiza solo los campos reales
+            db.ComponenteAId = compatibilidad.ComponenteAId;
+            db.ComponenteBId = compatibilidad.ComponenteBId;
+            db.EsCompatible = compatibilidad.EsCompatible;
+            db.Motivo = compatibilidad.Motivo;
+
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        // DELETE: api/Armados/5 -> Elimina un armado
+        // DELETE: api/Compatibilidades/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCompatibilidad(int id)
         {
-            var compatibilidad = await _context.Compatibilidades
-                .FirstOrDefaultAsync(a => a.CompatibilidadId == id);
-
+            var compatibilidad = await _context.Compatibilidades.FindAsync(id);
             if (compatibilidad == null)
-            {
                 return NotFound();
-            }
 
             _context.Compatibilidades.Remove(compatibilidad);
             await _context.SaveChangesAsync();
@@ -103,7 +88,7 @@ namespace ArmatuXPC.Backend.Controllers
 
         private bool CompatibilidadExists(int id)
         {
-            return _context.Armados.Any(e => e.ArmadoId == id);
+            return _context.Compatibilidades.Any(e => e.CompatibilidadId == id);
         }
     }
 }
