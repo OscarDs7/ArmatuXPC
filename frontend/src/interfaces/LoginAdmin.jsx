@@ -50,7 +50,7 @@ export default function LoginAdmin() {
 
       // 3. Si NO existe → automáticamente es administrador
       alert("Bienvenido Administrador!");
-      navigate("/check-admin", { state: { nombre: "Administrador" } });
+      navigate("/dash-admin", { state: { nombre: "Administrador" } });
 
     } catch (err) {
       console.error(err);
