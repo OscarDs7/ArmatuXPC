@@ -1,16 +1,20 @@
-namespace ArmatuXPC.Backend.Models
+using System.Text.Json.Serialization;
+
+namespace ArmatuXPC.Backend.Models;
+
+public class Compatibilidad
 {
-    public class Compatibilidad
-    {
-        public int CompatibilidadId { get; set; } 
-        public string MarcaComponente { get; set; } = string.Empty;
-        public string MarcaIncompatible { get; set; } = string.Empty;  
-        public string RazonIncompatibilidad { get; set; } = string.Empty;
+    public int CompatibilidadId { get; set; }
 
-        // FOREIGN KEYS
-        public int ComponenteId { get; set; }
+    public int ComponenteAId { get; set; }
+    public int ComponenteBId { get; set; }
 
-        // Navigation property
-        public Componente Componente { get; set; } = null!;
-    }
+    [JsonIgnore]
+    public Componente? ComponenteA { get; set; }   // 👈 nullable
+
+    [JsonIgnore]
+    public Componente? ComponenteB { get; set; }   // 👈 nullable
+
+    public string Motivo { get; set; } = string.Empty;
+    public bool EsCompatible { get; set; }
 }

@@ -60,7 +60,7 @@ export default function LoginUser() {
     }
 
     alert(`Bienvenido ${usuario.Nombre} ✨`);
-    navigate("/check-user", { state: { nombre: usuario.Nombre } });
+    navigate("/dash-user", { state: { nombre: usuario.Nombre } });
 
   } catch (err) {
   console.error("Login error:", err.code);

@@ -21,7 +21,8 @@ export default function LoginAdmin() {
     try {
       await signInWithEmailAndPassword(auth, email, password);
       alert("Bienvenido Administrador!");
-      navigate("/check-admin", { state: { nombre: "Administrador" } });
+      navigate("/dash-admin", { state: { nombre: "Administrador" } });
+
     } catch (err) {
       console.error(err);
       setError("Correo o contraseña incorrectos.");
