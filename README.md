@@ -204,8 +204,9 @@ Revisa la configuración de la base de datos
 
 ## Puertos
 
-- Local (sin Docker): http://localhost:5031
-- Docker / ZeroTier: http://<IP-LÍDER-DE-EQUIPO>:5000
+- Local (sin Docker): http://localhost:5031/Swagger
+- Docker / ZeroTier: http://<IP-LÍDER-DE-EQUIPO>:5000/swagger
+
 
 
 
