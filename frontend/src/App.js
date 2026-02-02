@@ -5,7 +5,7 @@ import LoginUsuario from "./interfaces/LoginUser";
 import LoginAdmin from "./interfaces/LoginAdmin";
 import CheckAdmin from "./interfaces/CheckAdmin";
 import CheckUser from "./interfaces/CheckUser";
-
+import Pruebadedatos from "./interfaces/Pruebadedatos";
 function App() {
   return (
     <Routes>
@@ -15,6 +15,7 @@ function App() {
       <Route path="/roles" element={<MenuRoles />} />
       <Route path="/check-admin" element={<CheckAdmin />} />
       <Route path="/check-user" element={<CheckUser />} />
+      <Route path="/Pruebadedatos" element={<Pruebadedatos />} />
     </Routes>
   );
 }

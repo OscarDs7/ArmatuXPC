@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "PFbCCCQ1OSU=",
+  "dgSpecHash": "RYL92moKhMk=",
   "success": true,
-  "projectFilePath": "C:\\xampp\\htdocs\\armatuxpc\\ArmatuXPC\\backend\\ArmatuXPC.Backend\\ArmatuXPC.Backend.csproj",
+  "projectFilePath": "C:\\xampp\\htdocs\\armatuxpc\\backend\\ArmatuXPC.Backend\\ArmatuXPC.Backend.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\tikis\\.nuget\\packages\\dotnetenv\\3.1.1\\dotnetenv.3.1.1.nupkg.sha512",
     "C:\\Users\\tikis\\.nuget\\packages\\humanizer.core\\2.14.1\\humanizer.core.2.14.1.nupkg.sha512",

@@ -122,7 +122,9 @@ export default function LoginUser() {
     setModoRegistro(false);
 
   } catch (err) {
-    console.error("ERROR REGISTRO:", err);
+    console.log("CODE:", err.code);
+  console.log("MESSAGE:", err.message);
+  console.log("FULL ERROR:", err);
 
     if (err.code === "auth/email-already-in-use") {
       return setError("Este correo ya está registrado.");

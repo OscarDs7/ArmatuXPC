@@ -7222,11 +7222,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\xampp\\htdocs\\armatuxpc\\ArmatuXPC\\backend\\ArmatuXPC.Backend\\ArmatuXPC.Backend.csproj",
+      "projectUniqueName": "C:\\xampp\\htdocs\\armatuxpc\\backend\\ArmatuXPC.Backend\\ArmatuXPC.Backend.csproj",
       "projectName": "ArmatuXPC.Backend",
-      "projectPath": "C:\\xampp\\htdocs\\armatuxpc\\ArmatuXPC\\backend\\ArmatuXPC.Backend\\ArmatuXPC.Backend.csproj",
+      "projectPath": "C:\\xampp\\htdocs\\armatuxpc\\backend\\ArmatuXPC.Backend\\ArmatuXPC.Backend.csproj",
       "packagesPath": "C:\\Users\\tikis\\.nuget\\packages\\",
-      "outputPath": "C:\\xampp\\htdocs\\armatuxpc\\ArmatuXPC\\backend\\ArmatuXPC.Backend\\obj\\",
+      "outputPath": "C:\\xampp\\htdocs\\armatuxpc\\backend\\ArmatuXPC.Backend\\obj\\",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "C:\\Users\\tikis\\AppData\\Roaming\\NuGet\\NuGet.Config"
