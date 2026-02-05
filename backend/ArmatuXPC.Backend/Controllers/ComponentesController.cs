@@ -42,7 +42,7 @@ namespace ArmatuXPC.Backend.Controllers
 
         // POST: api/Componentes -> Crea un nuevo 'Componente'
         [HttpPost]
-        public async Task<ActionResult<Componente>> PostComponente(Componente componente)
+        public async Task<ActionResult<Componente>> PostComponente([FromBody] Componente componente)
         {
             _context.Componentes.Add(componente);
             await _context.SaveChangesAsync();
