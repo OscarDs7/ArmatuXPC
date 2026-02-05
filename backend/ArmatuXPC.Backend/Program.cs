@@ -1,17 +1,29 @@
 using ArmatuXPC.Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
+using ArmatuXPC.Backend.Models;
+using System.Text.Json.Serialization;
+using ArmatuXPC.Backend.Services.Armados;
+
 
 Env.Load(); // Cargar variables de entorno desde el archivo .env
 
 var builder = WebApplication.CreateBuilder(args); // Crear el constructor de la aplicación
 
 // Controllers
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        // Configurar el convertidor de enumeraciones a cadenas JSON
+        options.JsonSerializerOptions.Converters.Add(
+            new JsonStringEnumConverter());
+    });
 
 // Swagger / OpenAPI (estable)
 builder.Services.AddEndpointsApiExplorer(); // Explorador de puntos finales API
 builder.Services.AddSwaggerGen(); // Generador de Swagger
+// Servicios personalizados
+builder.Services.AddScoped<IArmadoValidationService, ArmadoValidationService>();
 
 // EF Core + PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
