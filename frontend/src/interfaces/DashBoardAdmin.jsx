@@ -56,7 +56,7 @@ const styles = {
 };
 
 // Componente principal
-export default function CheckUser() {
+export default function DashBoardAdmin() {
   const location = useLocation();
   const navigate = useNavigate();
   const nombre = location.state?.nombre || "Usuario";
