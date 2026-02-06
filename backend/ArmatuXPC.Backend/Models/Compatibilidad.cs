@@ -10,10 +10,10 @@ public class Compatibilidad
     public int ComponenteBId { get; set; }
 
     [JsonIgnore]
-    public Componente ComponenteA { get; set; } = null!;  // 👈 nullable
+    public Componente? ComponenteA { get; set; }  // 👈 nullable
 
     [JsonIgnore]
-    public Componente ComponenteB { get; set; } = null!;  // 👈 nullable
+    public Componente? ComponenteB { get; set; }  // 👈 nullable
 
     public string Motivo { get; set; } = string.Empty;
     public bool EsCompatible { get; set; }
