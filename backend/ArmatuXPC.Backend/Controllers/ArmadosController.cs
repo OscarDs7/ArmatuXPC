@@ -149,8 +149,8 @@ namespace ArmatuXPC.Backend.Controllers
                 : null;
 
             // Validar compatibilidad
-            var errores = await EvaluarCompatibilidad(armado);
-
+            //var errores = await EvaluarCompatibilidad(armado);
+            /*
             if (errores.Any())
             {
                 return BadRequest(new
@@ -158,7 +158,7 @@ namespace ArmatuXPC.Backend.Controllers
                     mensaje = "El armado tiene componentes incompatibles",
                     errores
                 });
-            }
+            }*/
 
             _context.Armados.Add(armado);
             await _context.SaveChangesAsync();
