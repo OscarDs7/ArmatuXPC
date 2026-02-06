@@ -1,6 +1,7 @@
 using ArmatuXPC.Backend.DTOs.Armados;
 using ArmatuXPC.Backend.Data;
 using Microsoft.EntityFrameworkCore;
+using ArmatuXPC.Backend.Models;
 
 namespace ArmatuXPC.Backend.Services.Armados
 {
@@ -13,93 +14,111 @@ namespace ArmatuXPC.Backend.Services.Armados
             _context = context;
         }
 
-        public async Task<ArmadoValidationResultDto> ValidateAsync(int armadoId)
+        // helper privado para obtener componentes del armado
+        private List<Componente> GetComponentesDelArmado(Armado armado)
         {
-            var armado = await _context.Armados
-                .Include(a => a.Procesador)
-                .Include(a => a.PlacaBase)
-                .Include(a => a.MemoriaRam)
-                .Include(a => a.GPU)
-                .Include(a => a.FuentePoder)
-                .Include(a => a.Almacenamiento)
-                .Include(a => a.Gabinete)
-                .FirstOrDefaultAsync(a => a.ArmadoId == armadoId);
-
-            var result = new ArmadoValidationResultDto
+            return new List<Componente?>
             {
-                ArmadoId = armadoId,
-                IsValid = true
-            };
-
-            if (armado == null)
-            {
-                result.IsValid = false;
-                return result;
+                armado.Procesador,
+                armado.PlacaBase,
+                armado.MemoriaRam,
+                armado.GPU,
+                armado.FuentePoder,
+                armado.Almacenamiento,
+                armado.Gabinete
             }
-
-            var componentes = new List<(int Id, string Nombre)>
-            {
-                (armado.Procesador?.ComponenteId ?? 0, armado.Procesador?.Nombre ?? ""),
-                (armado.PlacaBase?.ComponenteId ?? 0, armado.PlacaBase?.Nombre ?? ""),
-                (armado.MemoriaRam?.ComponenteId ?? 0, armado.MemoriaRam?.Nombre ?? ""),
-                (armado.GPU?.ComponenteId ?? 0, armado.GPU?.Nombre ?? ""),
-                (armado.FuentePoder?.ComponenteId ?? 0, armado.FuentePoder?.Nombre ?? ""),
-                (armado.Almacenamiento?.ComponenteId ?? 0, armado.Almacenamiento?.Nombre ?? ""),
-                (armado.Gabinete?.ComponenteId ?? 0, armado.Gabinete?.Nombre ?? "")
-            }
-            .Where(c => c.Id > 0)
+            .Where(c => c != null)
+            .Cast<Componente>()
             .ToList();
+        } // GetComponentesDelArmado
 
-            var ids = componentes.Select(c => c.Id).ToList();
+        public async Task<ArmadoValidationResultDto> ValidateAsync(int armadoId)
+{
+    var armado = await _context.Armados
+        .Include(a => a.Procesador)
+        .Include(a => a.PlacaBase)
+        .Include(a => a.MemoriaRam)
+        .Include(a => a.GPU)
+        .Include(a => a.FuentePoder)
+        .Include(a => a.Almacenamiento)
+        .Include(a => a.Gabinete)
+        .FirstOrDefaultAsync(a => a.ArmadoId == armadoId);
 
-            var incompatibilidades = await _context.Compatibilidades
-                .Where(c =>
-                    ids.Contains(c.ComponenteAId) &&
-                    ids.Contains(c.ComponenteBId) &&
-                    !c.EsCompatible)
-                .ToListAsync();
+        var result = new ArmadoValidationResultDto
+        {
+            ArmadoId = armadoId,
+            IsValid = true
+        };
 
-            foreach (var inc in incompatibilidades)
-            {
-                result.IsValid = false;
-
-                // 1️⃣ Registrar error
-                result.Errors.Add(new ArmadoErrorDto
-                {
-                    ComponenteAId = inc.ComponenteAId,
-                    ComponenteBId = inc.ComponenteBId,
-                    Motivo = inc.Motivo
-                });
-
-                // 2️⃣ Generar recomendación automática
-                var componenteProblematicoId = inc.ComponenteBId;
-
-                var componenteProblematico = componentes
-                    .First(c => c.Id == componenteProblematicoId);
-
-                var compatibles = await _context.Compatibilidades
-                    .Where(c =>
-                        c.ComponenteAId == inc.ComponenteAId &&
-                        c.EsCompatible)
-                    .Include(c => c.ComponenteB)
-                    .Select(c => new RecommendedComponentDto
-                    {
-                        Id = c.ComponenteBId,
-                        Nombre = c.ComponenteB.Nombre,
-                        Marca = c.ComponenteB.Marca,
-                        Modelo = c.ComponenteB.Modelo
-                    })
-                    .ToListAsync();
-
-                result.Recommendations.Add(new ArmadoRecommendationDto
-                {
-                    ReplaceComponentId = componenteProblematicoId,
-                    ReplaceComponentName = componenteProblematico.Nombre,
-                    Suggestions = compatibles
-                });
-            }
-
+        if (armado == null)
+        {
+            result.IsValid = false;
             return result;
         }
+
+        var componentes = GetComponentesDelArmado(armado);
+        var ids = componentes.Select(c => c.ComponenteId).ToList();
+
+        var incompatibilidades = await _context.Compatibilidades
+            .Where(c =>
+                !c.EsCompatible &&
+                ids.Contains(c.ComponenteAId) &&
+                ids.Contains(c.ComponenteBId))
+            .ToListAsync();
+
+        foreach (var inc in incompatibilidades)
+        {
+            result.IsValid = false;
+
+            // ❌ Error
+            result.Errors.Add(new ArmadoErrorDto
+            {
+                ComponenteAId = inc.ComponenteAId,
+                ComponenteBId = inc.ComponenteBId,
+                Motivo = inc.Motivo
+            });
+
+            await GenerarRecomendacion(inc, componentes, result);
+        }
+
+        return result;
     }
-}
+
+    // Generar recomendaciones basadas en incompatibilidades
+    private async Task GenerarRecomendacion(
+        Compatibilidad inc,
+        List<Componente> componentes,
+        ArmadoValidationResultDto result)
+    {
+        var componenteProblematico = componentes
+            .First(c => c.ComponenteId == inc.ComponenteBId);
+
+        var alternativas = await _context.Compatibilidades
+            .Where(c =>
+                c.ComponenteAId == inc.ComponenteAId &&
+                c.EsCompatible)
+            .Include(c => c.ComponenteB)
+            .Where(c => c.ComponenteB != null && c.ComponenteB.Tipo == componenteProblematico.Tipo)
+            .Select(c => new RecommendedComponentDto
+            {
+                Id = c.ComponenteBId,
+                Nombre = c.ComponenteB!.Nombre,
+                Marca = c.ComponenteB!.Marca,
+                Modelo = c.ComponenteB!.Modelo
+            })
+            .ToListAsync();
+
+        if (!alternativas.Any())
+            return;
+
+        result.Recommendations.Add(new ArmadoRecommendationDto
+        {
+            ReplaceComponentId = componenteProblematico.ComponenteId,
+            ReplaceComponentName = componenteProblematico.Nombre,
+            Suggestions = alternativas
+        });
+    } // GenerarRecomendacion
+
+    } // ArmadoValidationService
+
+} // namespace ArmatuXPC.Backend.Services.Armados

@@ -1,5 +1,5 @@
 using ArmatuXPC.Backend.DTOs.Armados;
-using System.Threading.Tasks;
+using ArmatuXPC.Backend.Models;
 
 
 namespace ArmatuXPC.Backend.Services.Armados
