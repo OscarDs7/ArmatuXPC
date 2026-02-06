@@ -22,7 +22,8 @@ builder.Services.AddControllers()
 // Swagger / OpenAPI (estable)
 builder.Services.AddEndpointsApiExplorer(); // Explorador de puntos finales API
 builder.Services.AddSwaggerGen(); // Generador de Swagger
-// Servicios personalizados
+
+// Servicios personalizados de lógica de negocio
 builder.Services.AddScoped<IArmadoValidationService, ArmadoValidationService>();
 
 // EF Core + PostgreSQL
