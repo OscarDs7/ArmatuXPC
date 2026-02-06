@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import "../estilos/DashBoardUser.css";
 import logoProyecto from "../imagenes/Logo.png"; // imagen del logo del proyecto
 
-export default function UserHome() {
+export default function DashBoardUser() {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
