@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ArmatuXPC.Backend.Data;
 using ArmatuXPC.Backend.Models;
+using ArmatuXPC.Backend.DTOs;
 
 namespace ArmatuXPC.Backend.Controllers
 {
@@ -38,17 +39,23 @@ namespace ArmatuXPC.Backend.Controllers
 
         // POST: api/Compatibilidades
         [HttpPost]
-        public async Task<ActionResult<Compatibilidad>> PostCompatibilidad(Compatibilidad compatibilidad)
+        public async Task<IActionResult> CreateCompatibilidad(
+            [FromBody] CompatibilidadCreateDto dto)
         {
+            var compatibilidad = new Compatibilidad
+            {
+                ComponenteAId = dto.ComponenteAId,
+                ComponenteBId = dto.ComponenteBId,
+                Motivo = dto.Motivo,
+                EsCompatible = dto.EsCompatible
+            };
+
             _context.Compatibilidades.Add(compatibilidad);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(
-                nameof(GetCompatibilidad),
-                new { id = compatibilidad.CompatibilidadId },
-                compatibilidad
-            );
+            return Ok(compatibilidad);
         }
+
 
         // PUT: api/Compatibilidades/5
         [HttpPut("{id}")]
