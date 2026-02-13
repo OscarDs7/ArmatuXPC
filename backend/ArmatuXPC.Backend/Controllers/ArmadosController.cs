@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ArmatuXPC.Backend.Data;
 using ArmatuXPC.Backend.Models;
+using ArmatuXPC.Backend.DTOs;
 
 namespace ArmatuXPC.Backend.Controllers
 {
@@ -55,38 +56,28 @@ namespace ArmatuXPC.Backend.Controllers
 
         // GET: api/Armados -> Obtiene todos los armados
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Armado>>> GetArmados()
+        public async Task<ActionResult<IEnumerable<ArmadoDto>>> GetArmados()
         {
-            return await _context.Armados
-            .Include(a => a.Gabinete)
-            .Include(a => a.PlacaBase)
-            .Include(a => a.FuentePoder)
-            .Include(a => a.MemoriaRam)
-            .Include(a => a.Procesador)
-            .Include(a => a.Almacenamiento)
-            .Include(a => a.GPU)
-            .ToListAsync();
-        }
+            var armados = await _context.Armados
+                .Select(a => new ArmadoDto
+                {
+                    ArmadoId = a.ArmadoId,
+                    NombreArmado = a.NombreArmado,
+                    Componentes = new ComponentesDto
+                    {
+                        Procesador = a.Procesador,
+                        PlacaBase = a.PlacaBase,
+                        GPU = a.GPU,
+                        MemoriaRam = a.MemoriaRam,
+                        Almacenamiento = a.Almacenamiento,
+                        FuentePoder = a.FuentePoder,
+                        Gabinete = a.Gabinete
+                    }
+                })
+                .ToListAsync();
 
-        // GET: api/Armados/5 -> Obtiene un armado por ID
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Armado>> GetArmado(int id)
-        {
-            var armado = await _context.Armados
-                .Include(a => a.Gabinete)
-                .Include(a => a.PlacaBase)
-                .Include(a => a.FuentePoder)
-                .Include(a => a.MemoriaRam)
-                .Include(a => a.Procesador)
-                .Include(a => a.Almacenamiento)
-                .Include(a => a.GPU)
-                .FirstOrDefaultAsync(a => a.ArmadoId == id);
-
-            if (armado == null)
-                return NotFound();
-
-            return armado;
-        }
+            return armados;
+        } // final_GetArmados
 
         // GET: api/Armados/5/validarCompatibilidad -> Valida la compatibilidad de un armado
         [HttpGet("{id}/validarCompatibilidad")]
