@@ -62,6 +62,7 @@ namespace ArmatuXPC.Backend.Controllers
                 .Select(a => new ArmadoDto
                 {
                     ArmadoId = a.ArmadoId,
+                    UsuarioId = a.UsuarioId,
                     NombreArmado = a.NombreArmado,
                     Componentes = new ComponentesDto
                     {
