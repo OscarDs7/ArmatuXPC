@@ -59,6 +59,7 @@ namespace ArmatuXPC.Backend.Controllers
         public async Task<ActionResult<IEnumerable<ArmadoDto>>> GetArmados()
         {
             var armados = await _context.Armados
+                // Select para mapear a ArmadoDto
                 .Select(a => new ArmadoDto
                 {
                     ArmadoId = a.ArmadoId,
