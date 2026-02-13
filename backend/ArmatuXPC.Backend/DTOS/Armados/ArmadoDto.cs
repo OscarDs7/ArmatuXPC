@@ -4,6 +4,7 @@ using ArmatuXPC.Backend.Models;
 public class ArmadoDto
 {
     public int ArmadoId { get; set; }
+    public int UsuarioId { get; set; }
     public required string NombreArmado { get; set; }
 
     public required ComponentesDto Componentes { get; set; }
