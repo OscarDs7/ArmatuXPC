@@ -104,7 +104,8 @@ namespace ArmatuXPC.Backend.Services.Armados
                 Id = c.ComponenteBId,
                 Nombre = c.ComponenteB!.Nombre,
                 Marca = c.ComponenteB!.Marca,
-                Modelo = c.ComponenteB!.Modelo
+                Modelo = c.ComponenteB!.Modelo,
+                Precio = c.ComponenteB!.Precio
             })
             .ToListAsync();
 
