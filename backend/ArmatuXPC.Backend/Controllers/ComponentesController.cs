@@ -18,68 +18,108 @@ namespace ArmatuXPC.Backend.Controllers
             _context = context;
         }
 
-        // GET: api/Componentes -> Recibe todo los 'Componentes'
+        // GET: api/Componentes -> Recibe todos los 'Componentes' disponibles, con opción de filtrar por tipo
+        // GET: api/Componentes?tipo=1
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Componente>>> GetComponentes()
+        public async Task<ActionResult<IEnumerable<ComponenteDto>>> GetComponentes([FromQuery] TipoComponente? tipo)
         {
-            return await _context.Componentes.ToListAsync();
+            var query = _context.Componentes.AsQueryable();
+
+            if (tipo.HasValue)
+                query = query.Where(c => c.Tipo == tipo.Value);
+
+            var componentes = await query
+                .Select(c => new ComponenteDto
+                {
+                    ComponenteId = c.ComponenteId,
+                    Nombre = c.Nombre,
+                    Marca = c.Marca,
+                    Modelo = c.Modelo,
+                    Precio = c.Precio,
+                    Tipo = c.Tipo,
+                    ConsumoWatts = c.ConsumoWatts,
+                    CapacidadWatts = c.CapacidadWatts
+                })
+                .ToListAsync();
+
+            return Ok(componentes);
         }
 
-        // GET: api/Componentes/5 -> Recibe un 'Componente' por su ID
+        // GET: api/Componentes/5 -> Recibe un 'Componente' específico por su ID
         [HttpGet("{id}")]
-        public async Task<ActionResult<Componente>> GetComponente(int id)
+        public async Task<ActionResult<ComponenteDto>> GetComponente(int id)
         {
             var componente = await _context.Componentes
-                .FirstOrDefaultAsync(c => c.ComponenteId == id);
+                .Where(c => c.ComponenteId == id)
+                .Select(c => new ComponenteDto
+                {
+                    ComponenteId = c.ComponenteId,
+                    Nombre = c.Nombre,
+                    Marca = c.Marca,
+                    Modelo = c.Modelo,
+                    Precio = c.Precio,
+                    Tipo = c.Tipo,
+                    ConsumoWatts = c.ConsumoWatts,
+                    CapacidadWatts = c.CapacidadWatts
+                })
+                .FirstOrDefaultAsync();
 
             if (componente == null)
-            {
                 return NotFound();
-            }
 
-            return componente;
+            return Ok(componente);
         }
 
         // POST: api/Componentes -> Crea un nuevo 'Componente'
         [HttpPost]
-        public async Task<ActionResult<Componente>> PostComponente([FromBody] Componente componente)
+        public async Task<ActionResult> PostComponente(ComponenteDto dto)
         {
+            if (dto.Tipo == TipoComponente.FuentePoder && dto.CapacidadWatts == null)
+                return BadRequest("La fuente debe tener CapacidadWatts");
+
+            if (dto.Tipo != TipoComponente.FuentePoder && dto.CapacidadWatts != null)
+                return BadRequest("Solo la fuente puede tener CapacidadWatts");
+
+            var componente = new Componente
+            {
+                Nombre = dto.Nombre,
+                Marca = dto.Marca,
+                Modelo = dto.Modelo,
+                Precio = dto.Precio,
+                Tipo = dto.Tipo,
+                ConsumoWatts = dto.ConsumoWatts,
+                CapacidadWatts = dto.CapacidadWatts
+            };
+
             _context.Componentes.Add(componente);
             await _context.SaveChangesAsync();
 
-            return CreatedAtAction(
-                nameof(GetComponente),
+            return CreatedAtAction(nameof(GetComponente),
                 new { id = componente.ComponenteId },
-                componente
-            );
+                componente);
         }
 
         // PUT: api/Componentes/5 -> Actualiza un 'Componente' existente por su ID
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutComponente(int id, Componente componente)
+        public async Task<IActionResult> PutComponente(int id, ComponenteDto dto)
         {
-            if (id != componente.ComponenteId)
-            {
-                return BadRequest("El ID no coincide");
-            }
+            var componente = await _context.Componentes.FindAsync(id);
 
-            _context.Entry(componente).State = EntityState.Modified;
+            if (componente == null)
+                return NotFound();
 
-            try
-            {
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateConcurrencyException)
-            {
-                if (!ComponenteExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
-            }
+            if (dto.Tipo == TipoComponente.FuentePoder && dto.CapacidadWatts == null)
+                return BadRequest("La fuente debe tener CapacidadWatts");
+
+            componente.Nombre = dto.Nombre;
+            componente.Marca = dto.Marca;
+            componente.Modelo = dto.Modelo;
+            componente.Precio = dto.Precio;
+            componente.Tipo = dto.Tipo;
+            componente.ConsumoWatts = dto.ConsumoWatts;
+            componente.CapacidadWatts = dto.CapacidadWatts;
+
+            await _context.SaveChangesAsync();
 
             return NoContent();
         }
@@ -89,22 +129,20 @@ namespace ArmatuXPC.Backend.Controllers
         public async Task<IActionResult> DeleteComponente(int id)
         {
             var componente = await _context.Componentes
+                .Include(c => c.Armados)
                 .FirstOrDefaultAsync(c => c.ComponenteId == id);
 
             if (componente == null)
-            {
                 return NotFound();
-            }
+
+            if (componente.Armados.Any())
+                return BadRequest("No se puede eliminar el componente porque está siendo usado en uno o más armados");
 
             _context.Componentes.Remove(componente);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
-
-        private bool ComponenteExists(int id)
-        {
-            return _context.Componentes.Any(e => e.ComponenteId == id);
-        }
+        
     }
 }

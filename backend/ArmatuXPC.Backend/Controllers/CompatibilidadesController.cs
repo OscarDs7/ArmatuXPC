@@ -42,6 +42,20 @@ namespace ArmatuXPC.Backend.Controllers
         public async Task<IActionResult> CreateCompatibilidad(
             [FromBody] CompatibilidadCreateDto dto)
         {
+            if (dto.ComponenteAId == dto.ComponenteBId)
+                return BadRequest("Un componente no puede validarse contra sí mismo.");
+
+            // Verificar si ya existe A-B o B-A
+            var existe = await _context.Compatibilidades.AnyAsync(c =>
+                (c.ComponenteAId == dto.ComponenteAId &&
+                c.ComponenteBId == dto.ComponenteBId)
+                ||
+                (c.ComponenteAId == dto.ComponenteBId &&
+                c.ComponenteBId == dto.ComponenteAId));
+
+            if (existe)
+                return BadRequest("Ya existe una regla entre estos componentes.");
+
             var compatibilidad = new Compatibilidad
             {
                 ComponenteAId = dto.ComponenteAId,
@@ -55,7 +69,6 @@ namespace ArmatuXPC.Backend.Controllers
 
             return Ok(compatibilidad);
         }
-
 
         // PUT: api/Compatibilidades/5
         [HttpPut("{id}")]
