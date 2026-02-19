@@ -30,51 +30,34 @@ namespace ArmatuXPC.Backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ArmadoId"));
 
-                    b.Property<int?>("AlmacenamientoId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("FuentePoderId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("GPUId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("GabineteId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("MemoriaRamId")
-                        .HasColumnType("integer");
-
                     b.Property<string>("NombreArmado")
                         .IsRequired()
                         .HasColumnType("text");
-
-                    b.Property<int?>("PlacaBaseId")
-                        .HasColumnType("integer");
-
-                    b.Property<int?>("ProcesadorId")
-                        .HasColumnType("integer");
 
                     b.Property<int>("UsuarioId")
                         .HasColumnType("integer");
 
                     b.HasKey("ArmadoId");
 
-                    b.HasIndex("AlmacenamientoId");
-
-                    b.HasIndex("FuentePoderId");
-
-                    b.HasIndex("GPUId");
-
-                    b.HasIndex("GabineteId");
-
-                    b.HasIndex("MemoriaRamId");
-
-                    b.HasIndex("PlacaBaseId");
-
-                    b.HasIndex("ProcesadorId");
-
                     b.ToTable("Armados");
+                });
+
+            modelBuilder.Entity("ArmatuXPC.Backend.Models.ArmadoComponente", b =>
+                {
+                    b.Property<int>("ArmadoId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("ComponenteId")
+                        .HasColumnType("integer");
+
+                    b.Property<int>("Cantidad")
+                        .HasColumnType("integer");
+
+                    b.HasKey("ArmadoId", "ComponenteId");
+
+                    b.HasIndex("ComponenteId");
+
+                    b.ToTable("ArmadoComponentes");
                 });
 
             modelBuilder.Entity("ArmatuXPC.Backend.Models.Compatibilidad", b =>
@@ -115,6 +98,12 @@ namespace ArmatuXPC.Backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ComponenteId"));
 
+                    b.Property<decimal?>("CapacidadWatts")
+                        .HasColumnType("decimal(10,2)");
+
+                    b.Property<decimal?>("ConsumoWatts")
+                        .HasColumnType("decimal(10,2)");
+
                     b.Property<string>("Marca")
                         .IsRequired()
                         .HasColumnType("text");
@@ -127,67 +116,34 @@ namespace ArmatuXPC.Backend.Migrations
                         .IsRequired()
                         .HasColumnType("text");
 
+                    b.Property<decimal>("Precio")
+                        .HasColumnType("decimal(18,2)");
+
                     b.Property<int>("Tipo")
                         .HasColumnType("integer");
-
-                    b.Property<decimal>("Voltaje")
-                        .HasColumnType("numeric");
 
                     b.HasKey("ComponenteId");
 
                     b.ToTable("Componentes");
                 });
 
-            modelBuilder.Entity("ArmatuXPC.Backend.Models.Armado", b =>
+            modelBuilder.Entity("ArmatuXPC.Backend.Models.ArmadoComponente", b =>
                 {
-                    b.HasOne("ArmatuXPC.Backend.Models.Componente", "Almacenamiento")
-                        .WithMany("ComoAlmacenamiento")
-                        .HasForeignKey("AlmacenamientoId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.HasOne("ArmatuXPC.Backend.Models.Armado", "Armado")
+                        .WithMany("Componentes")
+                        .HasForeignKey("ArmadoId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.HasOne("ArmatuXPC.Backend.Models.Componente", "FuentePoder")
-                        .WithMany("ComoFuentePoder")
-                        .HasForeignKey("FuentePoderId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.HasOne("ArmatuXPC.Backend.Models.Componente", "Componente")
+                        .WithMany("Armados")
+                        .HasForeignKey("ComponenteId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
-                    b.HasOne("ArmatuXPC.Backend.Models.Componente", "GPU")
-                        .WithMany("ComoGPU")
-                        .HasForeignKey("GPUId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                    b.Navigation("Armado");
 
-                    b.HasOne("ArmatuXPC.Backend.Models.Componente", "Gabinete")
-                        .WithMany("ComoGabinete")
-                        .HasForeignKey("GabineteId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("ArmatuXPC.Backend.Models.Componente", "MemoriaRam")
-                        .WithMany("ComoMemoriaRam")
-                        .HasForeignKey("MemoriaRamId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("ArmatuXPC.Backend.Models.Componente", "PlacaBase")
-                        .WithMany("ComoPlacaBase")
-                        .HasForeignKey("PlacaBaseId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("ArmatuXPC.Backend.Models.Componente", "Procesador")
-                        .WithMany("ComoProcesador")
-                        .HasForeignKey("ProcesadorId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.Navigation("Almacenamiento");
-
-                    b.Navigation("FuentePoder");
-
-                    b.Navigation("GPU");
-
-                    b.Navigation("Gabinete");
-
-                    b.Navigation("MemoriaRam");
-
-                    b.Navigation("PlacaBase");
-
-                    b.Navigation("Procesador");
+                    b.Navigation("Componente");
                 });
 
             modelBuilder.Entity("ArmatuXPC.Backend.Models.Compatibilidad", b =>
@@ -209,21 +165,14 @@ namespace ArmatuXPC.Backend.Migrations
                     b.Navigation("ComponenteB");
                 });
 
+            modelBuilder.Entity("ArmatuXPC.Backend.Models.Armado", b =>
+                {
+                    b.Navigation("Componentes");
+                });
+
             modelBuilder.Entity("ArmatuXPC.Backend.Models.Componente", b =>
                 {
-                    b.Navigation("ComoAlmacenamiento");
-
-                    b.Navigation("ComoFuentePoder");
-
-                    b.Navigation("ComoGPU");
-
-                    b.Navigation("ComoGabinete");
-
-                    b.Navigation("ComoMemoriaRam");
-
-                    b.Navigation("ComoPlacaBase");
-
-                    b.Navigation("ComoProcesador");
+                    b.Navigation("Armados");
                 });
 #pragma warning restore 612, 618
         }

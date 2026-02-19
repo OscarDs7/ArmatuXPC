@@ -11,51 +11,34 @@ namespace ArmatuXPC.Backend.Data
         // DbSets (tablas)
         public DbSet<Componente> Componentes { get; set; }
         public DbSet<Armado> Armados { get; set; }
-        public DbSet<Compatibilidad> Compatibilidades { get; set; } 
+        public DbSet<Compatibilidad> Compatibilidades { get; set; }
+        public DbSet<ArmadoComponente> ArmadoComponentes { get; set; } // Tabla de unión para relación muchos a muchos entre Armado y Componente
 
-        // Configuración de las relaciones entre entidades o tablas
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Armado>(entity =>
-            {
-                entity.HasOne(a => a.Gabinete)
-                    .WithMany(c => c.ComoGabinete)
-                    .HasForeignKey(a => a.GabineteId)
-                    .OnDelete(DeleteBehavior.Restrict);
+            // =========================
+            // ARMADO - COMPONENTE (Many to Many)
+            // =========================
+            modelBuilder.Entity<ArmadoComponente>()
+                .HasKey(ac => new { ac.ArmadoId, ac.ComponenteId });
 
-                entity.HasOne(a => a.PlacaBase)
-                    .WithMany(c => c.ComoPlacaBase)
-                    .HasForeignKey(a => a.PlacaBaseId)
-                    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ArmadoComponente>()
+                .HasOne(ac => ac.Armado)
+                .WithMany(a => a.Componentes)
+                .HasForeignKey(ac => ac.ArmadoId)
+                .OnDelete(DeleteBehavior.Cascade);
 
-                entity.HasOne(a => a.FuentePoder)
-                    .WithMany(c => c.ComoFuentePoder)
-                    .HasForeignKey(a => a.FuentePoderId)
-                    .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<ArmadoComponente>()
+                .HasOne(ac => ac.Componente)
+                .WithMany(c => c.Armados)
+                .HasForeignKey(ac => ac.ComponenteId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-                entity.HasOne(a => a.MemoriaRam)
-                    .WithMany(c => c.ComoMemoriaRam)
-                    .HasForeignKey(a => a.MemoriaRamId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(a => a.Procesador)
-                    .WithMany(c => c.ComoProcesador)
-                    .HasForeignKey(a => a.ProcesadorId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(a => a.Almacenamiento)
-                    .WithMany(c => c.ComoAlmacenamiento)
-                    .HasForeignKey(a => a.AlmacenamientoId)
-                    .OnDelete(DeleteBehavior.Restrict);
-
-                entity.HasOne(a => a.GPU)
-                    .WithMany(c => c.ComoGPU)
-                    .HasForeignKey(a => a.GPUId)
-                    .OnDelete(DeleteBehavior.Restrict);
-            }); // Configuración específica para la entidad Armado
-
+            // =========================
+            // COMPATIBILIDAD
+            // =========================
             modelBuilder.Entity<Compatibilidad>()
                 .HasOne(c => c.ComponenteA)
                 .WithMany()
@@ -67,9 +50,6 @@ namespace ArmatuXPC.Backend.Data
                 .WithMany()
                 .HasForeignKey(c => c.ComponenteBId)
                 .OnDelete(DeleteBehavior.Restrict);
-                
-            } // fin de OnModelCreating
-
-    } // fin de AppDbContext
-
-} // fin de namespace ArmatuXPC.Backend.Data
+        }
+    }
+}
