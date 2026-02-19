@@ -1,7 +1,6 @@
 using ArmatuXPC.Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
-using ArmatuXPC.Backend.Models;
 using System.Text.Json.Serialization;
 using ArmatuXPC.Backend.Services.Armados;
 
@@ -25,6 +24,7 @@ builder.Services.AddSwaggerGen(); // Generador de Swagger
 
 // Servicios personalizados de lógica de negocio
 builder.Services.AddScoped<IArmadoValidationService, ArmadoValidationService>();
+builder.Services.AddScoped<IArmadoEnergiaService, ArmadoEnergiaService>();
 
 // EF Core + PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -33,7 +33,21 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     )
 );
 
+// Configuración de CORS para permitir solicitudes desde el frontend React
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowReact",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:3000") 
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
+});
+
 var app = builder.Build(); // Construir la aplicación
+
+app.UseCors("AllowReact"); // Habilitar CORS con la política definida
 
 // Pipeline HTTP
 app.UseSwagger();
@@ -46,5 +60,6 @@ app.UseHttpsRedirection(); // Redirección HTTPS
 
 // Map Controllers
 app.MapControllers();
+
 
 app.Run(); // Ejecutar la aplicación

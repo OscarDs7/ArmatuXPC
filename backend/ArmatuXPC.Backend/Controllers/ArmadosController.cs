@@ -2,110 +2,115 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using ArmatuXPC.Backend.Data;
 using ArmatuXPC.Backend.Models;
+using ArmatuXPC.Backend.DTOs;
+using ArmatuXPC.Backend.Services.Armados;
 
 namespace ArmatuXPC.Backend.Controllers
 {
-    // API controller for managing 'Armado' entities
     [ApiController]
     [Route("api/[controller]")]
     public class ArmadosController : ControllerBase
     {
         private readonly AppDbContext _context;
+        private readonly IArmadoEnergiaService _armadoEnergiaService;
 
-        public ArmadosController(AppDbContext context)
+        public ArmadosController(
+            AppDbContext context, 
+            IArmadoEnergiaService armadoEnergiaService)
         {
             _context = context;
+            _armadoEnergiaService = armadoEnergiaService;
         }
 
-        // Lógica para evaluar la compatibilidad de un armado (Lógica reutilizable)
-        private async Task<List<object>> EvaluarCompatibilidad(Armado armado)
+        // ===============================
+        // MÉTODO PRIVADO REUTILIZABLE
+        // ===============================
+        private async Task<List<object>> EvaluarCompatibilidad(int armadoId)
         {
-            var componentes = new List<Componente?>
-            {
-                armado.Gabinete,
-                armado.PlacaBase,
-                armado.FuentePoder,
-                armado.MemoriaRam,
-                armado.Procesador,
-                armado.Almacenamiento,
-                armado.GPU
-            }
-            .Where(c => c != null)
-            .ToList();
+            // Cargar el armado con sus componentes
+            var armado = await _context.Armados
+                .Include(a => a.Componentes)
+                    .ThenInclude(ac => ac.Componente)
+                .FirstOrDefaultAsync(a => a.ArmadoId == armadoId);
 
-            var ids = componentes.Select(c => c!.ComponenteId).ToList();
+            // Si el armado no existe o tiene menos de 2 componentes, no hay incompatibilidades que evaluar
+            if (armado == null)
+                return new List<object>();
 
+            var ids = armado.Componentes
+                .Select(ac => ac.ComponenteId)
+                .ToList();
+
+            if (ids.Count < 2)
+                return new List<object>();
+
+            // Buscar todas las reglas de incompatibilidad que apliquen a cualquier par de componentes en el armado
             var reglas = await _context.Compatibilidades
                 .Where(r =>
                     ids.Contains(r.ComponenteAId) &&
                     ids.Contains(r.ComponenteBId) &&
-                    r.EsCompatible == false)
+                    !r.EsCompatible)
                 .Include(r => r.ComponenteA)
                 .Include(r => r.ComponenteB)
                 .ToListAsync();
 
             return reglas.Select(r => new
             {
-                componenteA = r.ComponenteA?.Nombre,
-                componenteB = r.ComponenteB?.Nombre,
+                componenteA = r.ComponenteA!.Nombre,
+                componenteB = r.ComponenteB!.Nombre,
                 motivo = r.Motivo
             }).Cast<object>().ToList();
         }
 
 
-        // GET: api/Armados -> Obtiene todos los armados
+        // ===============================
+        // GET TODOS
+        // ===============================
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<Armado>>> GetArmados()
+        public async Task<ActionResult<IEnumerable<ArmadoDto>>> GetArmados()
         {
-            return await _context.Armados
-            .Include(a => a.Gabinete)
-            .Include(a => a.PlacaBase)
-            .Include(a => a.FuentePoder)
-            .Include(a => a.MemoriaRam)
-            .Include(a => a.Procesador)
-            .Include(a => a.Almacenamiento)
-            .Include(a => a.GPU)
-            .ToListAsync();
+            var armados = await _context.Armados
+                .Include(a => a.Componentes)
+                    .ThenInclude(ac => ac.Componente)
+                .Select(a => new ArmadoDto
+                {
+                    ArmadoId = a.ArmadoId,
+                    UsuarioId = a.UsuarioId,
+                    NombreArmado = a.NombreArmado,
+                    Componentes = a.Componentes
+                        .Select(ac => new ArmadoComponenteDto
+                        {
+                            ComponenteId = ac.ComponenteId,
+                            Nombre = ac.Componente.Nombre,
+                            Marca = ac.Componente.Marca,
+                            Modelo = ac.Componente.Modelo,
+                            Tipo = ac.Componente.Tipo,
+                            Precio = ac.Componente.Precio,
+                            ConsumoWatts = ac.Componente.ConsumoWatts,
+                            CapacidadWatts = ac.Componente.CapacidadWatts,
+                            Cantidad = ac.Cantidad
+                        })
+                        .ToList()
+                })
+                .ToListAsync();
+
+            return Ok(armados);
         }
 
-        // GET: api/Armados/5 -> Obtiene un armado por ID
-        [HttpGet("{id}")]
-        public async Task<ActionResult<Armado>> GetArmado(int id)
-        {
-            var armado = await _context.Armados
-                .Include(a => a.Gabinete)
-                .Include(a => a.PlacaBase)
-                .Include(a => a.FuentePoder)
-                .Include(a => a.MemoriaRam)
-                .Include(a => a.Procesador)
-                .Include(a => a.Almacenamiento)
-                .Include(a => a.GPU)
-                .FirstOrDefaultAsync(a => a.ArmadoId == id);
-
-            if (armado == null)
-                return NotFound();
-
-            return armado;
-        }
-
-        // GET: api/Armados/5/validarCompatibilidad -> Valida la compatibilidad de un armado
+        // ===============================
+        // VALIDAR COMPATIBILIDAD
+        // ===============================
         [HttpGet("{id}/validarCompatibilidad")]
         public async Task<ActionResult> ValidarCompatibilidad(int id)
         {
             var armado = await _context.Armados
-                .Include(a => a.Gabinete)
-                .Include(a => a.PlacaBase)
-                .Include(a => a.FuentePoder)
-                .Include(a => a.MemoriaRam)
-                .Include(a => a.Procesador)
-                .Include(a => a.Almacenamiento)
-                .Include(a => a.GPU)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(a => a.ArmadoId == id);
 
             if (armado == null)
                 return NotFound("Armado no encontrado");
 
-            var errores = await EvaluarCompatibilidad(armado);
+            var errores = await EvaluarCompatibilidad(id);
 
             return Ok(new
             {
@@ -115,41 +120,27 @@ namespace ArmatuXPC.Backend.Controllers
             });
         }
 
-        // POST: api/Armados -> Crea un nuevo armado
+        // ===============================
+        // POST
+        // ===============================
         [HttpPost]
-        public async Task<ActionResult<Armado>> PostArmado(Armado armado)
+        public async Task<ActionResult> PostArmado(CrearArmadoDto dto)
         {
-            // Convertir IDs en entidades reales
-            armado.Gabinete = armado.GabineteId != null
-                ? await _context.Componentes.FindAsync(armado.GabineteId)
-                : null;
+            var armado = new Armado
+            {
+                UsuarioId = dto.UsuarioId,
+                NombreArmado = dto.NombreArmado,
+                Componentes = dto.Componentes.Select(c => new ArmadoComponente
+                {
+                    ComponenteId = c.ComponenteId,
+                    Cantidad = c.Cantidad
+                }).ToList()
+            };
 
-            armado.PlacaBase = armado.PlacaBaseId != null
-                ? await _context.Componentes.FindAsync(armado.PlacaBaseId)
-                : null;
+            _context.Armados.Add(armado);
+            await _context.SaveChangesAsync();
 
-            armado.FuentePoder = armado.FuentePoderId != null
-                ? await _context.Componentes.FindAsync(armado.FuentePoderId)
-                : null;
-
-            armado.MemoriaRam = armado.MemoriaRamId != null
-                ? await _context.Componentes.FindAsync(armado.MemoriaRamId)
-                : null;
-
-            armado.Procesador = armado.ProcesadorId != null
-                ? await _context.Componentes.FindAsync(armado.ProcesadorId)
-                : null;
-
-            armado.Almacenamiento = armado.AlmacenamientoId != null
-                ? await _context.Componentes.FindAsync(armado.AlmacenamientoId)
-                : null;
-
-            armado.GPU = armado.GPUId != null
-                ? await _context.Componentes.FindAsync(armado.GPUId)
-                : null;
-
-            // Validar compatibilidad
-            //var errores = await EvaluarCompatibilidad(armado);
+            //var errores = await EvaluarCompatibilidad(armado.ArmadoId); // Evaluar compatibilidad después de guardar para obtener el ID generado
             /*
             if (errores.Any())
             {
@@ -160,75 +151,59 @@ namespace ArmatuXPC.Backend.Controllers
                 });
             }*/
 
-            _context.Armados.Add(armado);
-            await _context.SaveChangesAsync();
+            // Validar consumo energético después de guardar para obtener el ID generado para ver si el consumo total excede la capacidad de la fuente de poder
+            try
+            {
+                await _armadoEnergiaService
+                    .ValidarArmadoEnergeticamenteAsync(armado.ArmadoId);
+            }
+            catch (Exception ex)
+            {
+                _context.Armados.Remove(armado);
+                await _context.SaveChangesAsync();
+                return BadRequest(new
+                {
+                    mensaje = "Error energético",
+                    detalle = ex.Message
+                });
+            }
 
-            return Ok(armado);
+
+            return CreatedAtAction(nameof(GetArmados), new { id = armado.ArmadoId }, armado);
         }
-        // final_PostArmado
 
 
-       // PUT: api/Armados/5 -> Actualiza un armado
+        // ===============================
+        // PUT
+        // ===============================
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutArmado(int id, Armado armado)
+        public async Task<IActionResult> PutArmado(int id, CrearArmadoDto dto)
         {
-            if (id != armado.ArmadoId)
-                return BadRequest("El ID no coincide");
-
-            var armadoDb = await _context.Armados
-                .Include(a => a.Gabinete)
-                .Include(a => a.PlacaBase)
-                .Include(a => a.FuentePoder)
-                .Include(a => a.MemoriaRam)
-                .Include(a => a.Procesador)
-                .Include(a => a.Almacenamiento)
-                .Include(a => a.GPU)
+            var armado = await _context.Armados
+                .Include(a => a.Componentes)
                 .FirstOrDefaultAsync(a => a.ArmadoId == id);
 
-            if (armadoDb == null)
+            if (armado == null)
                 return NotFound();
 
-            // Aplicar cambios
-            armadoDb.NombreArmado = armado.NombreArmado;
-            armadoDb.GabineteId = armado.GabineteId;
-            armadoDb.PlacaBaseId = armado.PlacaBaseId;
-            armadoDb.FuentePoderId = armado.FuentePoderId;
-            armadoDb.MemoriaRamId = armado.MemoriaRamId;
-            armadoDb.ProcesadorId = armado.ProcesadorId;
-            armadoDb.AlmacenamientoId = armado.AlmacenamientoId;
-            armadoDb.GPUId = armado.GPUId;
+            armado.NombreArmado = dto.NombreArmado;
+            armado.UsuarioId = dto.UsuarioId;
 
-            // Volver a cargar relaciones
-            armadoDb.Gabinete = armado.GabineteId != null
-                ? await _context.Componentes.FindAsync(armado.GabineteId)
-                : null;
+            // Eliminar componentes actuales
+            _context.ArmadoComponentes.RemoveRange(armado.Componentes);
 
-            armadoDb.PlacaBase = armado.PlacaBaseId != null
-                ? await _context.Componentes.FindAsync(armado.PlacaBaseId)
-                : null;
+            // Agregar nuevos
+            armado.Componentes = dto.Componentes.Select(c => new ArmadoComponente
+            {
+                ArmadoId = id,
+                ComponenteId = c.ComponenteId,
+                Cantidad = c.Cantidad
+            }).ToList();
 
-            armadoDb.FuentePoder = armado.FuentePoderId != null
-                ? await _context.Componentes.FindAsync(armado.FuentePoderId)
-                : null;
+            await _context.SaveChangesAsync();
 
-            armadoDb.MemoriaRam = armado.MemoriaRamId != null
-                ? await _context.Componentes.FindAsync(armado.MemoriaRamId)
-                : null;
-
-            armadoDb.Procesador = armado.ProcesadorId != null
-                ? await _context.Componentes.FindAsync(armado.ProcesadorId)
-                : null;
-
-            armadoDb.Almacenamiento = armado.AlmacenamientoId != null
-                ? await _context.Componentes.FindAsync(armado.AlmacenamientoId)
-                : null;
-
-            armadoDb.GPU = armado.GPUId != null
-                ? await _context.Componentes.FindAsync(armado.GPUId)
-                : null;
-
-
-            var errores = await EvaluarCompatibilidad(armadoDb);
+            var errores = await EvaluarCompatibilidad(id);
+            var resumen = await GetResumen(id);
 
             if (errores.Any())
             {
@@ -239,33 +214,45 @@ namespace ArmatuXPC.Backend.Controllers
                 });
             }
 
-            await _context.SaveChangesAsync();
             return NoContent();
         }
 
-
-
-        // DELETE: api/Armados/5 -> Elimina un armado
+        // ===============================
+        // DELETE
+        // ===============================
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteArmado(int id)
         {
             var armado = await _context.Armados
+                .Include(a => a.Componentes)
                 .FirstOrDefaultAsync(a => a.ArmadoId == id);
 
             if (armado == null)
-            {
                 return NotFound();
-            }
 
+            _context.ArmadoComponentes.RemoveRange(armado.Componentes);
             _context.Armados.Remove(armado);
+
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool ArmadoExists(int id)
+        //  ================================
+        // NUEVO ENDPOINT: RESUMEN ENERGÉTICO
+        // =================================
+
+        [HttpGet("{id}/resumen")]
+        public async Task<ActionResult> GetResumen(int id)
         {
-            return _context.Armados.Any(e => e.ArmadoId == id);
+            var resumen = await _armadoEnergiaService.GetResumenEnergeticoAsync(id);
+
+            if (resumen == null)
+                return NotFound("Armado no encontrado");
+
+            return Ok(resumen);
         }
-    }
-}
+
+
+    } // ArmadosController
+} // namespace ArmatuXPC.Backend.Controllers

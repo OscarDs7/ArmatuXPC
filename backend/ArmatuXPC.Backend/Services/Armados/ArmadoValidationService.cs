@@ -13,36 +13,15 @@ namespace ArmatuXPC.Backend.Services.Armados
         {
             _context = context;
         }
-
-        // helper privado para obtener componentes del armado
-        private List<Componente> GetComponentesDelArmado(Armado armado)
-        {
-            return new List<Componente?>
-            {
-                armado.Procesador,
-                armado.PlacaBase,
-                armado.MemoriaRam,
-                armado.GPU,
-                armado.FuentePoder,
-                armado.Almacenamiento,
-                armado.Gabinete
-            }
-            .Where(c => c != null)
-            .Cast<Componente>()
-            .ToList();
-        } // GetComponentesDelArmado
-
+        
+         // GetComponentesDelArmado
         public async Task<ArmadoValidationResultDto> ValidateAsync(int armadoId)
 {
-    var armado = await _context.Armados
-        .Include(a => a.Procesador)
-        .Include(a => a.PlacaBase)
-        .Include(a => a.MemoriaRam)
-        .Include(a => a.GPU)
-        .Include(a => a.FuentePoder)
-        .Include(a => a.Almacenamiento)
-        .Include(a => a.Gabinete)
-        .FirstOrDefaultAsync(a => a.ArmadoId == armadoId);
+        // Cargar el armado con sus componentes
+        var armado = await _context.Armados
+            .Include(a => a.Componentes) // Cargar la relación ArmadoComponentes
+                .ThenInclude(ac => ac.Componente) // Cargar los detalles de cada Componente
+            .FirstOrDefaultAsync(a => a.ArmadoId == armadoId); // Buscar el armado por su ID
 
         var result = new ArmadoValidationResultDto
         {
@@ -56,8 +35,17 @@ namespace ArmatuXPC.Backend.Services.Armados
             return result;
         }
 
-        var componentes = GetComponentesDelArmado(armado);
-        var ids = componentes.Select(c => c.ComponenteId).ToList();
+        var componentes = armado.Componentes
+            .Select(ac => ac.Componente) // Extraer solo los objetos Componente
+            .ToList(); // Convertir a lista para facilitar la manipulación
+
+        var ids = componentes
+            .Select(c => c.ComponenteId) // Extraer solo los IDs de los componentes
+            .ToList(); // Convertir a lista para usar en consultas posteriores
+
+        // Si el armado tiene menos de 2 componentes, no hay incompatibilidades que evaluar
+        if (ids.Count < 2)
+            return result;
 
         var incompatibilidades = await _context.Compatibilidades
             .Where(c =>
@@ -91,7 +79,11 @@ namespace ArmatuXPC.Backend.Services.Armados
         ArmadoValidationResultDto result)
     {
         var componenteProblematico = componentes
-            .First(c => c.ComponenteId == inc.ComponenteBId);
+            .FirstOrDefault(c => c.ComponenteId == inc.ComponenteBId);
+
+        // Si el componente problemático no se encuentra (lo cual sería raro, pero mejor prevenir), no se pueden generar recomendaciones
+         if (componenteProblematico == null)
+             return;
 
         var alternativas = await _context.Compatibilidades
             .Where(c =>
@@ -104,7 +96,8 @@ namespace ArmatuXPC.Backend.Services.Armados
                 Id = c.ComponenteBId,
                 Nombre = c.ComponenteB!.Nombre,
                 Marca = c.ComponenteB!.Marca,
-                Modelo = c.ComponenteB!.Modelo
+                Modelo = c.ComponenteB!.Modelo,
+                Precio = c.ComponenteB!.Precio
             })
             .ToListAsync();
 
