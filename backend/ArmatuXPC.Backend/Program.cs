@@ -24,6 +24,7 @@ builder.Services.AddSwaggerGen(); // Generador de Swagger
 
 // Servicios personalizados de lógica de negocio
 builder.Services.AddScoped<IArmadoValidationService, ArmadoValidationService>();
+builder.Services.AddScoped<IArmadoEnergiaService, ArmadoEnergiaService>();
 
 // EF Core + PostgreSQL
 builder.Services.AddDbContext<AppDbContext>(options =>
