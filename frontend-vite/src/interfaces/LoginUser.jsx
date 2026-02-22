@@ -12,7 +12,7 @@ import fondoProyecto from "../assets/fondo1.jpg"; // imagen de fondo del proyect
 import BackButton from "../utilidades/BackButton"; // Botón para regresar al menú de roles
 import { useNavigate } from "react-router-dom";
 
-import "../estilos/LoginUser.css";
+import "../estilos/Login.css";
 import logoUser from "../assets/LogoUser.png";
 
 export function LoginUser() {
@@ -154,7 +154,7 @@ export function LoginUser() {
 
   return (
     <div className="login-container" style={{ backgroundImage: `url(${fondoProyecto})`, }}>
-     <BackButton to="/roles" label="Regresar" />
+     <BackButton to="/roles" label="Regresar" className = "back-button" />
 
       <div className="login-card">
         <h2>{modoRegistro ? "Registro de Usuario" : "Login Usuario"}</h2>

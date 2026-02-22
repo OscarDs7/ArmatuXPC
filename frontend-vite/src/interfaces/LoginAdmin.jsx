@@ -14,7 +14,7 @@ import { auth, db } from "../utilidades/firebase";
 import logoAdmin from "../assets/LogoAdmin.png";
 import fondoProyecto from "../assets/fondo1.jpg";
 import BackButton from "../utilidades/BackButton";
-import "../estilos/LoginAdmin.css";
+import "../estilos/Login.css";
 import { useNavigate } from "react-router-dom";
 
 export function LoginAdmin() {
@@ -78,7 +78,7 @@ export function LoginAdmin() {
       className="login-container"
       style={{ backgroundImage: `url(${fondoProyecto})` }}
     >
-      <BackButton to="/roles" label="Regresar" />
+      <BackButton to="/roles" label="Regresar" className = "back-button" />
 
       <div className="login-card">
         <h2>Login Administrador</h2>

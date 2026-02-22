@@ -1,65 +1,10 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 
-// Estilos en línea para simplicidad
-const styles = {
-  container: {
-    minHeight: "100vh",
-    background: "linear-gradient(135deg, #1f2933, #0f172a)",
-    color: "#fff",
-    padding: "30px",
-    textAlign: "center",
-  },
-  title: {
-    fontSize: "36px",
-    marginBottom: "5px",
-  },
-  subtitle: {
-    fontSize: "20px",
-    marginBottom: "30px",
-    opacity: 0.9,
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-    gap: "20px",
-    maxWidth: "900px",
-    margin: "0 auto",
-  },
-  card: {
-    background: "#1e293b",
-    borderRadius: "15px",
-    padding: "25px",
-    cursor: "pointer",
-    boxShadow: "0 10px 25px rgba(0,0,0,0.3)",
-    transition: "transform 0.2s, box-shadow 0.2s",
-    hover: {
-      transform: "translateY(-5px)",
-      boxShadow: "0 15px 30px rgba(245, 243, 243, 0.95)",
-      color: "#fff",
-    },
-  },
-  icon: {
-    fontSize: "40px",
-    marginBottom: "15px",
-  },
-  button: {
-    marginTop: "40px",
-    padding: "12px 30px",
-    fontSize: "16px",
-    borderRadius: "8px",
-    border: "none",
-    cursor: "pointer",
-    background: "#0ea5e9",
-    color: "#fff",
-  },
-};
-
-// Componente principal
 export default function DashBoardAdmin() {
   const location = useLocation();
   const navigate = useNavigate();
-  const nombre = location.state?.nombre || "Usuario";
+  const nombre = location.state?.nombre || "Administrador";
 
   const cards = [
     { title: "Gestión de cuentas", icon: "⚙️" },
@@ -68,26 +13,48 @@ export default function DashBoardAdmin() {
     { title: "Métricas y reportes", icon: "📈" },
   ];
 
-  // Renderizado del componente
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Inicio Administrador</h1>
-      <p style={styles.subtitle}>
-        Bienvenido <strong>{nombre}</strong>, has iniciado sesión ✔️
-      </p>
+    <div className="min-h-screen bg-linear-to-br from-indigo-950 via-slate-900 to-black text-white px-6 py-10">
 
-      <div style={styles.grid}>
-        {cards.map((card, index) => (
-          <div key={index} style={styles.card}>
-            <div style={styles.icon}>{card.icon}</div>
-            <h3>{card.title}</h3>
-          </div>
-        ))}
+      {/* Header */}
+      <div className="text-center mb-12">
+        <h1 className="text-4xl font-semibold mb-2">
+          Inicio Administrador
+        </h1>
+        <p className="text-lg text-slate-300">
+          Bienvenido <span className="font-bold text-white">{nombre}</span>, has iniciado sesión ✔️
+        </p>
       </div>
 
-      <button style={styles.button} onClick={() => navigate(-1)}>
-        Regresar
-      </button>
+      {/* Grid */}
+      <div className="max-w-5xl mx-auto grid gap-8 sm:grid-cols-1 md:grid-cols-2">
+
+        {cards.map((card, index) => (
+          <div
+            key={index}
+            className="bg-slate-800/80 backdrop-blur-md p-8 rounded-2xl shadow-xl 
+                       hover:shadow-2xl hover:-translate-y-2 
+                       transition-all duration-300 cursor-pointer 
+                       text-center border border-slate-700"
+          >
+            <div className="text-5xl mb-4">{card.icon}</div>
+            <h3 className="text-xl font-medium">{card.title}</h3>
+          </div>
+        ))}
+
+      </div>
+
+      {/* Botón */}
+      <div className="text-center mt-12">
+        <button
+          onClick={() => navigate(-1)}
+          className="px-8 py-3 rounded-xl bg-sky-500 hover:bg-sky-600 
+                     transition-all duration-300 shadow-lg"
+        >
+          Regresar
+        </button>
+      </div>
+
     </div>
   );
 }
