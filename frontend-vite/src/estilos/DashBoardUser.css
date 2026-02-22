@@ -1,0 +1,151 @@
+.dash-user-container {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e6f78, #2a9db3, #3fb4c4);
+  background-attachment: fixed;
+  color: #fff;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.dash-user-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  padding: 18px 30px;
+  background: rgba(255,255,255,0.15);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+/* Botón menú */
+.dash-menu-btn {
+  font-size: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dash-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 900;
+}
+
+/* Centro */
+.dash-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dash-header-center img {
+  width: 110px;
+  margin-bottom: 6px;
+}
+
+.dash-header-center h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+/* Espaciador */
+.dash-header-spacer {
+  width: 40px;
+}
+
+/* MENU LATERAL */
+.dash-side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  min-height: 100vh;        /* 👈 mejor que height */
+  background: linear-gradient(180deg, #0f3c46, #145f6d);
+  padding: 90px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform 0.3s ease, opacity 0.2s ease;
+  z-index: 1000;
+  overflow-y: auto;         /* 🔥 CLAVE */
+}
+
+.dash-side-menu.open {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dash-side-menu button {
+  padding: 14px;
+  background: #1e90ff;
+  border: none;
+  color: white;
+  font-size: 15px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.dash-side-menu button:hover {
+  transform: translateX(5px);
+  opacity: 0.9;
+}
+
+.dash-side-menu .logout {
+  justify-content: space-between;
+  background: #e63946;
+}
+
+/* CARDS */
+.dash-cards-container {
+  padding: 50px 30px; 
+  max-width: 1100px;
+  margin: auto;
+}
+
+.dash-cards-container h2 {
+  margin-bottom: 20px;
+}
+
+.dash-card {
+  background: rgba(255,255,255,0.95);
+  color: #1f2937;
+  padding: 24px;
+  border-radius: 18px;
+  margin-bottom: 20px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  transition: all 0.25s ease;
+  cursor: pointer;
+}
+
+.dash-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 15px 35px rgba(0,0,0,0.25);
+}
+
+
+/* BOTÓN IA */
+.dash-chatbot-btn {
+  position: fixed;
+  bottom: 25px;
+  right: 25px;
+  width: 65px;
+  height: 65px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1e90ff, #3fb4c4);
+  border: none;
+  font-size: 30px;
+  cursor: pointer;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+  transition: transform 0.2s ease;
+}
+
+.dash-chatbot-btn:hover {
+  transform: scale(1.1);
+}
