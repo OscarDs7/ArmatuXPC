@@ -1,0 +1,120 @@
+.login-container {
+  min-height: 100vh;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.login-card {
+  background-color: #e5e5e5;
+  width: 380px;
+  padding: 40px;
+  border-radius: 20px;
+  text-align: center;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  background-color: #ffffff;
+  backdrop-filter: blur(8px);
+}
+
+h2 {
+  margin-bottom: 20px;
+  color: #333;
+  font-size: 24px;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  font-weight: bold;
+}
+
+/* Logos */
+.logo-user,
+.logo-admin {
+  width: 160px;
+  display: block;
+  margin: 0 auto 20px auto;
+}
+
+/* Inputs */
+.login-card input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border-radius: 10px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+}
+
+/* Botón */
+.login-card button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  background-color: #2563eb;
+  color: white;
+  font-size: 15px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.login-card button:hover {
+  background-color: #1d4ed8;
+}
+
+/* Links */
+.forgot-password {
+  font-size: 14px;
+  margin-top: 10px;
+  cursor: pointer;
+  color: #2563eb;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+.register-link {
+  font-size: 14px;
+  margin-top: 10px;
+  cursor: pointer;
+  color: #2563eb;
+}
+
+.register-link:hover {
+  text-decoration: underline;
+}
+
+/* Mensajes */
+.error-message {
+  color: red;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.reset-message {
+  color: green;
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.small-info {
+  font-size: 14px;
+  color: #555;
+  margin-top: 5px;
+}
+
+.back-button {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  background-color: blue;
+  padding: 10px 15px;
+  border-radius: 8px;
+  text-decoration: none;
+  color: white;
+  font-weight: bold;
+  box-shadow: 0 4px 6px rgba(14, 127, 193, 0.1);
+}
