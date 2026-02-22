@@ -1,0 +1,137 @@
+.dash-user-container {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #3fb4c4, #2a9db3);
+  color: #fff;
+  position: relative;
+  overflow-x: hidden;
+}
+
+.dash-user-header {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  padding: 16px 20px;
+  background: #42b7c9;
+  color: #000;
+}
+
+/* Botón menú */
+.dash-menu-btn {
+  font-size: 40px;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.dash-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  z-index: 900;
+}
+
+/* Centro */
+.dash-header-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.dash-header-center img {
+  width: 110px;
+  margin-bottom: 6px;
+}
+
+.dash-header-center h1 {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 600;
+}
+
+/* Espaciador */
+.dash-header-spacer {
+  width: 40px;
+}
+
+/* MENU LATERAL */
+.dash-side-menu {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 260px;
+  min-height: 100vh;        /* 👈 mejor que height */
+  background: #0f3c46;
+  padding: 90px 20px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+
+  transform: translateX(-100%);
+  opacity: 0;
+  pointer-events: none;
+
+  transition: transform 0.3s ease, opacity 0.2s ease;
+  z-index: 1000;
+
+  overflow-y: auto;         /* 🔥 CLAVE */
+}
+
+.dash-side-menu.open {
+  transform: translateX(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.dash-side-menu button {
+  padding: 12px;
+  background: #1e90ff;
+  border: none;
+  color: white;
+  font-size: 15px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.dash-side-menu .logout {
+  justify-content: space-between;
+  background: #e63946;
+}
+
+/* CARDS */
+.dash-cards-container {
+  padding: 30px 20px;
+}
+
+.dash-cards-container h2 {
+  margin-bottom: 20px;
+}
+
+.dash-card {
+  background: #f2f2f2;
+  color: #333;
+  padding: 20px;
+  border-radius: 14px;
+  margin-bottom: 18px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+  transition: transform 0.2s;
+}
+
+.dash-card:hover {
+  transform: translateY(-5px);
+}
+
+
+/* BOTÓN IA */
+.dash-chatbot-btn {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #1e90ff;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.3);
+}
