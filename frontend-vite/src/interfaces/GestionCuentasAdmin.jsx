@@ -1,49 +1,71 @@
-// Interface de gestión de cuentas para administradores
-
 import React from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import adminImg from "../assets/LogoAdmin.png";
 
-//import "../estilos/GestionCuentasAdmin.css"; // archivo de estilos externos
+export default function GestionCuentasAdmin() {
+  const navigate = useNavigate();
 
-// Componente GestionCuentasAdmin
-// Este componente muestra una interfaz para que los administradores puedan gestionar las cuentas de los usuarios
-// Incluye una tabla con las cuentas de los usuarios y botones para editar o eliminar cada cuenta
-export default function GestionCuentasAdmin() { 
-    // Datos de ejemplo para las cuentas de los usuarios
-    const cuentas = [
-        { id: 1, nombre: "Usuario1", email: "Usuario1@example.com" },
-        { id: 2, nombre: "Usuario2", email: "Usuario2@example.com" },
-        { id: 3, nombre: "Usuario3", email: "Usuario3@example.com" },
-        { id: 4, nombre: "Usuario4", email: "Usuario4@example.com" },
-        { id: 5, nombre: "Usuario5", email: "Usuario5@example.com" }
-    ];
+  return (
+    <div className="min-h-screen bg-linear-to-br from-indigo-950 via-slate-900 to-black text-white px-6 py-12">
 
-    return (
-        <div className="gestion-cuentas-container">
-            <h1 className="gestion-cuentas-title">Gestión de Cuentas</h1>
-            <table className="gestion-cuentas-table">
-                <thead>
-                    <tr>
-                        <th>ID</th>
-                        <th>Nombre</th>
-                        <th>Email</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {cuentas.map((cuenta) => (
-                        <tr key={cuenta.id}>
-                            <td>{cuenta.id}</td>    
-                            <td>{cuenta.nombre}</td>
-                            <td>{cuenta.email}</td>
-                            <td>
-                                <button className="gestion-cuentas-btn">Editar</button>
-                                <button className="gestion-cuentas-btn">Eliminar</button>
-                            </td>
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
+      {/* Header */}
+      <div className="max-w-4xl mx-auto mb-12 bg-centered">
+        <h1 className="text-4xl font-semibold mb-2 bg-centered">
+          Gestión de cuentas
+        </h1>
+        <p className="text-slate-400">
+          Administra y controla las cuentas del sistema
+        </p>
+      </div>
+
+      {/* Contenedor principal */}
+      <div className="max-w-2xl mx-auto bg-slate-800/70 backdrop-blur-md 
+                      rounded-3xl shadow-2xl border border-slate-700 
+                      p-10 flex flex-col items-center">
+
+        {/* Imagen */}
+        <img
+          src={adminImg}
+          alt="Administrador"
+          className="w-40 mb-10 opacity-90"
+        />
+
+        {/* Botones */}
+        <div className="w-full space-y-6">
+
+          <button
+            onClick={() => navigate("/crear-admin")}
+            className="w-full py-4 rounded-xl 
+                       bg-slate-700 hover:bg-indigo-600 
+                       transition-all duration-300 
+                       text-lg font-medium shadow-lg"
+          >
+            Crear nueva cuenta de administrador
+          </button>
+
+          <button
+            onClick={() => navigate("/administrar-cuentas")}
+            className="w-full py-4 rounded-xl 
+                       bg-slate-700 hover:bg-indigo-600 
+                       transition-all duration-300 
+                       text-lg font-medium shadow-lg"
+          >
+            Administrar cuentas
+          </button>
+
         </div>
-    );
+
+        {/* Botón regresar */}
+        <button
+          onClick={() => navigate("/dash-admin")}
+          className="mt-12 px-8 py-3 rounded-xl 
+                     bg-sky-600 hover:bg-sky-700 
+                     transition shadow-lg"
+        >
+          Regresar
+        </button>
+
+      </div>
+    </div>
+  );
 }
