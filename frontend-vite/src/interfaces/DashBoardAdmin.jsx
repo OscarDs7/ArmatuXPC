@@ -49,7 +49,7 @@ export default function DashBoardAdmin() {
       {/* Botón */}
       <div className="text-center mt-12">
         <button
-          onClick={() => navigate(-1)}
+          onClick={() => navigate("/roles")}
           className="px-8 py-3 rounded-xl bg-sky-500 hover:bg-sky-600 
                      transition-all duration-300 shadow-lg"
         >
