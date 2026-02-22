@@ -7,10 +7,10 @@ export default function DashBoardAdmin() {
   const nombre = location.state?.nombre || "Administrador";
 
   const cards = [
-    { title: "Gestión de cuentas", icon: "⚙️" },
-    { title: "Gestión de Catálogo", icon: "📦" },
-    { title: "Monitoreo y logística", icon: "📊" },
-    { title: "Métricas y reportes", icon: "📈" },
+    { title: "Gestión de cuentas", icon: "⚙️", path: "/gestion-cuentas-admin" },
+    { title: "Gestión de Catálogo", icon: "📦", path: "/gestion-catalogo-admin" },
+    { title: "Monitoreo y logística", icon: "📊", path: "/monitoreo-logistica-admin" },
+    { title: "Métricas y reportes", icon: "📈", path: "/metricas-reportes-admin" },
   ];
 
   return (
@@ -32,6 +32,8 @@ export default function DashBoardAdmin() {
         {cards.map((card, index) => (
           <div
             key={index}
+            onClick={() => navigate(card.path)}
+
             className="bg-slate-800/80 backdrop-blur-md p-8 rounded-2xl shadow-xl 
                        hover:shadow-2xl hover:-translate-y-2 
                        transition-all duration-300 cursor-pointer 
