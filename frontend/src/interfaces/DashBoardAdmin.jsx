@@ -68,6 +68,7 @@ export default function DashBoardAdmin() {
     { title: "Métricas y reportes", icon: "📈" },
   ];
 
+  // Renderizado del componente
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>Inicio Administrador</h1>

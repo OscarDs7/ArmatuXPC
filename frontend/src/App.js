@@ -8,6 +8,7 @@ import DashBoardUser from "./interfaces/DashBoardUser";
 import TestBackendBasico from "./interfaces/TestBackendBasico";
 import TestBackendMedio from "./interfaces/TestBackendMedio";
 import TestBackendCompleto from "./interfaces/TestBackendCompleto";
+import GestionCuentasAdmin from "./interfaces/GestionCuentasAdmin";
 
 function App() {
   return (
@@ -21,6 +22,7 @@ function App() {
       <Route path="/test-backend-basico" element={<TestBackendBasico />} />
       <Route path="/test-backend-medio" element={<TestBackendMedio />} />
       <Route path="/test-backend-completo" element={<TestBackendCompleto />} />
+      <Route path="/gestion-cuentas-admin" element={<GestionCuentasAdmin />} />
     </Routes>
   );
 }
