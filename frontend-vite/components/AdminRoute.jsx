@@ -2,6 +2,7 @@
 
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import AdminRoute from "./AdminRoute";
 
 export default function AdminRoute({ children }) {
   const { user, rol } = useAuth();

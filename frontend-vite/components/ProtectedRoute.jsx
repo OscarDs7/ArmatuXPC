@@ -2,6 +2,7 @@
 
 import { Navigate } from "react-router-dom";
 import { useAuth } from "../src/context/AuthContext";
+import ProtectedRoute from "./ProtectedRoute";
 
 export default function ProtectedRoute({ children }) {
   const { user } = useAuth();
