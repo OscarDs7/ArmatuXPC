@@ -20,7 +20,7 @@ export function MenuRoles() {
        </div>
 
         <div className="menu-buttons">
-          <button className="menu-btn" onClick={() => navigate("/login-usuario")}>
+          <button className="menu-btn" onClick={() => navigate("/login-user")}>
             Usuario
           </button>
 

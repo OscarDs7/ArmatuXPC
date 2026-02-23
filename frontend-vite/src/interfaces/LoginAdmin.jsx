@@ -50,7 +50,7 @@ export function LoginAdmin() {
 
       // 3. Si NO existe → automáticamente es administrador
       alert("Bienvenido Administrador!");
-      navigate("/dash-admin", { state: { nombre: "Administrador" } });
+      navigate("/dashboard-admin", { state: { nombre: "Administrador" } });
 
     } catch (err) {
       console.error(err);
@@ -78,7 +78,7 @@ export function LoginAdmin() {
       className="login-container"
       style={{ backgroundImage: `url(${fondoProyecto})` }}
     >
-      <BackButton to="/roles" label="Regresar" className = "back-button" />
+      <BackButton to="/" label="Regresar" className = "back-button" />
 
       <div className="login-card">
         <h2>Login Administrador</h2>

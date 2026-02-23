@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../estilos/DashBoardUser.css";
 import logoProyecto from "../assets/Logo.png"; // imagen del logo del proyecto
+import { signOut } from "firebase/auth";
+import { auth } from "../utilidades/firebase"; // Importa la autenticación de Firebase para cerrar sesión
 
 export default function DashBoardUser() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -55,7 +57,13 @@ export default function DashBoardUser() {
           className="logout"
           onClick={() => {
             setMenuOpen(false);
-            navigate("/login-usuario");
+              signOut(auth).then(() => {
+                alert("Sesión cerrada correctamente");
+                navigate("/login-user"); // Redirige al menú de roles después de cerrar sesión
+              } ).catch((error) => {
+                console.error("Error al cerrar sesión:", error);
+                alert("Error al cerrar sesión. Inténtalo de nuevo.");
+              }); 
           }}
         >
           Cerrar sesión

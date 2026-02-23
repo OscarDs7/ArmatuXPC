@@ -15,10 +15,8 @@ export default function CrearCuentaAdmin() {
   const [error, setError] = useState("");
 
   const coleccionUsuarios = collection(db, "Usuario");
-  //const auth = getAuth();
-  //console.log("Usuario actual:", auth.currentUser);
-
-
+  const auth = getAuth();
+  console.log("Usuario actual:", auth.currentUser);
 
   // Crear administrador sin cerrar sesión actual (opción profesional: usar Firebase Functions con permisos específicos para crear admins sin exponer la función a todos los usuarios autenticados)
   const handleCrearAdminProfesional = async (e) => {
@@ -40,7 +38,7 @@ export default function CrearCuentaAdmin() {
       });
 
       alert("Administrador creado correctamente ✅");
-      navigate("/gestion-cuentas-admin");
+      navigate("/gestion-cuentas");
 
     } catch (error) {
       console.error("Error completo:", error);
@@ -124,7 +122,7 @@ export default function CrearCuentaAdmin() {
 
             <button
               type="button"
-              onClick={() => navigate("/gestion-cuentas-admin")}
+              onClick={() => navigate("/gestion-cuentas")}
               className="px-6 py-3 rounded-xl bg-gray-600 hover:bg-gray-700 transition shadow-lg"
             >
               Cancelar
