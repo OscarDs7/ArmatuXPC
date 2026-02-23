@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { collection, getDocs, deleteDoc, doc, updateDoc } from "firebase/firestore";
 import { db } from "../utilidades/firebase";
 import { useNavigate } from "react-router-dom";
+import { getFunctions, httpsCallable } from "firebase/functions"; // Importa funciones de Firebase Functions (para usar la función segura de eliminación de usuario)
 
 export default function AdministrarCuentas() {
   const navigate = useNavigate();
@@ -36,26 +37,49 @@ export default function AdministrarCuentas() {
     fetchUsuarios();
   }, []);
 
-  // 🔹 Eliminar usuario
-  const handleEliminar = async (id) => {
-    if (!window.confirm("¿Seguro que deseas eliminar esta cuenta?")) return;
-
-    await deleteDoc(doc(db, "Usuario", id));
-    fetchUsuarios();
-  };
 
   // 🔹 Cambiar rol
-  const handleCambiarRol = async (id, rolActual) => {
+  const handleCambiarRolProfesional = async (id, uid, rolActual) => {
+
     const nuevoRol = rolActual === "admin" ? "user" : "admin";
 
-    await updateDoc(doc(db, "Usuario", id), {
-      Rol: nuevoRol,
-    });
+    if (!window.confirm(`¿Cambiar rol a ${nuevoRol}?`)) return;
 
-    fetchUsuarios();
+    try {
+      const functions = getFunctions();
+      const cambiarRol = httpsCallable(functions, "cambiarRol");
+
+      await cambiarRol({
+        uid,
+        docId: id,
+        nuevoRol
+      });
+
+      alert("Rol actualizado correctamente ✅");
+      fetchUsuarios();
+
+    } catch (error) {
+      console.error(error);
+      alert("Error al cambiar rol.");
+    }
   };
 
-  const dataToShow = tab === "admin" ? admins : usuarios;
+  const dataToShow = tab === "admin" ? admins : usuarios; // Decide qué datos mostrar según la pestaña activa
+
+  // Función para eliminar usuario usando Firebase Functions (para eliminar también de Auth)
+  const handleEliminarProfesional = async (id, uid) => {
+    if (!window.confirm("¿Seguro que deseas eliminar esta cuenta?")) return;
+    try {
+      const functions = getFunctions();
+      const eliminarUsuario = httpsCallable(functions, "eliminarUsuario");
+      await eliminarUsuario({ uid, docId: id });
+      alert("Usuario eliminado correctamente ✅");
+      fetchUsuarios();
+    } catch (err) {
+      console.error(err);
+      alert("Error al eliminar usuario.");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-linear-to-br from-indigo-950 via-slate-900 to-black text-white px-8 py-12">
@@ -130,7 +154,7 @@ export default function AdministrarCuentas() {
                   <td className="p-4 text-center space-x-3">
                     <button
                       onClick={() =>
-                        handleCambiarRol(usuario.id, usuario.Rol)
+                        handleCambiarRolProfesional(usuario.id, usuario.UID, usuario.Rol)
                       }
                       className="px-3 py-1 bg-indigo-600 hover:bg-indigo-700 rounded-md text-sm"
                     >
@@ -138,7 +162,7 @@ export default function AdministrarCuentas() {
                     </button>
 
                     <button
-                      onClick={() => handleEliminar(usuario.id)}
+                      onClick={() => handleEliminarProfesional(usuario.id, usuario.UID)}  
                       className="px-3 py-1 bg-red-600 hover:bg-red-700 rounded-md text-sm"
                     >
                       Eliminar
