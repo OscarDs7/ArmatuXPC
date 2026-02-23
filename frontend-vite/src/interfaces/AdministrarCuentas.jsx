@@ -3,6 +3,7 @@ import { collection, getDocs, deleteDoc, doc, updateDoc } from "firebase/firesto
 import { db } from "../utilidades/firebase";
 import { useNavigate } from "react-router-dom";
 import { getFunctions, httpsCallable } from "firebase/functions"; // Importa funciones de Firebase Functions (para usar la función segura de eliminación de usuario)
+import { getAuth } from "firebase/auth";
 
 export default function AdministrarCuentas() {
   const navigate = useNavigate();
@@ -11,6 +12,16 @@ export default function AdministrarCuentas() {
   const [tab, setTab] = useState("user");
 
   const coleccionUsuarios = collection(db, "Usuario");
+   const auth = getAuth();
+  console.log("Usuario actual:", auth.currentUser);
+
+  // 
+  getAuth().currentUser.getIdTokenResult(true).then((tokenResult) => {
+    console.log("Claims actualizados:", tokenResult.claims);
+  }).catch((error) => {
+    console.error("Error al obtener token:", error);
+  });
+
 
   // 🔹 Obtener datos
   const fetchUsuarios = async () => {
@@ -93,7 +104,7 @@ export default function AdministrarCuentas() {
           </h1>
 
           <button
-            onClick={() => navigate("/gestion-cuentas-admin")}
+            onClick={() => navigate("/gestion-cuentas")}
             className="px-5 py-2 bg-sky-600 hover:bg-sky-700 rounded-lg transition"
           >
             Regresar

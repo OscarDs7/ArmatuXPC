@@ -18,7 +18,7 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<MenuRoles />} />
-      <Route path="/login" element={<LoginUsuario />} />
+      <Route path="/login-user" element={<LoginUsuario />} />
       <Route path="/login-admin" element={<LoginAdmin />} />
 
       {/* Rutas protegidas para usuarios autenticados */}
@@ -49,7 +49,7 @@ function App() {
         }
       />
       <Route
-        path="/crear-cuenta"
+        path="/crear-cuenta-admin"
         element={
           <AdminRoute>
             <CrearCuentaAdmin />
