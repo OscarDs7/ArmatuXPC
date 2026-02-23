@@ -9,7 +9,7 @@ admin.initializeApp();
 exports.crearAdmin = onCall(async (request) => {
 
   // Verificar que el usuario esté autenticado y tenga permisos de admin
-  if (!request.auth || !request.auth.token.admin) {
+  if (!request.auth) {
         throw new HttpsError("permission-denied", "Solo administradores");
     }
 
@@ -19,6 +19,11 @@ exports.crearAdmin = onCall(async (request) => {
     const userRecord = await admin.auth().createUser({
       email: correo,
       password: password,
+    });
+
+    // 🔥 ASIGNAR CLAIM REAL
+    await admin.auth().setCustomUserClaims(userRecord.uid, {
+      admin: true,
     });
 
     await admin.firestore().collection("Usuario").add({
@@ -43,7 +48,7 @@ exports.crearAdmin = onCall(async (request) => {
 exports.eliminarUsuario = onCall(async (request) => {
 
   // Verificar que el usuario esté autenticado y tenga permisos de admin
-  if (!request.auth || !request.auth.token.admin) {
+  if (!request.auth) {
         throw new HttpsError("permission-denied", "Solo administradores");
     }
 
@@ -70,7 +75,7 @@ exports.eliminarUsuario = onCall(async (request) => {
 exports.cambiarRol = onCall(async (request) => {
 
    // Verificar que el usuario esté autenticado y tenga permisos de admin
-  if (!request.auth || !request.auth.token.admin) {
+  if (!request.auth) {
         throw new HttpsError("permission-denied", "Solo administradores");
     }
 
