@@ -2,6 +2,8 @@ import React from "react";
 import { useNavigate } from "react-router-dom";
 import adminImg from "../assets/LogoAdmin.png";
 
+
+
 export default function GestionCuentasAdmin() {
   const navigate = useNavigate();
 
@@ -34,7 +36,7 @@ export default function GestionCuentasAdmin() {
         <div className="w-full space-y-6">
 
           <button
-            onClick={() => navigate("/crear-admin")}
+            onClick={() => navigate("/crear-cuenta-admin")}
             className="w-full py-4 rounded-xl 
                        bg-slate-700 hover:bg-indigo-600 
                        transition-all duration-300 
@@ -57,9 +59,9 @@ export default function GestionCuentasAdmin() {
 
         {/* Botón regresar */}
         <button
-          onClick={() => navigate("/dash-admin")}
+          onClick={() =>  navigate("/dashboard-admin")}
           className="mt-12 px-8 py-3 rounded-xl 
-                     bg-sky-600 hover:bg-sky-700 
+                     bg-slate-700 hover:bg-slate-600 
                      transition shadow-lg"
         >
           Regresar

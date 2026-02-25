@@ -11,24 +11,67 @@ import TestBackendCompleto from "./interfaces/TestBackendCompleto";
 import GestionCuentasAdmin from "./interfaces/GestionCuentasAdmin";
 import CrearCuentaAdmin from "./interfaces/CrearCuentaAdmin";
 import AdministrarCuentas from "./interfaces/AdministrarCuentas";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 
 function App() {
   return (
     <Routes>
       <Route path="/" element={<MenuRoles />} />
-      <Route path="/login-usuario" element={<LoginUsuario />} />
+      <Route path="/login-user" element={<LoginUsuario />} />
       <Route path="/login-admin" element={<LoginAdmin />} />
-      <Route path="/roles" element={<MenuRoles />} />
-      <Route path="/dash-admin" element={<DashBoardAdmin />} />
-      <Route path="/dash-user" element={<DashBoardUser />} />
+
+      {/* Rutas protegidas para usuarios autenticados */}
+      <Route
+        path="/dashboard-user"
+        element={
+          <ProtectedRoute>
+            <DashBoardUser />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Rutas protegidas para administradores */}
+      <Route
+        path="/dashboard-admin"
+        element={
+          <AdminRoute>
+            <DashBoardAdmin />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/gestion-cuentas"
+        element={
+          <AdminRoute>
+            <GestionCuentasAdmin />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/crear-cuenta-admin"
+        element={
+          <AdminRoute>
+            <CrearCuentaAdmin />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/administrar-cuentas"
+        element={
+          <AdminRoute>
+            <AdministrarCuentas />
+          </AdminRoute>
+        }
+      />
+
+      {/* Rutas de prueba para backend */}
       <Route path="/test-backend-basico" element={<TestBackendBasico />} />
       <Route path="/test-backend-medio" element={<TestBackendMedio />} />
-      <Route path="/test-backend-completo" element={<TestBackendCompleto />} />
-      <Route path="/gestion-cuentas-admin" element={<GestionCuentasAdmin />} />
-      <Route path="/crear-admin" element={<CrearCuentaAdmin />} />
-      <Route path="/administrar-cuentas" element={<AdministrarCuentas />} />
+      <Route path="/test-backend-completo" element={<TestBackendCompleto />}    
+      />
     </Routes>
-  );
-}
+  );  
+} 
 
 export default App
