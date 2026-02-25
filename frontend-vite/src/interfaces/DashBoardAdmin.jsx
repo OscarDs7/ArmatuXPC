@@ -1,5 +1,7 @@
 import React from "react";
 import { useLocation, useNavigate } from "react-router-dom";
+import { signOut } from "firebase/auth";
+import { auth } from "../utilidades/firebase"; // Importa la autenticación de Firebase para cerrar sesión
 
 export default function DashBoardAdmin() {
   const location = useLocation();
@@ -7,7 +9,7 @@ export default function DashBoardAdmin() {
   const nombre = location.state?.nombre || "Administrador";
 
   const cards = [
-    { title: "Gestión de cuentas", icon: "⚙️", path: "/gestion-cuentas-admin" },
+    { title: "Gestión de cuentas", icon: "⚙️", path: "/gestion-cuentas" },
     { title: "Gestión de Catálogo", icon: "📦", path: "/gestion-catalogo-admin" },
     { title: "Monitoreo y logística", icon: "📊", path: "/monitoreo-logistica-admin" },
     { title: "Métricas y reportes", icon: "📈", path: "/metricas-reportes-admin" },
@@ -49,11 +51,20 @@ export default function DashBoardAdmin() {
       {/* Botón */}
       <div className="text-center mt-12">
         <button
-          onClick={() => navigate("/login-admin")}
-          className="px-8 py-3 rounded-xl bg-sky-500 hover:bg-sky-600 
+          onClick={() => 
+            signOut(auth).then(() => {
+              alert("Sesión cerrada correctamente");
+              navigate("/login-admin"); // Redirige al menú de roles después de cerrar sesión
+            }
+            ).catch((error) => {
+              console.error("Error al cerrar sesión:", error);
+              alert("Error al cerrar sesión. Inténtalo de nuevo.");
+            })
+          }
+          className="px-8 py-3 rounded-xl bg-red-500 hover:bg-red-600 
                      transition-all duration-300 shadow-lg"
         >
-          Regresar
+          Cerrar sesión
         </button>
       </div>
 

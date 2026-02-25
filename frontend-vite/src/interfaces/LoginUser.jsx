@@ -62,7 +62,7 @@ export function LoginUser() {
     }
 
     alert(`Bienvenido ${usuario.Nombre} ✨`);
-    navigate("/dash-user", { state: { nombre: usuario.Nombre } });
+    navigate("/dashboard-user", { state: { nombre: usuario.Nombre } });
 
   } catch (err) {
   console.error("Login error:", err.code);
@@ -154,7 +154,7 @@ export function LoginUser() {
 
   return (
     <div className="login-container" style={{ backgroundImage: `url(${fondoProyecto})`, }}>
-     <BackButton to="/roles" label="Regresar" className = "back-button" />
+     <BackButton to="/" label="Regresar" className = "back-button" />
 
       <div className="login-card">
         <h2>{modoRegistro ? "Registro de Usuario" : "Login Usuario"}</h2>
