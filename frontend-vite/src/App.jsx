@@ -13,6 +13,7 @@ import CrearCuentaAdmin from "./interfaces/CrearCuentaAdmin";
 import AdministrarCuentas from "./interfaces/AdministrarCuentas";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
+import PruebaThree from "./interfaces/PruebaThree";
 
 function App() {
   return (
@@ -70,6 +71,9 @@ function App() {
       <Route path="/test-backend-medio" element={<TestBackendMedio />} />
       <Route path="/test-backend-completo" element={<TestBackendCompleto />}    
       />
+      {/* Ruta de prueba para Three.js */}
+      <Route path="/prueba-three" element={<PruebaThree />} />  
+      
     </Routes>
   );  
 } 
