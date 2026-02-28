@@ -115,11 +115,6 @@ export function LoginUser() {
     if (!nombre.trim()) return setError("Ingresa tu nombre.");
     if (!email.trim()) return setError("Ingresa tu correo.");
     if (!password.trim()) return setError("Ingresa una contraseña.");
-    /*if (!isPasswordSecure(password)) {
-      return setError(
-        "Contraseña insegura. Debe tener mínimo 8 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales."
-      );
-    }*/
 
     // 1️⃣ Crear usuario en Firebase Auth
     const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -229,11 +224,12 @@ export function LoginUser() {
               required
             />
             {/* VALIDACIÓN VISUAL EN TIEMPO REAL */}
+            {password.length > 0 && (
             <ul className="password-rules">
               <p className="small-info">Tu contraseña debe contener:</p>
 
               <li className={passwordValidations.length ? "valid" : "invalid"}>
-                {passwordValidations.length ? "✔" : "✖"} Mínimo 8 caracteres
+                {passwordValidations.length ? "✔" : "✖"} Debe tener mínimo 8 caracteres
               </li>
 
               <li className={passwordValidations.upper ? "valid" : "invalid"}>
@@ -252,9 +248,19 @@ export function LoginUser() {
                 {passwordValidations.special ? "✔" : "✖"} Un carácter especial
               </li>
             </ul>
+            )}
 
-            <button type="submit">Registrar</button>
-
+            <button
+              type="submit"
+              disabled={!Object.values(passwordValidations).every(Boolean)}
+              className={`px-6 py-3 rounded-xl transition shadow-lg ${
+                Object.values(passwordValidations).every(Boolean)
+                  ? "bg-sky-500 hover:bg-sky-600"
+                  : "bg-slate-600 cursor-not-allowed"
+              }`}
+            >
+              Registrarse
+            </button>
             <p className="small-info">
               Una vez registrado podrás iniciar sesión.
             </p>
