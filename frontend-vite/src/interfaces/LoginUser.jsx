@@ -28,6 +28,15 @@ export function LoginUser() {
 
   const navigate = useNavigate(); // Navegación entre rutas
 
+  // Objeto para validaciones de contraseña en tiempo real
+  const passwordValidations = {
+  length: password.length >= 8,
+  upper: /[A-Z]/.test(password),
+  lower: /[a-z]/.test(password),
+  number: /\d/.test(password),
+  special: /[\W_]/.test(password),
+};
+
   // ------------------------------------------------
   // REFERENCIA A LA COLECCIÓN DE USUARIOS
   // ------------------------------------------------
@@ -214,9 +223,44 @@ export function LoginUser() {
               autoComplete="new-password"
               required
             />
+            {/* VALIDACIÓN VISUAL EN TIEMPO REAL */}
+            {password.length > 0 && (
+            <ul className="password-rules">
+              <p className="small-info">Tu contraseña debe contener:</p>
 
-            <button type="submit">Registrar</button>
+              <li className={passwordValidations.length ? "valid" : "invalid"}>
+                {passwordValidations.length ? "✔" : "✖"} Debe tener mínimo 8 caracteres
+              </li>
 
+              <li className={passwordValidations.upper ? "valid" : "invalid"}>
+                {passwordValidations.upper ? "✔" : "✖"} Una letra mayúscula
+              </li>
+
+              <li className={passwordValidations.lower ? "valid" : "invalid"}>
+                {passwordValidations.lower ? "✔" : "✖"} Una letra minúscula
+              </li>
+
+              <li className={passwordValidations.number ? "valid" : "invalid"}>
+                {passwordValidations.number ? "✔" : "✖"} Un número
+              </li>
+
+              <li className={passwordValidations.special ? "✔" : "✖"}>
+                {passwordValidations.special ? "✔" : "✖"} Un carácter especial
+              </li>
+            </ul>
+            )}
+
+            <button
+              type="submit"
+              disabled={!Object.values(passwordValidations).every(Boolean)}
+              className={`px-6 py-3 rounded-xl transition shadow-lg ${
+                Object.values(passwordValidations).every(Boolean)
+                  ? "bg-sky-500 hover:bg-sky-600"
+                  : "bg-slate-600 cursor-not-allowed"
+              }`}
+            >
+              Registrarse
+            </button>
             <p className="small-info">
               Una vez registrado podrás iniciar sesión.
             </p>

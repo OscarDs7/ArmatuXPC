@@ -9,11 +9,19 @@ admin.initializeApp();
 exports.crearAdmin = onCall(async (request) => {
 
   // Verificar que el usuario esté autenticado y tenga permisos de admin
-  if (!request.auth) {
-        throw new HttpsError("permission-denied", "Solo administradores");
-    }
+  if (!request.auth || request.auth.token.admin !== true) {
+  throw new HttpsError(
+    "permission-denied",
+    "Solo administradores pueden realizar esta acción."
+  );
+}
 
   const { nombre, correo, password } = request.data; // Datos enviados desde el frontend
+
+  // Validación básica de datos
+  if (!nombre || !correo || !password) {
+    throw new HttpsError("invalid-argument", "Datos incompletos.");
+  }
 
   try {
     const userRecord = await admin.auth().createUser({
@@ -48,18 +56,29 @@ exports.crearAdmin = onCall(async (request) => {
 exports.eliminarUsuario = onCall(async (request) => {
 
   // Verificar que el usuario esté autenticado y tenga permisos de admin
-  if (!request.auth) {
-        throw new HttpsError("permission-denied", "Solo administradores");
-    }
+  if (!request.auth || request.auth.token.admin !== true) {
+  throw new HttpsError(
+    "permission-denied",
+    "Solo administradores pueden realizar esta acción."
+  );
+}
 
-  const { uid, docId } = request.data;
+  const { uid, docId } = request.data; // UID del usuario a eliminar y ID del documento en Firestore
+
+  // Evitar que un admin elimine su propia cuenta
+  if (uid === request.auth.uid) {
+  throw new HttpsError(
+    "permission-denied",
+    "No puedes eliminar tu propia cuenta."
+  );
+}
 
   try {
     await admin.auth().deleteUser(uid);
 
     await admin.firestore()
       .collection("Usuario")
-      .doc(docId)
+      .doc(docId) 
       .delete();
 
     return { success: true };
@@ -75,9 +94,12 @@ exports.eliminarUsuario = onCall(async (request) => {
 exports.cambiarRol = onCall(async (request) => {
 
    // Verificar que el usuario esté autenticado y tenga permisos de admin
-  if (!request.auth) {
-        throw new HttpsError("permission-denied", "Solo administradores");
-    }
+    if (!request.auth || request.auth.token.admin !== true) {
+    throw new HttpsError(
+      "permission-denied",
+      "Solo administradores pueden realizar esta acción."
+    );
+  }
 
   const { uid, docId, nuevoRol } = request.data;
 

@@ -5,6 +5,7 @@ import { collection, addDoc } from "firebase/firestore"; // Importa funciones de
 import { auth, db } from "../utilidades/firebase"; // Importa autenticación y Firestore
 import adminImg from "../assets/LogoAdmin.png";
 import { getFunctions, httpsCallable } from "firebase/functions"; // Importa funciones de Firebase Functions (para usar la función segura de creación de admin)
+import "../estilos/Login.css";
 
 export default function CrearCuentaAdmin() {
   const navigate = useNavigate();
@@ -14,8 +15,18 @@ export default function CrearCuentaAdmin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const coleccionUsuarios = collection(db, "Usuario");
+  //const coleccionUsuarios = collection(db, "Usuario");
   const auth = getAuth();
+
+    // Objeto para validaciones de contraseña en tiempo real
+  const passwordValidations = {
+  length: password.length >= 8,
+  upper: /[A-Z]/.test(password),
+  lower: /[a-z]/.test(password),
+  number: /\d/.test(password),
+  special: /[\W_]/.test(password),
+};
+
   console.log("Usuario actual:", auth.currentUser);
 
   // Crear administrador sin cerrar sesión actual (opción profesional: usar Firebase Functions con permisos específicos para crear admins sin exponer la función a todos los usuarios autenticados)
@@ -25,6 +36,10 @@ export default function CrearCuentaAdmin() {
 
     if (!nombre || !correo || !password) {
       return setError("Todos los campos son obligatorios.");
+    }
+
+    if (!Object.values(passwordValidations).every(Boolean)) {
+      return setError("La contraseña no cumple los requisitos de seguridad.");
     }
 
     try {
@@ -108,6 +123,33 @@ export default function CrearCuentaAdmin() {
             />
           </div>
 
+          {/* VALIDACIÓN VISUAL EN TIEMPO REAL */}
+          {password.length > 0 && (
+            <ul className="password-rules">
+              <p className="small-info">Tu contraseña debe contener:</p>
+
+              <li className={passwordValidations.length ? "valid" : "invalid"}>
+                {passwordValidations.length ? "✔" : "✖"} Debe tener mínimo 8 caracteres
+              </li>
+
+              <li className={passwordValidations.upper ? "valid" : "invalid"}>
+                {passwordValidations.upper ? "✔" : "✖"} Una mayúscula
+              </li>
+
+              <li className={passwordValidations.lower ? "valid" : "invalid"}>
+                {passwordValidations.lower ? "✔" : "✖"} Una minúscula
+              </li>
+
+              <li className={passwordValidations.number ? "valid" : "invalid"}>
+                {passwordValidations.number ? "✔" : "✖"} Un número
+              </li>
+
+              <li className={passwordValidations.special ? "valid" : "invalid"}>
+                {passwordValidations.special ? "✔" : "✖"} Un carácter especial
+              </li>
+            </ul>
+          )}
+
           {error && (
             <p className="text-red-400 text-sm">{error}</p>
           )}
@@ -115,7 +157,12 @@ export default function CrearCuentaAdmin() {
           <div className="flex justify-between">
             <button
               type="submit"
-              className="px-6 py-3 rounded-xl bg-sky-500 hover:bg-sky-600 transition shadow-lg"
+              disabled={!Object.values(passwordValidations).every(Boolean)}
+              className={`px-6 py-3 rounded-xl transition shadow-lg ${
+                Object.values(passwordValidations).every(Boolean)
+                  ? "bg-sky-500 hover:bg-sky-600"
+                  : "bg-slate-600 cursor-not-allowed"
+              }`}
             >
               Crear Administrador
             </button>
