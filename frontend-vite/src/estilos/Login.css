@@ -118,3 +118,23 @@ h2 {
   font-weight: bold;
   box-shadow: 0 4px 6px rgba(14, 127, 193, 0.1);
 }
+
+.password-rules {
+  margin: 12px 0;
+  padding-left: 0;
+  list-style: none;
+  font-size: 13px;
+}
+
+.password-rules li {
+  margin: 4px 0;
+  transition: 0.2s ease;
+}
+
+.valid {
+  color: #2ecc71;
+}
+
+.invalid {
+  color: #e74c3c;
+}
