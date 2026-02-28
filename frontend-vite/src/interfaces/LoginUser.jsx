@@ -28,6 +28,15 @@ export function LoginUser() {
 
   const navigate = useNavigate(); // Navegación entre rutas
 
+  // Objeto para validaciones de contraseña en tiempo real
+  const passwordValidations = {
+  length: password.length >= 8,
+  upper: /[A-Z]/.test(password),
+  lower: /[a-z]/.test(password),
+  number: /\d/.test(password),
+  special: /[\W_]/.test(password),
+};
+
   // ------------------------------------------------
   // REFERENCIA A LA COLECCIÓN DE USUARIOS
   // ------------------------------------------------
@@ -106,6 +115,11 @@ export function LoginUser() {
     if (!nombre.trim()) return setError("Ingresa tu nombre.");
     if (!email.trim()) return setError("Ingresa tu correo.");
     if (!password.trim()) return setError("Ingresa una contraseña.");
+    /*if (!isPasswordSecure(password)) {
+      return setError(
+        "Contraseña insegura. Debe tener mínimo 8 caracteres, incluir mayúsculas, minúsculas, números y caracteres especiales."
+      );
+    }*/
 
     // 1️⃣ Crear usuario en Firebase Auth
     const cred = await createUserWithEmailAndPassword(auth, email, password);
@@ -214,6 +228,30 @@ export function LoginUser() {
               autoComplete="new-password"
               required
             />
+            {/* VALIDACIÓN VISUAL EN TIEMPO REAL */}
+            <ul className="password-rules">
+              <p className="small-info">Tu contraseña debe contener:</p>
+
+              <li className={passwordValidations.length ? "valid" : "invalid"}>
+                {passwordValidations.length ? "✔" : "✖"} Mínimo 8 caracteres
+              </li>
+
+              <li className={passwordValidations.upper ? "valid" : "invalid"}>
+                {passwordValidations.upper ? "✔" : "✖"} Una letra mayúscula
+              </li>
+
+              <li className={passwordValidations.lower ? "valid" : "invalid"}>
+                {passwordValidations.lower ? "✔" : "✖"} Una letra minúscula
+              </li>
+
+              <li className={passwordValidations.number ? "valid" : "invalid"}>
+                {passwordValidations.number ? "✔" : "✖"} Un número
+              </li>
+
+              <li className={passwordValidations.special ? "✔" : "✖"}>
+                {passwordValidations.special ? "✔" : "✖"} Un carácter especial
+              </li>
+            </ul>
 
             <button type="submit">Registrar</button>
 
