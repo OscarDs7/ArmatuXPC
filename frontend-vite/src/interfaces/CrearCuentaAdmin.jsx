@@ -15,7 +15,7 @@ export default function CrearCuentaAdmin() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
 
-  const coleccionUsuarios = collection(db, "Usuario");
+  //const coleccionUsuarios = collection(db, "Usuario");
   const auth = getAuth();
 
     // Objeto para validaciones de contraseña en tiempo real
