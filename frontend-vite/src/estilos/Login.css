@@ -120,22 +120,21 @@ h2 {
 }
 
 .password-rules {
+  margin: 12px 0;
+  padding-left: 0;
   list-style: none;
-  padding: 0;
-  margin-top: 10px;
   font-size: 13px;
-  text-align: left;
 }
 
 .password-rules li {
-  margin-bottom: 4px;
-  transition: 0.3s ease;
+  margin: 4px 0;
+  transition: 0.2s ease;
 }
 
 .valid {
-  color: #2ecc71; /* verde */
+  color: #2ecc71;
 }
 
 .invalid {
-  color: #e74c3c; /* rojo */
+  color: #e74c3c;
 }
