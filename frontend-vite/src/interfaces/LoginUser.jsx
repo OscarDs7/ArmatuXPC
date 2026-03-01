@@ -4,7 +4,8 @@ import {
   query,
   where,
   getDocs,
-  addDoc,
+  setDoc,
+  doc
 } from "firebase/firestore";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail} from "firebase/auth";
 import { auth, db } from "../utilidades/firebase";
@@ -121,13 +122,13 @@ export function LoginUser() {
     const uid = cred.user.uid;
 
     // 2️⃣ Guardar datos del usuario en Firestore
-    await addDoc(coleccionUsuarios, {
+    await setDoc(doc(db, "Usuario", uid), {  // usamos el UID como ID del documento para fácil acceso
       UID: uid,
       Nombre: nombre,
       Correo: email,
       Rol: "user",
       FechaRegistro: new Date(),
-    });
+    }, { merge: false }); // merge: false para evitar sobreescribir datos si el UID ya existe
 
     alert("Registro exitoso 🎉 Ya puedes iniciar sesión.");
     setModoRegistro(false);
