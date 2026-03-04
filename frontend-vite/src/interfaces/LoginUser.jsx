@@ -4,7 +4,9 @@ import {
   query,
   where,
   getDocs,
-  addDoc,
+  getDoc,
+  setDoc,
+  doc
 } from "firebase/firestore";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail} from "firebase/auth";
 import { auth, db } from "../utilidades/firebase";
@@ -37,11 +39,18 @@ export function LoginUser() {
   special: /[\W_]/.test(password),
 };
 
+// Validación completa del formulario de registro
+const isRegistroValido =
+  nombre.trim() !== "" &&
+  email.trim() !== "" &&
+  Object.values(passwordValidations).every(Boolean);
+
   // ------------------------------------------------
   // REFERENCIA A LA COLECCIÓN DE USUARIOS
   // ------------------------------------------------
-  const coleccionUsuarios = collection(db, "Usuario");
+  //const coleccionUsuarios = collection(db, "Usuario");
 
+  
   // ------------------------------------------------
   // FUNCIÓN PARA MANEJAR EL LOGIN
   // ------------------------------------------------
@@ -56,14 +65,14 @@ export function LoginUser() {
     const uid = cred.user.uid;
 
     // 2️⃣ Buscar usuario en Firestore por UID
-    const q = query(coleccionUsuarios, where("UID", "==", uid));
-    const querySnap = await getDocs(q);
+    const userRef = doc(db, "Usuario", uid);
+    const userSnap = await getDoc(userRef);
 
-    if (querySnap.empty) {
+    if (!userSnap.exists()) {
       return setError("No se encontró tu perfil en la base de datos.");
     }
 
-    const usuario = querySnap.docs[0].data(); // Obtener datos del usuario
+    const usuario = userSnap.data();
 
     //Validar rol según la ventana donde inicia sesión
     if (!usuario.Rol || usuario.Rol !== "user") {
@@ -112,22 +121,28 @@ export function LoginUser() {
   setError("");
 
   try {
+    // Validaciones básicas antes de intentar registrar
     if (!nombre.trim()) return setError("Ingresa tu nombre.");
     if (!email.trim()) return setError("Ingresa tu correo.");
     if (!password.trim()) return setError("Ingresa una contraseña.");
+
+    // Validación de contraseña en tiempo real
+    if (!Object.values(passwordValidations).every(Boolean)) {
+      return setError("La contraseña no cumple los requisitos de seguridad.");
+    }
 
     // 1️⃣ Crear usuario en Firebase Auth
     const cred = await createUserWithEmailAndPassword(auth, email, password);
     const uid = cred.user.uid;
 
     // 2️⃣ Guardar datos del usuario en Firestore
-    await addDoc(coleccionUsuarios, {
+    await setDoc(doc(db, "Usuario", uid), {  // usamos el UID como ID del documento para fácil acceso
       UID: uid,
       Nombre: nombre,
       Correo: email,
       Rol: "user",
       FechaRegistro: new Date(),
-    });
+    }, { merge: false }); // merge: false para evitar sobreescribir datos si el UID ya existe
 
     alert("Registro exitoso 🎉 Ya puedes iniciar sesión.");
     setModoRegistro(false);
@@ -244,7 +259,7 @@ export function LoginUser() {
                 {passwordValidations.number ? "✔" : "✖"} Un número
               </li>
 
-              <li className={passwordValidations.special ? "✔" : "✖"}>
+              <li className={passwordValidations.special ? "valid" : "invalid"}>
                 {passwordValidations.special ? "✔" : "✖"} Un carácter especial
               </li>
             </ul>
@@ -252,15 +267,16 @@ export function LoginUser() {
 
             <button
               type="submit"
-              disabled={!Object.values(passwordValidations).every(Boolean)}
+              disabled={!isRegistroValido} // Deshabilitar botón si el registro no es válido
               className={`px-6 py-3 rounded-xl transition shadow-lg ${
-                Object.values(passwordValidations).every(Boolean)
+                isRegistroValido
                   ? "bg-sky-500 hover:bg-sky-600"
                   : "bg-slate-600 cursor-not-allowed"
               }`}
             >
               Registrarse
             </button>
+            
             <p className="small-info">
               Una vez registrado podrás iniciar sesión.
             </p>
