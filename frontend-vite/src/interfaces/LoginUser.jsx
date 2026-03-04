@@ -1,9 +1,5 @@
 import React, { useState } from "react";
 import {
-  collection,
-  query,
-  where,
-  getDocs,
   getDoc,
   setDoc,
   doc
@@ -25,6 +21,7 @@ export function LoginUser() {
   const [error, setError] = useState("");
   const [resetMessage, setResetMessage] = useState("");
   const [intentos, setIntentos] = useState(0);
+  const [loading, setLoading] = useState(false);
 
   const [modoRegistro, setModoRegistro] = useState(false);
 
@@ -39,10 +36,15 @@ export function LoginUser() {
   special: /[\W_]/.test(password),
 };
 
+// Validación de email con regex
+const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+// Limpiar email de espacios y convertir a minúsculas para evitar errores comunes
+const cleanEmail = email.trim().toLowerCase();
+
 // Validación completa del formulario de registro
 const isRegistroValido =
   nombre.trim() !== "" &&
-  email.trim() !== "" &&
+  emailValid &&
   Object.values(passwordValidations).every(Boolean);
 
 
@@ -53,10 +55,11 @@ const isRegistroValido =
   e.preventDefault();
   setError("");
   setResetMessage("");
+  setLoading(true); // Activar loading
 
   try {
     // 1️⃣ Iniciar sesión en Firebase Auth
-    const cred = await signInWithEmailAndPassword(auth, email, password);
+    const cred = await signInWithEmailAndPassword(auth, cleanEmail, password);
     const uid = cred.user.uid;
 
     // 2️⃣ Buscar usuario en Firestore por UID
@@ -79,19 +82,30 @@ const isRegistroValido =
 
   } catch (err) {
   console.error("Login error:", err.code);
+    // Manejo de errores específicos de Firebase Auth
+    switch (err.code) {
+      case "auth/invalid-credential":
+        setError("Correo o contraseña incorrectos.");
+        break;
 
-    if (
-      err.code === "auth/invalid-credential" ||
-      err.code === "auth/user-not-found" ||
-      err.code === "auth/wrong-password"
-    ) {
-      manejarIntentoFallido();
-      setError("Correo o contraseña incorrectos.");
-      return;
+      case "auth/invalid-email":
+        setError("Correo electrónico no válido.");
+        break;
+
+      case "auth/too-many-requests":
+        setError("Demasiados intentos. Intenta más tarde.");
+        break;
+
+      default:
+        setError("Error inesperado. Intenta más tarde.");
     }
 
-    setError("Error inesperado. Intenta más tarde.");
+    manejarIntentoFallido(); // Incrementar intentos fallidos y mostrar alerta si es necesario
+    
   } // fin-catch
+  finally {
+    setLoading(false);
+  }
 
 }; // fin handleLogin
 
@@ -119,6 +133,7 @@ const isRegistroValido =
     // Validaciones básicas antes de intentar registrar
     if (!nombre.trim()) return setError("Ingresa tu nombre.");
     if (!email.trim()) return setError("Ingresa tu correo.");
+    if(!emailValid) return setError("El formato del correo no es válido.");
     if (!password.trim()) return setError("Ingresa una contraseña.");
 
     // Validación de contraseña en tiempo real
@@ -126,15 +141,18 @@ const isRegistroValido =
       return setError("La contraseña no cumple los requisitos de seguridad.");
     }
 
+    // Activamos el loading mientras se procesa el registro
+    setLoading(true);
+
     // 1️⃣ Crear usuario en Firebase Auth
-    const cred = await createUserWithEmailAndPassword(auth, email, password);
+    const cred = await createUserWithEmailAndPassword(auth, cleanEmail, password);
     const uid = cred.user.uid;
 
     // 2️⃣ Guardar datos del usuario en Firestore
     await setDoc(doc(db, "Usuario", uid), {  // usamos el UID como ID del documento para fácil acceso
       UID: uid,
       Nombre: nombre,
-      Correo: email,
+      Correo: cleanEmail,
       Rol: "user",
       FechaRegistro: new Date(),
     }, { merge: false }); // merge: false para evitar sobreescribir datos si el UID ya existe
@@ -145,11 +163,25 @@ const isRegistroValido =
   } catch (err) {
     console.error("ERROR REGISTRO:", err);
 
-    if (err.code === "auth/email-already-in-use") {
-      return setError("Este correo ya está registrado.");
-    }
+    switch (err.code) {
+      case "auth/email-already-in-use":
+        setError("Este correo ya está registrado.");
+        break;
 
-    setError("Error al registrar usuario.");
+      case "auth/invalid-email":
+        setError("El formato del correo no es válido.");
+        break;
+
+      case "auth/weak-password":
+        setError("La contraseña es demasiado débil.");
+        break;
+
+      default:
+        setError("Error al registrar usuario.");
+    }
+  }
+  finally {
+    setLoading(false);
   }
 }; // fin handleRegistro
 
@@ -202,7 +234,9 @@ const isRegistroValido =
               required
             />
 
-            <button type="submit">Ingresar</button>
+            <button type="submit" disabled={loading}>
+              {loading ? "Ingresando..." : "Ingresar"}
+            </button>
           </form>
         )}
 
