@@ -38,19 +38,18 @@ export function LoginAdmin() {
       const q = query(ref, where("UID", "==", uid));
       const snap = await getDocs(q);
 
+      // 1. Si existe → verificar rol y denegar acceso si es "user"
       if (!snap.empty) {
         const data = snap.docs[0].data();
-
-        // 👇 CORRECTO: verificar rol en minúscula
-        if (data.Rol === "user") {
+        if (data.Rol === "user" && data.UID === uid) {
           setError("Acceso denegado: no tienes permisos de administrador.");
           return;
         }
       }
-
-      // 3. Si NO existe → automáticamente es administrador
+      // 2. Si no existe → asumir que es admin (ya que si no es user, debe ser admin)
       alert("Bienvenido Administrador!");
       navigate("/dashboard-admin", { state: { nombre: "Administrador" } });
+      
 
     } catch (err) {
       console.error(err);
@@ -58,12 +57,12 @@ export function LoginAdmin() {
     }
   };
 
+  // Función para manejar el restablecimiento de contraseña
   const handlePasswordReset = async () => {
     if (!email) {
       setResetMessage("Ingresa tu correo para recuperar la contraseña.");
       return;
     }
-
     try {
       await sendPasswordResetEmail(auth, email);
       setResetMessage("Se ha enviado un enlace de recuperación.");
@@ -73,6 +72,7 @@ export function LoginAdmin() {
     }
   };
 
+  // Renderizado del componente
   return (
     <div
       className="login-container"
