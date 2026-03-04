@@ -45,12 +45,7 @@ const isRegistroValido =
   email.trim() !== "" &&
   Object.values(passwordValidations).every(Boolean);
 
-  // ------------------------------------------------
-  // REFERENCIA A LA COLECCIÓN DE USUARIOS
-  // ------------------------------------------------
-  //const coleccionUsuarios = collection(db, "Usuario");
 
-  
   // ------------------------------------------------
   // FUNCIÓN PARA MANEJAR EL LOGIN
   // ------------------------------------------------
@@ -66,7 +61,7 @@ const isRegistroValido =
 
     // 2️⃣ Buscar usuario en Firestore por UID
     const userRef = doc(db, "Usuario", uid);
-    const userSnap = await getDoc(userRef);
+    const userSnap = await getDoc(userRef); // obtenemos el documento directamente por UID (más eficiente que query)
 
     if (!userSnap.exists()) {
       return setError("No se encontró tu perfil en la base de datos.");
