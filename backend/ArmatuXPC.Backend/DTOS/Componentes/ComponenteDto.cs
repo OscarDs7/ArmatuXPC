@@ -9,4 +9,5 @@ public class ComponenteDto
     public TipoComponente Tipo { get; set; }
     public decimal? ConsumoWatts { get; set; }
     public int? CapacidadWatts { get; set; }
+    public string? ImagenUrl { get; set; }
 }

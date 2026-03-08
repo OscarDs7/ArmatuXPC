@@ -37,7 +37,8 @@ namespace ArmatuXPC.Backend.Migrations
                     Precio = table.Column<decimal>(type: "numeric(18,2)", nullable: false),
                     Tipo = table.Column<int>(type: "integer", nullable: false),
                     ConsumoWatts = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
-                    CapacidadWatts = table.Column<decimal>(type: "numeric(10,2)", nullable: true)
+                    CapacidadWatts = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
+                    ImagenUrl = table.Column<string>(type: "text", nullable: true)
                 },
                 constraints: table =>
                 {

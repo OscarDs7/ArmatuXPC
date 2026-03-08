@@ -20,3 +20,16 @@ export const getCompatibilidades = async () => {
   if (!response.ok) throw new Error("Error al obtener compatibilidades");
   return response.json();
 };
+
+// Agregar un nuevo componente
+export const agregarComponente = async (componente) => {
+  const response = await fetch(`${API_URL}/Componentes`, {
+    method: "POST", 
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(componente),
+  });
+  if (!response.ok) throw new Error("Error al agregar componente");
+  return response.json();
+};
