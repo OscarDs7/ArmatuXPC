@@ -104,6 +104,9 @@ namespace ArmatuXPC.Backend.Migrations
                     b.Property<decimal?>("ConsumoWatts")
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<string>("ImagenUrl")
+                        .HasColumnType("text");
+
                     b.Property<string>("Marca")
                         .IsRequired()
                         .HasColumnType("text");
