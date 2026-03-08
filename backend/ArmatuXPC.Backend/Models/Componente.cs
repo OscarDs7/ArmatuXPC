@@ -25,7 +25,7 @@ namespace ArmatuXPC.Backend.Models
         public int? CapacidadWatts { get; set; } // Potencia total en watts que puede suministrar la fuente de poder, para validar que sea suficiente para el armado
         
         // Imagen del componente (URL o base64), para mostrar en el frontend
-        public string? Imagen { get; set; }
+        public string? ImagenUrl { get; set; }
 
 
 
