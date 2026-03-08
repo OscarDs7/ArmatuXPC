@@ -38,7 +38,8 @@ namespace ArmatuXPC.Backend.Controllers
                     Precio = c.Precio,
                     Tipo = c.Tipo,
                     ConsumoWatts = c.ConsumoWatts,
-                    CapacidadWatts = c.CapacidadWatts
+                    CapacidadWatts = c.CapacidadWatts,
+                    ImagenUrl = c.ImagenUrl
                 })
                 .ToListAsync();
 
@@ -60,7 +61,8 @@ namespace ArmatuXPC.Backend.Controllers
                     Precio = c.Precio,
                     Tipo = c.Tipo,
                     ConsumoWatts = c.ConsumoWatts,
-                    CapacidadWatts = c.CapacidadWatts
+                    CapacidadWatts = c.CapacidadWatts,
+                    ImagenUrl = c.ImagenUrl
                 })
                 .FirstOrDefaultAsync();
 
@@ -72,7 +74,7 @@ namespace ArmatuXPC.Backend.Controllers
 
         // POST: api/Componentes -> Crea un nuevo 'Componente'
         [HttpPost]
-        public async Task<ActionResult> PostComponente(ComponenteDto dto)
+        public async Task<ActionResult> PostComponente([FromBody] ComponenteDto dto)
         {
             if (dto.Tipo == TipoComponente.FuentePoder && dto.CapacidadWatts == null)
                 return BadRequest("La fuente debe tener CapacidadWatts");
@@ -88,8 +90,12 @@ namespace ArmatuXPC.Backend.Controllers
                 Precio = dto.Precio,
                 Tipo = dto.Tipo,
                 ConsumoWatts = dto.ConsumoWatts,
-                CapacidadWatts = dto.CapacidadWatts
+                CapacidadWatts = dto.CapacidadWatts,
+                ImagenUrl = dto.ImagenUrl
             };
+            Console.WriteLine("Tipo recibido: " + dto.Tipo);
+
+            Console.WriteLine("Imagen recibida: " + dto.ImagenUrl);
 
             _context.Componentes.Add(componente);
             await _context.SaveChangesAsync();
