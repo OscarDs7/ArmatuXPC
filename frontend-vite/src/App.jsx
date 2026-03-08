@@ -9,6 +9,7 @@ import TestBackendBasico from "./interfaces/TestBackendBasico";
 import TestBackendMedio from "./interfaces/TestBackendMedio";
 import TestBackendCompleto from "./interfaces/TestBackendCompleto";
 import GestionCuentasAdmin from "./interfaces/GestionCuentasAdmin";
+import AgregarComponenteAdmin from "./interfaces/AgregarComponente";
 import CrearCuentaAdmin from "./interfaces/CrearCuentaAdmin";
 import AdministrarCuentas from "./interfaces/AdministrarCuentas";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -63,6 +64,12 @@ function App() {
           <AdminRoute>
             <AdministrarCuentas />
           </AdminRoute>
+        }
+      />
+      <Route
+        path="/gestion-catalogo-admin"
+        element={
+            <AgregarComponenteAdmin />
         }
       />
 
