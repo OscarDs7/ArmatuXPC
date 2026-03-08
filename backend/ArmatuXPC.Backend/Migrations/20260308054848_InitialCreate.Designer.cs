@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArmatuXPC.Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260217030749_InitialCreate")]
+    [Migration("20260308054848_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -106,6 +106,9 @@ namespace ArmatuXPC.Backend.Migrations
 
                     b.Property<decimal?>("ConsumoWatts")
                         .HasColumnType("decimal(10,2)");
+
+                    b.Property<string>("ImagenUrl")
+                        .HasColumnType("text");
 
                     b.Property<string>("Marca")
                         .IsRequired()
