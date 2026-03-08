@@ -69,7 +69,9 @@ function App() {
       <Route
         path="/gestion-catalogo-admin"
         element={
+          <AdminRoute>
             <AgregarComponenteAdmin />
+          </AdminRoute>
         }
       />
 
