@@ -24,6 +24,7 @@ export default function AgregarComponenteAdmin({ onBack }) {
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [imagenFile, setImagenFile] = useState(null);
+  const previewUrl = imagenFile ? URL.createObjectURL(imagenFile) : null; // Generamos una URL de vista previa para mostrar la imagen seleccionada antes de subirla a Firebase Storage
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -40,9 +41,9 @@ export default function AgregarComponenteAdmin({ onBack }) {
     nombre: nombre.trim(),
     marca: marca.trim(),
     modelo: modelo.trim(),
-    precio: Number(precio),
+    precio: parseFloat(precio),
     tipo: tipo,
-    consumoWatts: Number(consumoWatts),
+    consumoWatts: parseFloat(consumoWatts),
     capacidadWatts: capacidadWatts
         ? Number(capacidadWatts)
         : undefined,
@@ -121,27 +122,33 @@ export default function AgregarComponenteAdmin({ onBack }) {
             type="text"
             name="nombre"
             placeholder="Nombre"
-            value={formData.nombre}
+            value={nombre}
             onChange={handleChange}
             className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
             required
           />
 
-          <input
-            type="text"
+          <select
             name="tipo"
-            placeholder="Tipo de componente"
-            value={formData.tipo}
+            value={tipo}
             onChange={handleChange}
-            className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
-            required
-          />
+            className="w-full p-3 rounded bg-slate-800 border border-slate-700"
+            >
+            <option value="">Seleccionar tipo</option>
+            <option value="CPU">CPU</option>
+            <option value="GPU">GPU</option>
+            <option value="MemoriaRAM">Memoria RAM</option>
+            <option value="Almacenamiento">Almacenamiento</option>
+            <option value="FuentePoder">Fuente de poder</option>
+            <option value="PlacaBase">Placa base</option>
+            <option value="Gabinete">Gabinete</option>
+            </select>
 
           <input
             type="text"
             name="marca"
             placeholder="Marca"
-            value={formData.marca}
+            value={marca}
             onChange={handleChange}
             className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
             required
@@ -151,7 +158,7 @@ export default function AgregarComponenteAdmin({ onBack }) {
             type="text"
             name="modelo"
             placeholder="Modelo"
-            value={formData.modelo}
+            value={modelo}
             onChange={handleChange}
             className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
             required
@@ -161,7 +168,7 @@ export default function AgregarComponenteAdmin({ onBack }) {
             type="number"
             name="precio"
             placeholder="Precio"
-            value={formData.precio}
+            value={precio}
             onChange={handleChange}
             className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
             required
@@ -171,7 +178,7 @@ export default function AgregarComponenteAdmin({ onBack }) {
             type="number"
             name="consumoWatts"
             placeholder="Consumo energético (W)"
-            value={formData.consumoWatts}
+            value={consumoWatts}
             onChange={handleChange}
             className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
             required
@@ -181,7 +188,7 @@ export default function AgregarComponenteAdmin({ onBack }) {
             type="number"
             name="capacidadWatts"
             placeholder="Capacidad watts (solo Fuente de poder - opcional)"
-            value={formData.capacidadWatts}
+            value={capacidadWatts}
             onChange={handleChange}
             className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
           />
@@ -189,7 +196,6 @@ export default function AgregarComponenteAdmin({ onBack }) {
           <input
             type="file"
             accept="image/*"
-            value = "" // Reseteamos el valor del input de tipo file para permitir seleccionar el mismo archivo nuevamente si es necesario
             placeholder="URL de la imagen"
             onChange={(e) => setImagenFile(e.target.files[0])}
             className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
@@ -197,7 +203,7 @@ export default function AgregarComponenteAdmin({ onBack }) {
           
            {imagenFile && (
                 <div className="mt-2 flex justify-center">
-                <img  src={URL.createObjectURL(imagenFile)
+                <img  src={previewUrl
                     } alt="Vista previa" className="max-w-32 max-h-32 rounded-lg object-cover border border-slate-700" />
                 </div>
                 )
@@ -225,7 +231,7 @@ export default function AgregarComponenteAdmin({ onBack }) {
 
           <button
             type="button"
-            onClick={onBack}
+            onClick={() => onBack?.()}
             className="w-full bg-slate-700 hover:bg-slate-600 transition p-3 rounded-lg"
           >
             Regresar
