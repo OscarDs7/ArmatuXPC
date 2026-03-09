@@ -66,6 +66,7 @@ export function LoginAdmin() {
     try {
       await sendPasswordResetEmail(auth, email);
       setResetMessage("Se ha enviado un enlace de recuperación.");
+      alert("Por favor revisa tu bandeja de Spam para encontrar el correo de recuperación si no lo ves en tu bandeja de entrada.");
     } catch (err) {
       console.error(err);
       setResetMessage("Error al enviar el correo. Verifica tu correo.");
