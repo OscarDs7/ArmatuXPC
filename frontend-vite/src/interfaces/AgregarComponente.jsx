@@ -3,10 +3,11 @@
 // Pasandole la función POST del servicio api.js, el frontend podrá enviar esta información al backend para agregar el nuevo componente a la base de datos y luego actualizar la lista de componentes en el frontend para mostrar el nuevo componente agregado.
 
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { agregarComponente } from "../services/api";
 import { subirImagen } from "../services/storageService";
 
-export default function AgregarComponenteAdmin({ onBack }) {
+export default function AgregarComponenteAdmin() {
 
   const [formData, setFormData] = useState({
     nombre: "",
@@ -18,9 +19,10 @@ export default function AgregarComponenteAdmin({ onBack }) {
     capacidadWatts: ""
   });
   
-  // DestructuraR fromData para facilitar el acceso a los campos individuales del formulario
+  // Destructurar fromData para facilitar el acceso a los campos individuales del formulario
   const { nombre, marca, modelo, precio, tipo, consumoWatts, capacidadWatts } = formData;
 
+  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [mensaje, setMensaje] = useState("");
   const [imagenFile, setImagenFile] = useState(null);
@@ -231,7 +233,7 @@ export default function AgregarComponenteAdmin({ onBack }) {
 
           <button
             type="button"
-            onClick={() => onBack?.()}
+            onClick={() =>  navigate("/dashboard-admin")}
             className="w-full bg-slate-700 hover:bg-slate-600 transition p-3 rounded-lg"
           >
             Regresar
