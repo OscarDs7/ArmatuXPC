@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArmatuXPC.Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260308054848_InitialCreate")]
+    [Migration("20260309195502_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
