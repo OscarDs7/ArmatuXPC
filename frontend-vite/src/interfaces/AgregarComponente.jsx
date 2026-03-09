@@ -49,7 +49,7 @@ export default function AgregarComponenteAdmin() {
     capacidadWatts: capacidadWatts
         ? Number(capacidadWatts)
         : undefined,
-    imagenUrl
+    ...(imagenUrl && { imagenUrl })
 
     });
 
@@ -73,7 +73,7 @@ export default function AgregarComponenteAdmin() {
         }
         // Si se ha seleccionado un archivo de imagen, lo subimos a Firebase Storage y obtenemos la URL de descarga de la imagen para asignarla al campo "imagen" del componente
         if (imagenFile) {
-          imagenUrl = await subirImagen(imagenFile);
+          imagenUrl = await subirImagen(imagenFile, tipo, modelo);
         }
 
       // Creamos el objeto componente con los datos del formulario, incluyendo la URL de la imagen si se ha subido correctamente
@@ -179,17 +179,16 @@ export default function AgregarComponenteAdmin() {
           <input
             type="number"
             name="consumoWatts"
-            placeholder="Consumo energético (W)"
+            placeholder="Consumo energético (W) - solo CPU, GPU, RAM y Almacenamiento"
             value={consumoWatts}
             onChange={handleChange}
             className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
-            required
           />
 
           <input
             type="number"
             name="capacidadWatts"
-            placeholder="Capacidad watts (solo Fuente de poder - opcional)"
+            placeholder="Capacidad watts (solo Fuente de poder)"
             value={capacidadWatts}
             onChange={handleChange}
             className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
