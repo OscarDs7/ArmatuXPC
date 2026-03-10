@@ -93,7 +93,7 @@ export default function DashBoardUser() {
         </div>
       </main>
 
-      {/* BOTÓN IA */}
+      {/* BOTÓN CHATBOT IA */}
       <button className="dash-chatbot-btn">🤖</button>
     </div>
   );
