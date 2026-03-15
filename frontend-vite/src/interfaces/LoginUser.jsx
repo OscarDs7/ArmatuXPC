@@ -37,6 +37,24 @@ export function LoginUser() {
   special: /[\W_]/.test(password),
 };
 
+// Calcular fuerza de contraseña
+const getPasswordStrength = () => {
+  const checks = Object.values(passwordValidations).filter(Boolean).length;
+
+  if (checks <= 2) {
+    return { label: "Débil", color: "red", emoji: "🔴" };
+  }
+
+  if (checks === 3 || checks === 4) {
+    return { label: "Media", color: "orange", emoji: "🟡" };
+  }
+
+  return { label: "Fuerte", color: "green", emoji: "🟢" };
+};
+
+// Variable que contiene la información de la fuerza de la contraseña para mostrar al usuario
+const passwordStrength = getPasswordStrength();
+
 // Validación de email con regex
 const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 // Limpiar email de espacios y convertir a minúsculas para evitar errores comunes
@@ -276,22 +294,7 @@ const isRegistroValido =
               autoComplete="new-password"
               required
             />
-
-            <input
-              type="password"
-              placeholder="Confirmar Contraseña"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              autoComplete="new-password"
-              required
-            />
-
-            {confirmPassword.length > 0 && (
-              <p className={password === confirmPassword ? "valid" : "invalid"}>
-                {password === confirmPassword ? "✔ Las contraseñas coinciden" : "✖ Las contraseñas no coinciden"}
-              </p>
-            )}
-
+            
             {/* VALIDACIÓN VISUAL EN TIEMPO REAL */}
             {password.length > 0 && (
             <ul className="password-rules">
@@ -318,6 +321,45 @@ const isRegistroValido =
               </li>
             </ul>
             )}
+
+            {/* Validación de fuerza de contraseña en tiempo real */}
+            {password.length > 0 && (
+            <div className="password-strength">
+              <p>
+                Seguridad de contraseña:{" "}
+                <strong style={{ color: passwordStrength.color }}>
+                  {passwordStrength.label} {passwordStrength.emoji}
+                </strong>
+              </p>
+
+              <div className="strength-bar">
+                <div
+                  className="strength-fill"
+                  style={{
+                    width: `${Object.values(passwordValidations).filter(Boolean).length * 20}%`,
+                    backgroundColor: passwordStrength.color,
+                  }}
+                ></div>
+              </div>
+                <br></br>
+            </div>
+          )}
+           <div>
+            <input
+              type="password"
+              placeholder="Confirmar Contraseña"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+
+            {confirmPassword.length > 0 && (
+              <p className={password === confirmPassword ? "valid" : "invalid"}>
+                {password === confirmPassword ? "✔ Las contraseñas coinciden" : "✖ Las contraseñas no coinciden"}
+              </p>
+            )} <br></br>
+          </div>
 
             <button
               type="submit"
