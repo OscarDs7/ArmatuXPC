@@ -15,6 +15,8 @@ export default function CrearCuentaAdmin() {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+  
 
   //const coleccionUsuarios = collection(db, "Usuario");
   const auth = getAuth();
@@ -33,6 +35,24 @@ const passwordsMatch = password === confirmPassword;
 
 };
 
+// Calcular fuerza de contraseña
+const getPasswordStrength = () => {
+  const checks = Object.values(passwordValidations).filter(Boolean).length;
+
+  if (checks <= 2) {
+    return { label: "Débil", color: "red", emoji: "🔴" };
+  }
+
+  if (checks === 3 || checks === 4) {
+    return { label: "Media", color: "orange", emoji: "🟡" };
+  }
+
+  return { label: "Fuerte", color: "green", emoji: "🟢" };
+};
+
+// Variable que contiene la información de la fuerza de la contraseña para mostrar al usuario
+const passwordStrength = getPasswordStrength();
+
   console.log("Usuario actual:", auth.currentUser);
 
   // Crear administrador sin cerrar sesión actual (opción profesional: usar Firebase Functions con permisos específicos para crear admins sin exponer la función a todos los usuarios autenticados)
@@ -44,11 +64,17 @@ const passwordsMatch = password === confirmPassword;
       return setError("Todos los campos son obligatorios.");
     }
 
-    
+      // Validar que las contraseñas coincidan antes de intentar registrar
+    if (password !== confirmPassword) {
+        return setError("Las contraseñas no coinciden.");
+    }
 
     if (!Object.values(passwordValidations).every(Boolean)) {
       return setError("La contraseña no cumple los requisitos de seguridad.");
     }
+
+    // Activamos el loading mientras se procesa el registro
+    setLoading(true);
 
     try {
       const functions = getFunctions(undefined, "us-central1"); // Obtener instancia de Functions (especificar región si es necesario)
@@ -74,6 +100,9 @@ const passwordsMatch = password === confirmPassword;
 
       setError("Error al crear administrador.");
     }
+      finally {
+        setLoading(false);
+      }
   }; // fin handleCrearAdminProfesional
 
   return (
@@ -177,6 +206,29 @@ const passwordsMatch = password === confirmPassword;
             </ul>
           )}
 
+                      {/* Validación de fuerza de contraseña en tiempo real */}
+            {password.length > 0 && (
+            <div className="password-strength">
+              <p>
+                Seguridad de contraseña:{" "}
+                <strong style={{ color: passwordStrength.color }}>
+                  {passwordStrength.label} {passwordStrength.emoji}
+                </strong>
+              </p>
+
+              <div className="strength-bar">
+                <div
+                  className="strength-fill"
+                  style={{
+                    width: `${Object.values(passwordValidations).filter(Boolean).length * 20}%`,
+                    backgroundColor: passwordStrength.color,
+                  }}
+                ></div>
+              </div>
+                <br></br>
+            </div>
+          )}
+
           {error && (
             <p className="text-red-400 text-sm">{error}</p>
           )}
@@ -191,7 +243,7 @@ const passwordsMatch = password === confirmPassword;
                   : "bg-slate-600 cursor-not-allowed"
               }`}
             >
-              Crear Administrador
+              {loading ? "Creando..." : "Crear cuenta"}
             </button>
 
             <button
