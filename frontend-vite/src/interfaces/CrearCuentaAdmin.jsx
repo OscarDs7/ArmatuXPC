@@ -13,10 +13,14 @@ export default function CrearCuentaAdmin() {
   const [nombre, setNombre] = useState("");
   const [correo, setCorreo] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
 
   //const coleccionUsuarios = collection(db, "Usuario");
   const auth = getAuth();
+
+  // Validar que las contraseñas coincidan
+const passwordsMatch = password === confirmPassword;
 
     // Objeto para validaciones de contraseña en tiempo real
   const passwordValidations = {
@@ -25,6 +29,8 @@ export default function CrearCuentaAdmin() {
   lower: /[a-z]/.test(password),
   number: /\d/.test(password),
   special: /[\W_]/.test(password),
+  passwordsMatch: passwordsMatch
+
 };
 
   console.log("Usuario actual:", auth.currentUser);
@@ -37,6 +43,8 @@ export default function CrearCuentaAdmin() {
     if (!nombre || !correo || !password) {
       return setError("Todos los campos son obligatorios.");
     }
+
+    
 
     if (!Object.values(passwordValidations).every(Boolean)) {
       return setError("La contraseña no cumple los requisitos de seguridad.");
@@ -121,9 +129,28 @@ export default function CrearCuentaAdmin() {
               className="w-full px-4 py-3 rounded-lg bg-slate-700 text-white focus:ring-2 focus:ring-indigo-500"
               placeholder="Ingresa la contraseña"
             />
-          </div>
+           </div>
+           <div>
+              <label className="block mb-2 text-sm font-medium">
+                Confirmar contraseña
+              </label>
+              <input
+                type="password"
+                placeholder="Confirmar Contraseña"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="w-full px-4 py-3 rounded-lg bg-slate-700 text-white focus:ring-2 focus:ring-indigo-500 mt-4"
+              />
+              {/* VALIDACIÓN VISUAL EN TIEMPO REAL */}
+              {confirmPassword.length > 0 && (
+                <p className={password === confirmPassword ? "valid" : "invalid"}>
+                  {password === confirmPassword ? "✔ Las contraseñas coinciden" : "✖ Las contraseñas no coinciden"}
+                </p>
+              )}
 
-          {/* VALIDACIÓN VISUAL EN TIEMPO REAL */}
+            </div>
+
+          {/* VALIDACIÓN VISUAL EN TIEMPO REAL DE REQUERIMIENTOS EN CONTRASEÑA */}
           {password.length > 0 && (
             <ul className="password-rules">
               <p className="small-info">Tu contraseña debe contener:</p>
