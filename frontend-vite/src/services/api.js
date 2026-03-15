@@ -1,5 +1,6 @@
 // src/services/api.js
-// Servicio para interactuar con el backend
+// Servicio para interactuar con el backend desde el frontend.
+// Este archivo define funciones para realizar solicitudes HTTP al backend, como obtener la lista de componentes, armados y compatibilidades, así como agregar un nuevo componente a la base de datos u otras funciones. 
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5031/api";
 
