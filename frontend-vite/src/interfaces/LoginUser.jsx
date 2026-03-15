@@ -16,6 +16,7 @@ import logoUser from "../assets/LogoUser.png";
 export function LoginUser() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
   const [nombre, setNombre] = useState("");
 
   const [error, setError] = useState("");
@@ -40,11 +41,14 @@ export function LoginUser() {
 const emailValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 // Limpiar email de espacios y convertir a minúsculas para evitar errores comunes
 const cleanEmail = email.trim().toLowerCase();
+// Validar que las contraseñas coincidan
+const passwordsMatch = password === confirmPassword;
 
 // Validación completa del formulario de registro
 const isRegistroValido =
   nombre.trim() !== "" &&
   emailValid &&
+  passwordsMatch &&
   Object.values(passwordValidations).every(Boolean);
 
 
@@ -135,6 +139,11 @@ const isRegistroValido =
     if (!email.trim()) return setError("Ingresa tu correo.");
     if(!emailValid) return setError("El formato del correo no es válido.");
     if (!password.trim()) return setError("Ingresa una contraseña.");
+
+    // Validar que las contraseñas coincidan antes de intentar registrar
+     if (password !== confirmPassword) {
+        return setError("Las contraseñas no coinciden.");
+    }
 
     // Validación de contraseña en tiempo real
     if (!Object.values(passwordValidations).every(Boolean)) {
@@ -267,6 +276,22 @@ const isRegistroValido =
               autoComplete="new-password"
               required
             />
+
+            <input
+              type="password"
+              placeholder="Confirmar Contraseña"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              autoComplete="new-password"
+              required
+            />
+
+            {confirmPassword.length > 0 && (
+              <p className={password === confirmPassword ? "valid" : "invalid"}>
+                {password === confirmPassword ? "✔ Las contraseñas coinciden" : "✖ Las contraseñas no coinciden"}
+              </p>
+            )}
+
             {/* VALIDACIÓN VISUAL EN TIEMPO REAL */}
             {password.length > 0 && (
             <ul className="password-rules">
