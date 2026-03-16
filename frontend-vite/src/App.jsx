@@ -14,6 +14,7 @@ import CrearCuentaAdmin from "./interfaces/CrearCuentaAdmin";
 import AdministrarCuentas from "./interfaces/AdministrarCuentas";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
+import MonitoreoLogistica from "./components/MonitoreoLogistica";
 import PruebaThree from "./interfaces/PruebaThree";
 
 function App() {
@@ -71,6 +72,15 @@ function App() {
         element={
           <AdminRoute>
             <AgregarComponenteAdmin />
+          </AdminRoute>
+        }
+      />
+
+        <Route
+        path="/monitoreo-logistica-admin"
+        element={
+          <AdminRoute>
+            <MonitoreoLogistica />
           </AdminRoute>
         }
       />
