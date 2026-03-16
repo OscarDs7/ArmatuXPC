@@ -10,6 +10,28 @@ export const getComponentes = async () => {
   return response.json();
 };
 
+export const eliminarComponente = async (id) => {
+  const response = await fetch(`${API_URL}/Componentes/${id}`, {
+    method: "DELETE"
+  });
+
+  if (!response.ok)
+    throw new Error("Error al eliminar componente");
+};
+
+export const actualizarComponente = async (id, componente) => {
+  const response = await fetch(`${API_URL}/Componentes/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(componente),
+  });
+  if (!response.ok) throw new Error("Error al actualizar componente");
+  return response.json();
+};
+
+
 export const getArmados = async () => {
   const response = await fetch(`${API_URL}/Armados`);
   if (!response.ok) throw new Error("Error al obtener armados");
