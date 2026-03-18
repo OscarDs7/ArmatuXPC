@@ -48,33 +48,36 @@ export default function DashBoardUser() {
     </header>
 
       {/* MENU LATERAL */}
-      <aside className={`dash-side-menu ${menuOpen ? "open" : ""}`}>
-        <button onClick={() => {
-          setMenuOpen(false);
-          navigate("/nuevo-proyecto");
-        }}>
-          Nuevo proyecto
-        </button>
-        <button onClick={() => {
-          setMenuOpen(false);
-          navigate("/proyectos");
-        }}>
-          Proyectos existentes
-        </button>
+      <aside className={`dash-side-menu ${menuOpen ? "open" : ""} 
+                  flex flex-col justify-between h-full p-4`}>
+        <div className="flex flex-col gap-5">
+          <button onClick={() => {
+            setMenuOpen(false);
+            navigate("/nuevo-proyecto");
+          }}>
+            Nuevo proyecto
+          </button>
+          <button onClick={() => {
+            setMenuOpen(false);
+            navigate("/proyectos");
+          }}>
+            Proyectos existentes
+          </button>
 
-        <button onClick={() => {
-          setMenuOpen(false);
-          navigate("/comunidad");
-        }}>
-          Comunidad
-        </button>
+          <button onClick={() => {
+            setMenuOpen(false);
+            navigate("/comunidad");
+          }}>
+            Comunidad
+          </button>
 
-        <button onClick={() => {
-          setMenuOpen(false);
-          navigate("/Indice")
-        }}>
-          Guía Interactiva
-        </button>
+          <button onClick={() => {
+            setMenuOpen(false);
+            navigate("/Indice")
+          }}>
+            Guía Interactiva
+          </button>
+        </div>
 
         <button
           className="logout"
