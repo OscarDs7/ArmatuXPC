@@ -81,8 +81,33 @@
   margin-top:15px;
   padding:10px;
   border:none;
-  background: #238497;
+  background: #236397;
   color:white;
   border-radius:6px;
   cursor:pointer;
+}
+
+.pc-resumen{
+  margin-top:20px;
+  background:#f9fafb;
+  padding:15px;
+  border-radius:8px;
+  width:100%;
+}
+
+.pc-resumen ul{
+  list-style:none;
+  padding:0;
+}
+
+.pc-resumen li{
+  padding:6px 0;
+  border-bottom:1px solid #e5e7eb;
+}
+
+.modelo-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 0;
 }
