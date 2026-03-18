@@ -27,7 +27,20 @@ export const actualizarComponente = async (id, componente) => {
     },
     body: JSON.stringify(componente),
   });
-  if (!response.ok) throw new Error("Error al actualizar componente");
+
+  if (!response.ok) {
+    // Si hay un error, intentamos obtener el mensaje de error del server, si no, uno genérico
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Error al actualizar componente");
+  }
+
+  // ✅ SOLUCIÓN AL "Unexpected end of JSON input":
+  // Verificamos si hay contenido antes de intentar parsear el JSON
+  const contentType = response.headers.get("content-type");
+  if (response.status === 204 || !contentType || !contentType.includes("application/json")) {
+    return null; // Éxito, pero sin cuerpo que procesar
+  }
+
   return response.json();
 };
 
