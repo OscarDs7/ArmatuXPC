@@ -89,21 +89,21 @@ export default function DashBoardUser() {
         <div className="w-full max-w-3xl bg-linear-to-r from-blue-500 to-blue-600 
                   text-white rounded-xl p-6 shadow-lg transition 
                   hover:scale-[1.02] hover:shadow-2xl">
-          <h3>Último proyecto construido</h3>
+          <h3 className="text-lg font-bold">Último proyecto construido</h3>
           <p>Revisa tu última PC armada</p>
         </div>
 
         <div className="w-full max-w-3xl bg-linear-to-r from-blue-500 to-blue-600 
                   text-white rounded-xl p-6 shadow-lg transition 
                   hover:scale-[1.02] hover:shadow-2xl">
-          <h3>Proyectos existentes</h3>
+          <h3 className="text-lg font-bold">Proyectos existentes</h3>
           <p>Consulta y edita tus armados</p>
         </div>
 
         <div className="w-full max-w-3xl bg-linear-to-r from-blue-500 to-blue-600 
                   text-white rounded-xl p-6 shadow-lg transition 
                   hover:scale-[1.02] hover:shadow-2xl">
-          <h3>Comprar tokens</h3>
+          <h3 className="text-lg font-bold">Comprar tokens</h3>
           <p>Desbloquea más proyectos</p>
         </div>
       </main>
