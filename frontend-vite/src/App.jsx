@@ -98,16 +98,19 @@ function App() {
       <Route path="/test-backend-medio" element={<TestBackendMedio />} />
       <Route path="/test-backend-completo" element={<TestBackendCompleto />}    
       />
+
       {/* Ruta de prueba para Three.js */}
       <Route path="/prueba-three" element={<PruebaThree />} />  
-        <Route path="/memorias" element={<Memorias />} />
-      <Route path="/Rams" element={<Rams/>} />
+
+      {/* Rutas de modelado 3D de los componentes (guía interactiva) */}
+      <Route path="/Indice" element={<Indice/>} />
+      <Route path="/Almacenamiento" element={<Memorias />} />
+      <Route path="/Ram" element={<Rams/>} />
       <Route path="/CPU" element={<CPU/>} />
       <Route path="/Fuente" element={<Fuente/>} />
       <Route path="/Ventilador" element={<Ventilador/>} />
-      <Route path="/Indice" element={<Indice/>} />
       <Route path="/Grafica" element={<Grafica/>} />
-       <Route path="/Placa" element={<Placa />} />
+      <Route path="/Placa" element={<Placa />} />
     </Routes>
   );  
 } 
