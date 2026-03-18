@@ -38,7 +38,7 @@ export default function DashBoardUser() {
 
   {/* Descripción debajo del título */}
   <p className="mt-2 text-center italic font-semibold text-white">
-    Plataforma web para el correcto armado de computadoras de escritorio (PCs) de manera personalizada
+    Plataforma web para el correcto armado de computadoras de escritorio (PCS) de manera personalizada.
   </p>
 </header>
 
