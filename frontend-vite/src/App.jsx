@@ -16,6 +16,14 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import MonitoreoLogistica from "./components/MonitoreoLogistica";
 import PruebaThree from "./interfaces/PruebaThree";
+import Memorias from "./interfaces/Memorias";
+import Placa from "./interfaces/Placa";
+import Rams from "./interfaces/Rams";
+import CPU from "./interfaces/CPU";
+import Fuente from "./interfaces/Fuente";
+import Ventilador from "./interfaces/Ventilador";
+import Indice from "./interfaces/Indice";
+import Grafica from "./interfaces/Grafica";
 
 function App() {
   return (
@@ -92,7 +100,14 @@ function App() {
       />
       {/* Ruta de prueba para Three.js */}
       <Route path="/prueba-three" element={<PruebaThree />} />  
-      
+        <Route path="/memorias" element={<Memorias />} />
+      <Route path="/Rams" element={<Rams/>} />
+      <Route path="/CPU" element={<CPU/>} />
+      <Route path="/Fuente" element={<Fuente/>} />
+      <Route path="/Ventilador" element={<Ventilador/>} />
+      <Route path="/Indice" element={<Indice/>} />
+      <Route path="/Grafica" element={<Grafica/>} />
+       <Route path="/Placa" element={<Placa />} />
     </Routes>
   );  
 } 
