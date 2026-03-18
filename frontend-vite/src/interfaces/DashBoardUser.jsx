@@ -22,10 +22,26 @@ export default function DashBoardUser() {
       </button>
 
       {/* CENTRO */}
-      <div className="dash-header-center">
-        <img src={logoProyecto} alt="ArmatuXPC Logo" />
-        <h1>ArmatuXPC</h1>
-      </div>
+      {/* HEADER */}
+<header className="relative w-full flex flex-col items-center py-4">
+  {/* Logo en la esquina superior derecha */}
+  <img 
+    src={logoProyecto} 
+    alt="ArmatuXPC Logo" 
+    className="absolute top-4 right-6 w-20 h-20 rounded-3xl"
+  />
+
+  {/* Título centrado */}
+  <h1 className="text-4xl font-bold text-white text-center">
+    ArmatuXPC
+  </h1>
+
+  {/* Descripción debajo del título */}
+  <p className="mt-2 text-center italic font-semibold text-white">
+    Plataforma web para el correcto armado de computadoras de escritorio (PCs) de manera personalizada
+  </p>
+</header>
+
 
       {/* ESPACIADOR */}
       <div className="dash-header-spacer"></div>
@@ -82,7 +98,7 @@ export default function DashBoardUser() {
 
       {/* CONTENIDO */}
       <main className="flex flex-col items-center gap-6 mt-8">
-        <h2 className="text-2xl font-semibold text-white">
+        <h2 className="text-4xl font-semibold text-white">
           Bienvenido, {nombre} 👋
         </h2>
 
