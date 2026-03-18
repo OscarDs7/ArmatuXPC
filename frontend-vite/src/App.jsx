@@ -15,6 +15,7 @@ import AdministrarCuentas from "./interfaces/AdministrarCuentas";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import PruebaThree from "./interfaces/PruebaThree";
+import NuevoProyecto from "./interfaces/NuevoProyecto";
 
 function App() {
   return (
@@ -74,6 +75,7 @@ function App() {
           </AdminRoute>
         }
       />
+      <Route path="/nuevo-proyecto" element={<NuevoProyecto />} />
 
       {/* Rutas de prueba para backend */}
       <Route path="/test-backend-basico" element={<TestBackendBasico />} />
