@@ -1,4 +1,5 @@
 import { useNavigate } from "react-router-dom";
+import BackButton from "../utilidades/BackButton"; // Botón para regresar al menú de roles
 
 export default function MenuInstructivos() {
 
@@ -21,11 +22,8 @@ export default function MenuInstructivos() {
 
 
       <div className="max-w-6xl mx-auto">
-        <button
-          className="px-6 py-3 rounded-xl bg-blue-600 hover:bg-blue-200 transition shadow-lg"
-          onClick={() => navigate("/dashboard-user")} >
-          <h3 className="">Regresar</h3>
-        </button>
+
+        <BackButton to="/dashboard-user" label="Regresar" className = "back-button" />
 
         <h1 className="text-4xl font-extrabold text-white text-center mb-10">
           Simulador de Ensamblaje de PC
