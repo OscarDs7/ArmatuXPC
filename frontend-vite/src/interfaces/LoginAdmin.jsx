@@ -23,10 +23,12 @@ export function LoginAdmin() {
   const [error, setError] = useState("");
   const [resetMessage, setResetMessage] = useState("");
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async (e) => {
     e.preventDefault();
     setError("");
+    setLoading(true);
 
     try {
       // 1. Autenticación
@@ -54,6 +56,9 @@ export function LoginAdmin() {
     } catch (err) {
       console.error(err);
       setError("Correo o contraseña incorrectos.");
+    }
+    finally {
+      setLoading(false);
     }
   };
 
@@ -105,7 +110,9 @@ export function LoginAdmin() {
             required
           />
 
-          <button type="submit">Ingresar</button>
+          <button type="submit" disabled={loading}>
+            {loading ? "Ingresando..." : "Ingresar"}
+          </button>
         </form>
 
         <p className="forgot-password" onClick={handlePasswordReset}>
