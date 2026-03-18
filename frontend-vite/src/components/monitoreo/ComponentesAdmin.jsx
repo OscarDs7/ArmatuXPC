@@ -8,6 +8,8 @@ export default function ComponentesAdmin({ onBack }) {
   const [celdaEditando, setCeldaEditando] = useState(null);
   const [valorTemporal, setValorTemporal] = useState("");
   const [busqueda, setBusqueda] = useState("");
+  const [guardando, setGuardando] = useState(false);
+  const [enterPresionado, setEnterPresionado] = useState(false);
   const [filtroTipo, setFiltroTipo] = useState("todos");
 
   // Función para cargar la lista de componentes desde el backend
@@ -45,90 +47,103 @@ export default function ComponentesAdmin({ onBack }) {
         campo
       });
 
-      setValorTemporal(componente[campo]);
+      setValorTemporal(componente[campo]); // cargar valor actual en el estado temporal para editarlo en el input
 
     };
 
-    // Función para guardar la edición de una celda específica
-    const guardarEdicion = async (componente) => {
+    /// ---- Función para guardar la edición de una celda específica ---- ///
 
-    try {
+    const guardarEdicion = async (componente, campo) => {
+      if (guardando || componente[campo] === valorTemporal) {
+        setCeldaEditando(null);
+        return;
+      }
 
-      const componenteActualizado = {
-        ...componente,
-        [celdaEditando.campo]: valorTemporal
-      };
+      // Guardamos el valor anterior por si hay que revertir (en caso de error real)
+      const valorAnterior = componente[campo];
+      let valorFinal = campo === "precio" ? Number(valorTemporal) : valorTemporal;
 
-      await actualizarComponente(
-        componente.componenteId,
-        componenteActualizado
-      );
-
-      // actualizar estado local
+      // 1. ACTUALIZACIÓN OPTIMISTA (El usuario ve el cambio ya)
       setComponentes(prev =>
-        prev.map(c =>
-          c.componenteId === componente.componenteId
-            ? componenteActualizado
-            : c
+        prev.map(c => c.componenteId === componente.componenteId 
+          ? { ...c, [campo]: valorFinal } 
+          : c
         )
       );
-
-      // salir del modo edición
       setCeldaEditando(null);
 
-    } catch (error) {
-      console.error("Error actualizando", error);
-    }
-
-  };
+      try {
+        setGuardando(true);
+        
+        // 2. Llamada al backend
+        await actualizarComponente(componente.componenteId, {
+          ...componente,
+          [campo]: valorFinal
+        });
+        
+        // Si llegamos aquí, todo bien (aunque el JSON sea vacío, el await ya pasó)
+      } catch (error) {
+        console.error("Error al sincronizar con el servidor:", error);
+        
+        // 3. REVERSIÓN en caso de error de red o servidor caído
+        alert("Error de conexión. El cambio no se guardó en el servidor.");
+        setComponentes(prev =>
+          prev.map(c => c.componenteId === componente.componenteId 
+            ? { ...c, [campo]: valorAnterior } 
+            : c
+          )
+        );
+      } finally {
+        setGuardando(false);
+      }
+    };
   // fin guardarEdicion
 
   // Función para renderizar una celda editable para reducir código repetido en el renderizado de la tabla
   const renderCeldaEditable = (c, campo, type = "text") => (
   <td
-    onDoubleClick={() => iniciarEdicion(c, campo)}
-    className="cursor-pointer hover:bg-slate-700 transition text-center"
+    onDoubleClick={() => !guardando && iniciarEdicion(c, campo)} 
+    className={`cursor-pointer hover:bg-slate-700 transition text-center ${
+      celdaEditando?.id === c.componenteId && celdaEditando?.campo === campo ? 'p-0' : ''
+    }`}
     title="Doble click para editar"
   >
     {celdaEditando?.id === c.componenteId &&
     celdaEditando?.campo === campo ? (
-
       <input
         value={valorTemporal}
         autoFocus
         type={type}
+        disabled={guardando} // Deshabilitar mientras se guarda
         onChange={(e) => setValorTemporal(e.target.value)}
-        onBlur={() => guardarEdicion(c)}
         onKeyDown={(e) => {
-
           if (e.key === "Enter") {
-            e.preventDefault();
-            guardarEdicion(c);
+            //e.preventDefault();
+           // setEnterPresionado(true);
+            guardarEdicion(c, campo);
           }
 
           if (e.key === "Escape") {
             setCeldaEditando(null);
           }
 
-          if (celdaEditando.campo === "precio") {
-
-          const precio = parseFloat(valorTemporal);
-
-          if (isNaN(precio) || precio < 0) {
-            alert("Precio inválido");
-            return;
-          }
-
-        }
-
         }}
-        className="bg-slate-700 p-1 rounded w-full border border-blue-400"
+      
+        onBlur={() => {
+          // Solo guardamos al salir si el valor cambió, para evitar bucles
+          if (valorTemporal !== c[campo]) {
+            guardarEdicion(c, campo);
+          } else {
+            setCeldaEditando(null);
+          }
+        }}
+        className="bg-slate-700 p-1 rounded w-full border border-blue-400 outline-none"
       />
 
     ) : (
-      campo === "precio"
-        ? `$${c[campo].toLocaleString()}`
-        : c[campo]
+      <span>
+        {campo === "precio" ? `$${Number(c[campo]).toLocaleString()}` : c[campo]}
+      </span>
     )}
   </td>
 ); // fin renderCeldaEditable
@@ -188,7 +203,7 @@ export default function ComponentesAdmin({ onBack }) {
 
       <button
         onClick={() => setFiltroTipo("almacenamiento")}
-        className={`px-3 py-1 rounded ${filtroTipo === "Almacenamiento" ? "bg-blue-600" : "bg-slate-700"}`}
+        className={`px-3 py-1 rounded ${filtroTipo === "almacenamiento" ? "bg-blue-600" : "bg-slate-700"}`}
       >
         SSD
       </button>
@@ -216,9 +231,13 @@ export default function ComponentesAdmin({ onBack }) {
 
     </div>
 
-      <table className="w-full bg-slate-800 rounded-lg overflow-hidden">
+      <table className="w-full bg-slate-800 rounded-lg overflow-hidden border-collapse: separate">
 
-        <thead className="bg-slate-700">
+        <thead 
+                className={`bg-slate-700 p-1 rounded w-full border ${
+          guardando ? "border-yellow-400" : "border-blue-400"
+        }`}
+        >
           <tr>
             <th className="p-3">Imagen</th>
             <th className="text-center">Nombre</th>
@@ -234,13 +253,13 @@ export default function ComponentesAdmin({ onBack }) {
 
           {componentes
             .filter(c =>
-              c.nombre.toLowerCase().includes(busqueda) ||
-              c.marca.toLowerCase().includes(busqueda) ||
-              c.modelo.toLowerCase().includes(busqueda)
+              (c.nombre || "").toLowerCase().includes(busqueda) ||
+              (c.marca || "").toLowerCase().includes(busqueda) ||
+              (c.modelo || "").toLowerCase().includes(busqueda)
             )
             .filter(c =>
               filtroTipo === "todos" ||
-              c.tipo.toLowerCase() === filtroTipo
+              (c.tipo || "").toLowerCase().trim() === filtroTipo
             )
             .map((c) => (
 
@@ -277,8 +296,7 @@ export default function ComponentesAdmin({ onBack }) {
 
           ))}
 
-        </tbody>
-
+        {/* FILA para avisar si no hay componentes registrados*/}
         {componentes.length === 0 && (
           <tr>
             <td colSpan="7" className="text-center p-4">
@@ -286,9 +304,11 @@ export default function ComponentesAdmin({ onBack }) {
             </td>
           </tr>
         )}
-
+        </tbody>
       </table>
-
+      <span className="mt-6 text-sm text-slate-400 text-center block">
+        {componentes.length} componentes
+      </span> <br />
       <button
         onClick={onBack}
         className="mt-6 bg-slate-700 p-3 rounded-lg"
