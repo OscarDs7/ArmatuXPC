@@ -13,7 +13,7 @@ export default function DashBoardUser() {
   const nombre = location.state?.nombre || "Usuario";
 
   return (
-    <div className="dash-user-container">
+    <div className="min-h-screen bg-linear-to-br from-blue-300 via-blue-400 to-blue-500 flex flex-col p-6">
       {/* HEADER */}
       <header className="dash-user-header">
       {/* BOTÓN MENÚ */}
@@ -22,36 +22,62 @@ export default function DashBoardUser() {
       </button>
 
       {/* CENTRO */}
-      <div className="dash-header-center">
-        <img src={logoProyecto} alt="ArmatuXPC Logo" />
-        <h1>ArmatuXPC</h1>
-      </div>
+      {/* HEADER */}
+<header className="relative w-full flex flex-col items-center py-4">
+  {/* Logo en la esquina superior derecha */}
+  <img 
+    src={logoProyecto} 
+    alt="ArmatuXPC Logo" 
+    className="absolute top-4 right-6 w-20 h-20 rounded-3xl"
+  />
+
+  {/* Título centrado */}
+  <h1 className="text-4xl font-bold text-white text-center">
+    ArmatuXPC
+  </h1>
+
+  {/* Descripción debajo del título */}
+  <p className="mt-2 text-center italic font-semibold text-white">
+    Plataforma web para el correcto armado de computadoras de escritorio (PCS) de manera personalizada.
+  </p>
+</header>
+
 
       {/* ESPACIADOR */}
       <div className="dash-header-spacer"></div>
     </header>
 
       {/* MENU LATERAL */}
-      <aside className={`dash-side-menu ${menuOpen ? "open" : ""}`}>
-        <button onClick={() => {
-          setMenuOpen(false);
-          navigate("/nuevo-proyecto");
-        }}>
-          Nuevo proyecto
-        </button>
-        <button onClick={() => {
-          setMenuOpen(false);
-          navigate("/proyectos");
-        }}>
-          Proyectos existentes
-        </button>
+      <aside className={`dash-side-menu ${menuOpen ? "open" : ""} 
+                  flex flex-col justify-between h-full p-4`}>
+        <div className="flex flex-col gap-5">
+          <button onClick={() => {
+            setMenuOpen(false);
+            navigate("/nuevo-proyecto");
+          }}>
+            Nuevo proyecto
+          </button>
+          <button onClick={() => {
+            setMenuOpen(false);
+            navigate("/proyectos");
+          }}>
+            Proyectos existentes
+          </button>
 
-        <button onClick={() => {
-          setMenuOpen(false);
-          navigate("/comunidad");
-        }}>
-          Comunidad
-        </button>
+          <button onClick={() => {
+            setMenuOpen(false);
+            navigate("/comunidad");
+          }}>
+            Comunidad
+          </button>
+
+          <button onClick={() => {
+            setMenuOpen(false);
+            navigate("/Indice")
+          }}>
+            Guía Interactiva
+          </button>
+        </div>
 
         <button
           className="logout"
@@ -74,21 +100,29 @@ export default function DashBoardUser() {
 
 
       {/* CONTENIDO */}
-      <main className="dash-cards-container">
-        <h2>Bienvenido, {nombre} 👋</h2>
+      <main className="flex flex-col items-center gap-6 mt-8">
+        <h2 className="text-4xl font-semibold text-white">
+          Bienvenido, {nombre} 👋
+        </h2>
 
-        <div className="dash-card">
-          <h3>Último proyecto construido</h3>
+        <div className="w-full max-w-3xl bg-linear-to-r from-blue-500 to-blue-600 
+                  text-white rounded-xl p-6 shadow-lg transition 
+                  hover:scale-[1.02] hover:shadow-2xl">
+          <h3 className="text-lg font-bold">Último proyecto construido</h3>
           <p>Revisa tu última PC armada</p>
         </div>
 
-        <div className="dash-card">
-          <h3>Proyectos existentes</h3>
+        <div className="w-full max-w-3xl bg-linear-to-r from-blue-500 to-blue-600 
+                  text-white rounded-xl p-6 shadow-lg transition 
+                  hover:scale-[1.02] hover:shadow-2xl">
+          <h3 className="text-lg font-bold">Proyectos existentes</h3>
           <p>Consulta y edita tus armados</p>
         </div>
 
-        <div className="dash-card">
-          <h3>Comprar tokens</h3>
+        <div className="w-full max-w-3xl bg-linear-to-r from-blue-500 to-blue-600 
+                  text-white rounded-xl p-6 shadow-lg transition 
+                  hover:scale-[1.02] hover:shadow-2xl">
+          <h3 className="text-lg font-bold">Comprar tokens</h3>
           <p>Desbloquea más proyectos</p>
         </div>
       </main>
