@@ -1,0 +1,113 @@
+.nuevo-proyecto-container{
+  height:100vh;
+  display:flex;
+  flex-direction:column;
+  background:#f3f4f6;
+}
+
+.nuevo-header{
+  display:flex;
+  align-items:center;
+  padding:15px 30px;
+  background:#1e6678;
+  color:white;
+}
+
+.btn-volver{
+  margin-right:20px;
+  padding:8px 14px;
+  border:none;
+  background:white;
+  color:#1e6678;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.nuevo-main{
+  flex:1;
+  display:grid;
+  grid-template-columns: 250px 1fr 300px;
+  gap:20px;
+  padding:20px;
+}
+
+/* menú componentes */
+
+.componentes-menu{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+}
+
+.comp-btn{
+  padding:10px;
+  border:none;
+  background:#e5e7eb;
+  cursor:pointer;
+  border-radius:6px;
+}
+
+.comp-btn.active{
+  background: #34a8b8;
+  color:white;
+}
+
+/* gabinete */
+
+.gabinete-view{
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:white;
+  border-radius:10px;
+}
+
+.gabinete-view img{
+  max-height:400px;
+}
+
+/* panel derecho */
+
+.component-details{
+  background:white;
+  padding:20px;
+  border-radius:10px;
+}
+
+.btn-agregar{
+  margin-top:15px;
+  padding:10px;
+  border:none;
+  background: #236397;
+  color:white;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.pc-resumen{
+  margin-top:20px;
+  background:#f9fafb;
+  padding:15px;
+  border-radius:8px;
+  width:100%;
+}
+
+.pc-resumen ul{
+  list-style:none;
+  padding:0;
+}
+
+.pc-resumen li{
+  padding:6px 0;
+  border-bottom:1px solid #e5e7eb;
+}
+
+.modelo-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  padding:8px 0;
+}
