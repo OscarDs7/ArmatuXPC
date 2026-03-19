@@ -17,6 +17,7 @@ import AdminRoute from "./components/AdminRoute";
 import MonitoreoLogistica from "./components/MonitoreoLogistica";
 import PruebaThree from "./interfaces/PruebaThree";
 import NuevoProyecto from "./interfaces/NuevoProyecto";
+import Indice from "./interfaces/Indice"
 
 function App() {
   return (
