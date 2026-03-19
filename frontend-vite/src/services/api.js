@@ -1,5 +1,6 @@
 // src/services/api.js
-// Servicio para interactuar con el backend
+// Servicio para interactuar con el backend desde el frontend.
+// Este archivo define funciones para realizar solicitudes HTTP al backend, como obtener la lista de componentes, armados y compatibilidades, así como agregar un nuevo componente a la base de datos u otras funciones. 
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || "http://localhost:5031/api";
 
@@ -8,6 +9,41 @@ export const getComponentes = async () => {
   if (!response.ok) throw new Error("Error al obtener componentes");
   return response.json();
 };
+
+export const eliminarComponente = async (id) => {
+  const response = await fetch(`${API_URL}/Componentes/${id}`, {
+    method: "DELETE"
+  });
+
+  if (!response.ok)
+    throw new Error("Error al eliminar componente");
+};
+
+export const actualizarComponente = async (id, componente) => {
+  const response = await fetch(`${API_URL}/Componentes/${id}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(componente),
+  });
+
+  if (!response.ok) {
+    // Si hay un error, intentamos obtener el mensaje de error del server, si no, uno genérico
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.message || "Error al actualizar componente");
+  }
+
+  // ✅ SOLUCIÓN AL "Unexpected end of JSON input":
+  // Verificamos si hay contenido antes de intentar parsear el JSON
+  const contentType = response.headers.get("content-type");
+  if (response.status === 204 || !contentType || !contentType.includes("application/json")) {
+    return null; // Éxito, pero sin cuerpo que procesar
+  }
+
+  return response.json();
+};
+
 
 export const getArmados = async () => {
   const response = await fetch(`${API_URL}/Armados`);
