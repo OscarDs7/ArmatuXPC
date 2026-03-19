@@ -16,18 +16,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import MonitoreoLogistica from "./components/MonitoreoLogistica";
 import PruebaThree from "./interfaces/PruebaThree";
-<<<<<<< HEAD
 import NuevoProyecto from "./interfaces/NuevoProyecto";
-=======
-import Memorias from "./interfaces/Memorias";
-import Placa from "./interfaces/Placa";
-import Rams from "./interfaces/Rams";
-import CPU from "./interfaces/CPU";
-import Fuente from "./interfaces/Fuente";
-import Ventilador from "./interfaces/Ventilador";
-import Indice from "./interfaces/Indice";
-import Grafica from "./interfaces/Grafica";
->>>>>>> 84a5382485878eeaa73be3cdf8296918097902f8
 
 function App() {
   return (
