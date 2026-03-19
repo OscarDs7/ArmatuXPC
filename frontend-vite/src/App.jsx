@@ -17,7 +17,14 @@ import AdminRoute from "./components/AdminRoute";
 import MonitoreoLogistica from "./components/MonitoreoLogistica";
 import PruebaThree from "./interfaces/PruebaThree";
 import NuevoProyecto from "./interfaces/NuevoProyecto";
-import Indice from "./interfaces/Indice"
+import Memorias from "./interfaces/Memorias";
+import Placa from "./interfaces/Placa";
+import Rams from "./interfaces/Rams";
+import CPU from "./interfaces/CPU";
+import Fuente from "./interfaces/Fuente";
+import Ventilador from "./interfaces/Ventilador";
+import Indice from "./interfaces/Indice";
+import Grafica from "./interfaces/Grafica";
 
 function App() {
   return (
