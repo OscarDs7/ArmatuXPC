@@ -84,8 +84,12 @@ function App() {
           </AdminRoute>
         }
       />
-      <Route path="/nuevo-proyecto" element={<NuevoProyecto />} />
-
+      <Route path="/nuevo-proyecto" element={
+        <ProtectedRoute>
+          <NuevoProyecto />
+          </ProtectedRoute>
+        } 
+      />
         <Route
         path="/monitoreo-logistica-admin"
         element={
