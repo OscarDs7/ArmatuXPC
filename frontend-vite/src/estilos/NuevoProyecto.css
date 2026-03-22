@@ -1,113 +1,206 @@
-.nuevo-proyecto-container{
-  height:100vh;
-  display:flex;
-  flex-direction:column;
-  background:#f3f4f6;
+/* --- Estructura Global --- */
+.nuevo-proyecto-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #f3f4f6;
+  font-family: 'Segoe UI', Tahoma, sans-serif;
+  overflow: hidden; /* Evita scroll en toda la pantalla */
 }
 
-.nuevo-header{
-  display:flex;
-  align-items:center;
-  padding:15px 30px;
-  background:#1e6678;
-  color:white;
+/* --- Header con tu Degradado --- */
+.nuevo-header {
+  display: flex;
+  align-items: center;
+  padding: 15px 30px;
+  /* Aplicamos el mismo degradado de tus botones activos */
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: white;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+  z-index: 10;
 }
 
-.btn-volver{
-  margin-right:20px;
-  padding:8px 14px;
-  border:none;
-  background:white;
-  color:#1e6678;
-  border-radius:6px;
-  cursor:pointer;
+.btn-volver {
+  margin-right: 20px;
+  padding: 8px 14px;
+  border: none;
+  background: white;
+  color: #0072ff; /* Color acorde al degradado */
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
 }
 
-.nuevo-main{
-  flex:1;
-  display:grid;
-  grid-template-columns: 250px 1fr 300px;
-  gap:20px;
-  padding:20px;
+/* --- Layout Principal --- */
+.nuevo-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 250px 1fr 350px; 
+  gap: 20px;
+  padding: 20px;
+  overflow: hidden; /* Clave para que funcionen los scrolls internos */
 }
 
-/* menú componentes */
-
-.componentes-menu{
-  background:white;
-  padding:20px;
-  border-radius:10px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
+/* --- BARRA LATERAL IZQUIERDA (Tu diseño original) --- */
+.componentes-menu {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  /* No lleva scroll porque suele ser una lista fija corta */
 }
 
-.comp-btn{
-  padding:10px;
-  border:none;
-  background:#e5e7eb;
-  cursor:pointer;
-  border-radius:6px;
+.comp-btn {
+  padding: 10px;
+  border: none;
+  background: #e5e7eb;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all 0.2s ease;
 }
 
-.comp-btn.active{
-  background: #34a8b8;
-  color:white;
+.comp-btn:hover {
+  background-color: #dbeafe;
 }
 
-/* gabinete */
-
-.gabinete-view{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  background:white;
-  border-radius:10px;
+.comp-btn.active {
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: white;
 }
 
-.gabinete-view img{
-  max-height:400px;
+/* --- ZONA CENTRAL (Con Scroll) --- */
+.central-view {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  overflow-y: auto; /* Activa scroll si el resumen crece */
+  padding-right: 5px; /* Espacio para que el scroll no tape el contenido */
 }
 
-/* panel derecho */
-
-.component-details{
-  background:white;
-  padding:20px;
-  border-radius:10px;
+/* Personalización del scrollbar para que sea estético */
+.central-view::-webkit-scrollbar, 
+.component-details::-webkit-scrollbar {
+  width: 6px;
+}
+.central-view::-webkit-scrollbar-thumb, 
+.component-details::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
 }
 
-.btn-agregar{
-  margin-top:15px;
-  padding:10px;
-  border:none;
-  background: #236397;
-  color:white;
-  border-radius:6px;
-  cursor:pointer;
+.gabinete-view {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  min-height: 420px;
 }
 
-.pc-resumen{
-  margin-top:20px;
-  background:#f9fafb;
-  padding:15px;
-  border-radius:8px;
-  width:100%;
+.gabinete-view img {
+  max-height: 400px; 
+  max-width: 100%;
 }
 
-.pc-resumen ul{
-  list-style:none;
-  padding:0;
+.pc-resumen {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
 }
 
-.pc-resumen li{
-  padding:6px 0;
-  border-bottom:1px solid #e5e7eb;
+.pc-resumen li {
+  padding: 10px 0;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  justify-content: space-between;
 }
 
-.modelo-item{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  padding:8px 0;
+/* --- RESUMEN EXTRA --- */
+.resumen-extra {
+  margin-top: 20px;
+  padding: 15px;
+  background: #eff6ff;
+  border-radius: 8px;
+  display: flex;
+  justify-content: space-around;
+  border: 1px solid #dbeafe;
+}
+
+/* --- PANEL DERECHO (Con Scroll) --- */
+.component-details {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+  overflow-y: auto; /* Importante para navegar por muchos componentes */
+}
+
+/* Estilos de las Cards */
+.card-componente {
+  border: 1px solid #ddd;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.card-componente.seleccionado {
+  border: 2px solid #0072ff;
+  background: #eef5ff;
+}
+
+.card-header-simple {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 15px;
+  background: #f8f9fa;
+}
+
+.btn-expandir {
+  background: #0072ff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 5px 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.card-expanded-content {
+  display: flex;
+  padding: 15px;
+  gap: 15px;
+  border-top: 1px solid #eee;
+  animation: fadeIn 0.3s ease;
+}
+
+.card-img-small {
+  width: 80px;
+  height: 80px;
+  object-fit: contain;
+}
+
+.btn-agregar {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #00c6ff, #0072ff);
+  color: white;
+  cursor: pointer;
+  font-weight: bold;
+}
+
+.resumen-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 5px 0;
 }
