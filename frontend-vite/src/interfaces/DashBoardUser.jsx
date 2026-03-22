@@ -32,7 +32,7 @@ export default function DashBoardUser() {
   />
 
   {/* Título centrado */}
-  <h1 className="text-4xl font-bold text-white text-center">
+  <h1 className="text-5xl font-bold text-white text-center">
     ArmatuXPC
   </h1>
 
@@ -49,7 +49,7 @@ export default function DashBoardUser() {
 
       {/* MENU LATERAL */}
       <aside className={`dash-side-menu ${menuOpen ? "open" : ""} 
-                  flex flex-col justify-between h-full p-4`}>
+                 flex flex-col justify-between h-full p-4`}>
         <div className="flex flex-col gap-5">
           <button onClick={() => {
             setMenuOpen(false);
