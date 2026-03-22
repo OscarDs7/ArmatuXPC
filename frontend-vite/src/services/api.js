@@ -69,3 +69,14 @@ export const agregarComponente = async (componente) => {
   if (!response.ok) throw new Error("Error al agregar componente");
   return response.json();
 };
+
+// Obtener componentes por medio de el filtro "Tipo"
+export const filtroComponente = async (tipo) => {
+  const response = await fetch(`${API_URL}/Componentes?tipo=${tipo}`);
+
+  if (!response.ok) {
+    throw new Error("Error al obtener componentes");
+  }
+
+  return response.json();
+};
