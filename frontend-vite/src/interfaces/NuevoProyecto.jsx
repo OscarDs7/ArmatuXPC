@@ -10,6 +10,7 @@ export default function NuevoProyecto() {
   const [listaComponentes, setListaComponentes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [imagenSeleccionada, setImagenSeleccionada] = useState(null);
+  const [imagenCentral, setImagenCentral] = useState(null);
   
   // Guardaremos el ID del componente que está expandido
   const [expandidoId, setExpandidoId] = useState(null); 
@@ -51,6 +52,15 @@ useEffect(() => {
     document.body.style.overflow = 'unset';
   }
 }, [imagenSeleccionada]);
+
+// Función para alternar los cambios en la imagen central del Gabinete cuando seleccione uno diferente
+  useEffect(() => {
+    if (pcActual.Gabinete?.imagenUrl) {
+      setImagenCentral(pcActual.Gabinete.imagenUrl);
+    } else {
+      setImagenCentral(null);
+    }
+  }, [pcActual.Gabinete]);
 
   const componentes = ["CPU", "Motherboard", "RAM", "GPU", "Almacenamiento", "Fuente de poder", "Refrigeracion", "Gabinete"];
 
@@ -172,7 +182,11 @@ useEffect(() => {
         {/* VISTA CENTRAL */}
         <div className="central-view">
           <div className="gabinete-view">
-            <img src={gabinete} alt="Gabinete PC" />
+            <img 
+                src={imagenCentral || gabinete} 
+                alt="Gabinete PC" 
+                className="imagen-central"
+              />
           </div>
           <div className="pc-resumen">
             <h2>Resumen del armado</h2>
