@@ -17,7 +17,7 @@ import AdminRoute from "./components/AdminRoute";
 import MonitoreoLogistica from "./components/MonitoreoLogistica";
 import PruebaThree from "./interfaces/PruebaThree";
 import NuevoProyecto from "./interfaces/NuevoProyecto";
-import ProyectosExistentes from "./interfaces/Proyectos";
+import ProyectosExistentes from "./interfaces/ProyectosExistentes";
 import Memorias from "./interfaces/Memorias";
 import Placa from "./interfaces/Placa";
 import Rams from "./interfaces/Rams";
