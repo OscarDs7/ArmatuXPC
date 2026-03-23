@@ -1,0 +1,72 @@
+.proyectos-container {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.proyectos-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 25px;
+    margin-top: 20px;
+}
+
+.proyecto-card {
+    background: #fff;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.proyecto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+}
+
+.proyecto-header {
+    border-bottom: 2px solid #3498db;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+.proyecto-nombre {
+    font-size: 1.4rem;
+    color: #2c3e50;
+    margin: 0;
+}
+
+.proyecto-fecha {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-top: 5px;
+}
+
+.componente-tag {
+    display: inline-block;
+    background: #f1f2f6;
+    color: #57606f;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin: 2px;
+}
+
+.btn-detalle {
+    margin-top: 15px;
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-detalle:hover {
+    background: #2980b9;
+}
