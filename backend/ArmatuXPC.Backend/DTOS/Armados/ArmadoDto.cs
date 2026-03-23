@@ -7,7 +7,7 @@ using ArmatuXPC.Backend.Models;
 public class ArmadoDto
 {
     public int ArmadoId { get; set; }
-    public int UsuarioId { get; set; }
+    public string UsuarioId { get; set; } = string.Empty;
     public string NombreArmado { get; set; } = string.Empty;
 
     public List<ArmadoComponenteDto> Componentes { get; set; } = new();

@@ -7,7 +7,7 @@ namespace ArmatuXPC.Backend.Models
         // Propiedades principales de la entidad Armado
         public int ArmadoId { get; set; }
 
-        public int UsuarioId { get; set; }
+        public string UsuarioId { get; set; } = string.Empty;
         public string NombreArmado { get; set; } = string.Empty;
 
         // Relación de uno a muchos con ArmadoComponente

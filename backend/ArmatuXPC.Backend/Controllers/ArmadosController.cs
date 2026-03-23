@@ -123,53 +123,42 @@ namespace ArmatuXPC.Backend.Controllers
         // ===============================
         // POST
         // ===============================
-        [HttpPost]
+       [HttpPost]
         public async Task<ActionResult> PostArmado(CrearArmadoDto dto)
         {
-            var armado = new Armado
+            try 
             {
-                UsuarioId = dto.UsuarioId,
-                NombreArmado = dto.NombreArmado,
-                Componentes = dto.Componentes.Select(c => new ArmadoComponente
+                // 1. Creamos el objeto
+                var armado = new Armado
                 {
-                    ComponenteId = c.ComponenteId,
-                    Cantidad = c.Cantidad
-                }).ToList()
-            };
+                    UsuarioId = dto.UsuarioId,
+                    NombreArmado = dto.NombreArmado,
+                    Componentes = dto.Componentes.Select(c => new ArmadoComponente
+                    {
+                        ComponenteId = c.ComponenteId,
+                        Cantidad = c.Cantidad
+                    }).ToList()
+                };
 
-            _context.Armados.Add(armado);
-            await _context.SaveChangesAsync();
+                // 2. Guardamos en la DB
+                _context.Armados.Add(armado);
+                await _context.SaveChangesAsync();
 
-            //var errores = await EvaluarCompatibilidad(armado.ArmadoId); // Evaluar compatibilidad después de guardar para obtener el ID generado
-            /*
-            if (errores.Any())
-            {
-                return BadRequest(new
-                {
-                    mensaje = "El armado tiene componentes incompatibles",
-                    errores
+                // 3. RETORNO DIRECTO (Sin llamar a servicios de validación aquí)
+                return Ok(new { 
+                    mensaje = "Armado creado con éxito", 
+                    id = armado.ArmadoId 
                 });
-            }*/
-
-            // Validar consumo energético después de guardar para obtener el ID generado para ver si el consumo total excede la capacidad de la fuente de poder
-            try
-            {
-                await _armadoEnergiaService
-                    .ValidarArmadoEnergeticamenteAsync(armado.ArmadoId);
             }
             catch (Exception ex)
             {
-                _context.Armados.Remove(armado);
-                await _context.SaveChangesAsync();
-                return BadRequest(new
-                {
-                    mensaje = "Error energético",
-                    detalle = ex.Message
+                // Esto nos dirá en la consola del backend qué pasó realmente
+                Console.WriteLine($"Error crítico: {ex.Message}");
+                return StatusCode(500, new { 
+                    detalle = "Error interno al procesar el guardado",
+                    errorReal = ex.Message 
                 });
             }
-
-
-            return CreatedAtAction(nameof(GetArmados), new { id = armado.ArmadoId }, armado);
         }
 
 
