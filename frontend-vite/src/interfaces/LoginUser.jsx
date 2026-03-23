@@ -99,6 +99,10 @@ const isRegistroValido =
       return setError("No tienes permisos para acceder aquí.");
     }
 
+    // Guardar datos en el navegador para luego enviarlo al backend de PostgreSQL
+    localStorage.setItem("userUid", uid);
+    localStorage.setItem("userName", usuario.Nombre);
+
     alert(`Bienvenido ${usuario.Nombre} ✨`);
     navigate("/dashboard-user", { state: { nombre: usuario.Nombre } });
 
@@ -183,6 +187,10 @@ const isRegistroValido =
       Rol: "user",
       FechaRegistro: new Date(),
     }, { merge: false }); // merge: false para evitar sobreescribir datos si el UID ya existe
+
+    // Guardar datos para uso inmediato en la lógica del backend de PostgreSQL
+    localStorage.setItem("userUid", uid);
+    localStorage.setItem("userName", nombre);
 
     alert("Registro exitoso 🎉 Ya puedes iniciar sesión.");
     setModoRegistro(false);

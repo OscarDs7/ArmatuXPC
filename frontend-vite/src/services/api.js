@@ -80,3 +80,20 @@ export const filtroComponente = async (tipo) => {
 
   return response.json();
 };
+
+// Método para agregar nuevo armado
+export const guardarArmado = async (armado) => {
+  const response = await fetch(`${API_URL}/Armados`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(armado),
+  });
+
+  if (!response.ok) {
+    // Intentamos obtener el detalle del error que enviamos desde el catch de C#
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detalle || `Error del servidor (${response.status})`);
+  }
+
+  return response.json();
+};
