@@ -97,3 +97,28 @@ export const guardarArmado = async (armado) => {
 
   return response.json();
 };
+
+// Cargar los armados por uid de usuario
+export const obtenerMisArmados = async (uid) => {
+  try {
+    // EL CAMBIO ESTÁ AQUÍ: Quitamos el "/api" porque API_URL ya lo trae
+    const url = `${API_URL}/Armados/usuario/${uid}`; 
+    console.log("Consultando proyectos en:", url);
+
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+        // En lugar de lanzar un error si es 404 (no tiene proyectos), 
+        // podrías manejarlo para que devuelva una lista vacía
+        if (response.status === 404) return [];
+        
+        const errorText = await response.text();
+        throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Detalle del error en obtenerMisArmados:", error);
+    throw error;
+  }
+};

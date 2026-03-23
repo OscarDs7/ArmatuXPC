@@ -58,7 +58,7 @@ export default function DashBoardUser() {
           </button>
           <button onClick={() => {
             setMenuOpen(false);
-            navigate("/proyectos");
+            navigate("/mis-armados");
           }}>
             Proyectos existentes
           </button>
