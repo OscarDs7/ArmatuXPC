@@ -9,6 +9,7 @@ namespace ArmatuXPC.Backend.Models
 
         public string UsuarioId { get; set; } = string.Empty;
         public string NombreArmado { get; set; } = string.Empty;
+        public DateTime FechaCreacion { get; set; } = DateTime.UtcNow;
 
         // Relación de uno a muchos con ArmadoComponente
         public ICollection<ArmadoComponente> Componentes { get; set; } = new List<ArmadoComponente>();

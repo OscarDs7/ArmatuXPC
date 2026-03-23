@@ -30,6 +30,9 @@ namespace ArmatuXPC.Backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ArmadoId"));
 
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("NombreArmado")
                         .IsRequired()
                         .HasColumnType("text");

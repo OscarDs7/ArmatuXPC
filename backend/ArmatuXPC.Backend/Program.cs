@@ -48,6 +48,15 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build(); // Construir la aplicación
 
+/*
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    var context = services.GetRequiredService<AppDbContext>();
+    // Llamamos a nuestro inicializador
+    DbInitializer.Initialize(context);
+}*/
+
 app.UseCors("AllowReact"); // Habilitar CORS con la política definida
 
 // Pipeline HTTP
