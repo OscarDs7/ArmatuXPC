@@ -4,6 +4,8 @@ public class CrearArmadoDto
 {
     public string UsuarioId { get; set; } = string.Empty;
     public string NombreArmado { get; set; } = string.Empty;
+     public string FechaCreacion { get; set; } = string.Empty;
+
 
     public List<ComponenteCantidadDto> Componentes { get; set; } = new();
 }
