@@ -34,7 +34,7 @@ exports.crearAdmin = onCall(async (request) => {
       admin: true,
     });
 
-    await admin.firestore().collection("Usuario").add({
+    await admin.firestore().collection("Usuario").doc(userRecord.uid).set({
       UID: userRecord.uid,
       Nombre: nombre,
       Correo: correo,
