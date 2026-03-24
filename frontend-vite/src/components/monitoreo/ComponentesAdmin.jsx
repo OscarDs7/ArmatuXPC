@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { getComponentes, eliminarComponente, actualizarComponente } from "../../services/api";
+import "../../estilos/ComponentesAdmin.css";
 
 export default function ComponentesAdmin({ onBack }) {
 
@@ -9,7 +10,6 @@ export default function ComponentesAdmin({ onBack }) {
   const [valorTemporal, setValorTemporal] = useState("");
   const [busqueda, setBusqueda] = useState("");
   const [guardando, setGuardando] = useState(false);
-  const [enterPresionado, setEnterPresionado] = useState(false);
   const [filtroTipo, setFiltroTipo] = useState("todos");
 
   // Función para cargar la lista de componentes desde el backend
@@ -26,6 +26,15 @@ export default function ComponentesAdmin({ onBack }) {
   useEffect(() => {
     cargarComponentes();
   }, []);
+
+  // Bloquear scroll cuando el modal está abierto
+  useEffect(() => {
+    if (imagenSeleccionada) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+  }, [imagenSeleccionada]);
 
     // Función para eliminar un componente por su ID
     const handleEliminar = async (id) => {
@@ -319,30 +328,30 @@ export default function ComponentesAdmin({ onBack }) {
       {/* Modal Imagen */}
 
       {imagenSeleccionada && (
-
-        <div className="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center"
-          onClick={() => setImagenSeleccionada(null)}
-        >
-
-          <div className="bg-slate-900 p-4 rounded">
-
-            <img
-              src={imagenSeleccionada}
-              className="max-w-lg"
-            />
-
-            <button
-              onClick={() => setImagenSeleccionada(null)}
-              className="mt-3 bg-red-600 px-4 py-2 rounded"
+          <div 
+            className="modal-overlay"
+            onClick={() => setImagenSeleccionada(null)}
+          >
+            <div 
+              className="modal-content"
+              onClick={(e) => e.stopPropagation()} // 🔥 evita cerrar al hacer click dentro
             >
-              Cerrar
-            </button>
+              <img 
+                src={imagenSeleccionada} 
+                alt="Vista ampliada" 
+                className="modal-img"
+              />
 
+              <button 
+                className="btn-cerrar-modal"
+                onClick={() => setImagenSeleccionada(null)}
+              >
+                ✕
+              </button>
+              
+            </div>
           </div>
-
-        </div>
-
-      )}
+        )}
 
     </div>
   );

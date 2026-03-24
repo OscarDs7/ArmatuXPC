@@ -69,3 +69,56 @@ export const agregarComponente = async (componente) => {
   if (!response.ok) throw new Error("Error al agregar componente");
   return response.json();
 };
+
+// Obtener componentes por medio de el filtro "Tipo"
+export const filtroComponente = async (tipo) => {
+  const response = await fetch(`${API_URL}/Componentes?tipo=${tipo}`);
+
+  if (!response.ok) {
+    throw new Error("Error al obtener componentes");
+  }
+
+  return response.json();
+};
+
+// Método para agregar nuevo armado
+export const guardarArmado = async (armado) => {
+  const response = await fetch(`${API_URL}/Armados`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(armado),
+  });
+
+  if (!response.ok) {
+    // Intentamos obtener el detalle del error que enviamos desde el catch de C#
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detalle || `Error del servidor (${response.status})`);
+  }
+
+  return response.json();
+};
+
+// Cargar los armados por uid de usuario
+export const obtenerMisArmados = async (uid) => {
+  try {
+    // EL CAMBIO ESTÁ AQUÍ: Quitamos el "/api" porque API_URL ya lo trae
+    const url = `${API_URL}/Armados/usuario/${uid}`; 
+    console.log("Consultando proyectos en:", url);
+
+    const response = await fetch(url);
+    
+    if (!response.ok) {
+        // En lugar de lanzar un error si es 404 (no tiene proyectos), 
+        // podrías manejarlo para que devuelva una lista vacía
+        if (response.status === 404) return [];
+        
+        const errorText = await response.text();
+        throw new Error(`Error ${response.status}: ${errorText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Detalle del error en obtenerMisArmados:", error);
+    throw error;
+  }
+};

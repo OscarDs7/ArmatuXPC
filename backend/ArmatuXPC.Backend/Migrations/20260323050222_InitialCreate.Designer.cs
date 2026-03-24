@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArmatuXPC.Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260309195502_InitialCreate")]
+    [Migration("20260323050222_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -33,12 +33,16 @@ namespace ArmatuXPC.Backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ArmadoId"));
 
+                    b.Property<DateTime>("FechaCreacion")
+                        .HasColumnType("timestamp with time zone");
+
                     b.Property<string>("NombreArmado")
                         .IsRequired()
                         .HasColumnType("text");
 
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("integer");
+                    b.Property<string>("UsuarioId")
+                        .IsRequired()
+                        .HasColumnType("text");
 
                     b.HasKey("ArmadoId");
 

@@ -143,6 +143,7 @@ export default function AgregarComponenteAdmin() {
             <option value="Almacenamiento">Almacenamiento</option>
             <option value="FuentePoder">Fuente de poder</option>
             <option value="PlacaBase">Placa base</option>
+            <option valur="Refrigeracion">Refrigeracion</option>
             <option value="Gabinete">Gabinete</option>
             </select>
 

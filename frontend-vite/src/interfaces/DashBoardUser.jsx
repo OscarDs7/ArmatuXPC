@@ -10,7 +10,7 @@ export default function DashBoardUser() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const nombre = location.state?.nombre || "Usuario";
+  const nombre = location.state?.nombre || localStorage.getItem("userName") || "Usuario";
 
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-300 via-blue-400 to-blue-500 flex flex-col p-6">
@@ -23,25 +23,24 @@ export default function DashBoardUser() {
 
       {/* CENTRO */}
       {/* HEADER */}
-<header className="relative w-full flex flex-col items-center py-4">
-  {/* Logo en la esquina superior derecha */}
-  <img 
-    src={logoProyecto} 
-    alt="ArmatuXPC Logo" 
-    className="absolute top-4 right-6 w-20 h-20 rounded-3xl"
-  />
+      <header className="relative w-full flex flex-col items-center py-4">
+        {/* Logo en la esquina superior derecha */}
+        <img 
+          src={logoProyecto} 
+          alt="ArmatuXPC Logo" 
+          className="absolute top-4 right-6 w-20 h-20 rounded-3xl"
+        />
 
-  {/* Título centrado */}
-  <h1 className="text-4xl font-bold text-white text-center">
-    ArmatuXPC
-  </h1>
+        {/* Título centrado */}
+        <h1 className="text-5xl font-bold text-white text-center">
+          ArmatuXPC
+        </h1>
 
-  {/* Descripción debajo del título */}
-  <p className="mt-2 text-center italic font-semibold text-white">
-    Plataforma web para el correcto armado de computadoras de escritorio (PCS) de manera personalizada.
-  </p>
-</header>
-
+        {/* Descripción debajo del título */}
+        <p className="mt-2 text-center italic font-semibold text-white">
+          Plataforma web para el correcto armado de computadoras de escritorio (PCS) de manera personalizada.
+        </p>
+      </header>
 
       {/* ESPACIADOR */}
       <div className="dash-header-spacer"></div>
@@ -49,7 +48,7 @@ export default function DashBoardUser() {
 
       {/* MENU LATERAL */}
       <aside className={`dash-side-menu ${menuOpen ? "open" : ""} 
-                  flex flex-col justify-between h-full p-4`}>
+                 flex flex-col justify-between h-full p-4`}>
         <div className="flex flex-col gap-5">
           <button onClick={() => {
             setMenuOpen(false);
@@ -59,7 +58,7 @@ export default function DashBoardUser() {
           </button>
           <button onClick={() => {
             setMenuOpen(false);
-            navigate("/proyectos");
+            navigate("/mis-armados");
           }}>
             Proyectos existentes
           </button>
@@ -85,6 +84,7 @@ export default function DashBoardUser() {
             setMenuOpen(false);
               signOut(auth).then(() => {
                 alert("Sesión cerrada correctamente");
+                localStorage.clear() // limpiar datos de sesión de usuario
                 navigate("/login-user"); // Redirige al menú de roles después de cerrar sesión
               } ).catch((error) => {
                 console.error("Error al cerrar sesión:", error);

@@ -17,6 +17,7 @@ import AdminRoute from "./components/AdminRoute";
 import MonitoreoLogistica from "./components/MonitoreoLogistica";
 import PruebaThree from "./interfaces/PruebaThree";
 import NuevoProyecto from "./interfaces/NuevoProyecto";
+import ProyectosExistentes from "./interfaces/ProyectosExistentes";
 import Memorias from "./interfaces/Memorias";
 import Placa from "./interfaces/Placa";
 import Rams from "./interfaces/Rams";
@@ -84,8 +85,18 @@ function App() {
           </AdminRoute>
         }
       />
-      <Route path="/nuevo-proyecto" element={<NuevoProyecto />} />
-
+      <Route path="/nuevo-proyecto" element={
+        <ProtectedRoute>
+          <NuevoProyecto />
+          </ProtectedRoute>
+        } 
+      />
+      <Route path="/mis-armados" element={
+        <ProtectedRoute>
+          <ProyectosExistentes />
+          </ProtectedRoute>
+        } 
+      />
         <Route
         path="/monitoreo-logistica-admin"
         element={

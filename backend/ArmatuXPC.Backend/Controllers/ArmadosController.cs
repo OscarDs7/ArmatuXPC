@@ -77,6 +77,7 @@ namespace ArmatuXPC.Backend.Controllers
                     ArmadoId = a.ArmadoId,
                     UsuarioId = a.UsuarioId,
                     NombreArmado = a.NombreArmado,
+                    FechaCreacion = a.FechaCreacion,
                     Componentes = a.Componentes
                         .Select(ac => new ArmadoComponenteDto
                         {
@@ -95,6 +96,39 @@ namespace ArmatuXPC.Backend.Controllers
                 .ToListAsync();
 
             return Ok(armados);
+        }
+
+        // GET: api/Armados/usuario/uid de usuario Firebase
+        [HttpGet("usuario/{usuarioId}")]
+        public async Task<ActionResult> GetArmadosPorUsuario(string usuarioId)
+        {
+            try 
+            {
+                var misArmados = await _context.Armados
+                    .Where(a => a.UsuarioId == usuarioId)
+                    .Include(a => a.Componentes)
+                    .ThenInclude(ac => ac.Componente) // Importante para traer los datos del componente real
+                    .Select(a => new {
+                        a.ArmadoId,
+                        a.NombreArmado,
+                        // Si ya agregaste la propiedad al modelo, úsala así:
+                        FechaCreacion = a.FechaCreacion, 
+                        Componentes = a.Componentes.Select(ac => new {
+                            ac.ComponenteId,
+                            Nombre = ac.Componente.Nombre,
+                            Precio = ac.Componente.Precio,
+                            Tipo = ac.Componente.Tipo.ToString(), // Lo enviamos como texto para React
+                            Cantidad = ac.Cantidad
+                        })
+                    })
+                    .ToListAsync();
+
+                return Ok(misArmados);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al obtener los armados", detalle = ex.Message });
+            }
         }
 
         // ===============================
@@ -124,52 +158,42 @@ namespace ArmatuXPC.Backend.Controllers
         // POST
         // ===============================
         [HttpPost]
-        public async Task<ActionResult> PostArmado(CrearArmadoDto dto)
+        public async Task<ActionResult<Armado>> PostArmado(CrearArmadoDto armadoDto)
         {
-            var armado = new Armado
-            {
-                UsuarioId = dto.UsuarioId,
-                NombreArmado = dto.NombreArmado,
-                Componentes = dto.Componentes.Select(c => new ArmadoComponente
-                {
-                    ComponenteId = c.ComponenteId,
-                    Cantidad = c.Cantidad
-                }).ToList()
-            };
-
-            _context.Armados.Add(armado);
-            await _context.SaveChangesAsync();
-
-            //var errores = await EvaluarCompatibilidad(armado.ArmadoId); // Evaluar compatibilidad después de guardar para obtener el ID generado
-            /*
-            if (errores.Any())
-            {
-                return BadRequest(new
-                {
-                    mensaje = "El armado tiene componentes incompatibles",
-                    errores
-                });
-            }*/
-
-            // Validar consumo energético después de guardar para obtener el ID generado para ver si el consumo total excede la capacidad de la fuente de poder
             try
             {
-                await _armadoEnergiaService
-                    .ValidarArmadoEnergeticamenteAsync(armado.ArmadoId);
+                var nuevoArmado = new Armado
+                {
+                    UsuarioId = armadoDto.UsuarioId,
+                    NombreArmado = armadoDto.NombreArmado,
+                    FechaCreacion = DateTime.UtcNow // Mantén UtcNow para Postgres
+                };
+
+                foreach (var item in armadoDto.Componentes)
+                {
+                    nuevoArmado.Componentes.Add(new ArmadoComponente
+                    {
+                        ComponenteId = item.ComponenteId,
+                        Cantidad = item.Cantidad
+                    });
+                }
+
+                _context.Armados.Add(nuevoArmado);
+                await _context.SaveChangesAsync();
+
+                // Devolvemos el ID y el nombre para confirmar éxito al frontend
+                return Ok(new { 
+                    nuevoArmado.ArmadoId, 
+                    nuevoArmado.NombreArmado, 
+                    mensaje = "Armado guardado con éxito" 
+                });
             }
             catch (Exception ex)
             {
-                _context.Armados.Remove(armado);
-                await _context.SaveChangesAsync();
-                return BadRequest(new
-                {
-                    mensaje = "Error energético",
-                    detalle = ex.Message
-                });
+                var errorReal = ex.InnerException?.Message ?? ex.Message;
+                Console.WriteLine($"[ERROR CRÍTICO]: {errorReal}");
+                return StatusCode(500, new { detalle = errorReal });
             }
-
-
-            return CreatedAtAction(nameof(GetArmados), new { id = armado.ArmadoId }, armado);
         }
 
 
