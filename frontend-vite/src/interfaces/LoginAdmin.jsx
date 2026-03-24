@@ -3,12 +3,7 @@ import {
   signInWithEmailAndPassword,
   sendPasswordResetEmail
 } from "firebase/auth";
-import {
-  collection,
-  query,
-  where,
-  getDocs
-} from "firebase/firestore";
+import {doc, getDoc} from "firebase/firestore";
 
 import { auth, db } from "../utilidades/firebase";
 import logoAdmin from "../assets/LogoAdmin.png";
@@ -31,33 +26,42 @@ export function LoginAdmin() {
     setLoading(true);
 
     try {
-      // 1. Autenticación
-      const userCred = await signInWithEmailAndPassword(auth, email, password); // Iniciar sesión
-      const uid = userCred.user.uid; // Obtener UID
+      const cleanEmail = email.trim().toLowerCase();
 
-      // 2. Buscar si es un usuario normal en Firestore
-      const ref = collection(db, "Usuario");
-      const q = query(ref, where("UID", "==", uid));
-      const snap = await getDocs(q);
+      // 1. Login (Autenticación con Firebase Auth)
+      const userCred = await signInWithEmailAndPassword(auth, cleanEmail, password);
+      const user = userCred.user;
 
-      // 1. Si existe → verificar rol y denegar acceso si es "user"
-      if (!snap.empty) {
-        const data = snap.docs[0].data();
-        if (data.Rol === "user" && data.UID === uid) {
-          setError("Acceso denegado: no tienes permisos de administrador.");
-          return;
-        }
+      // 🔥 2. VALIDAR CON CLAIMS (Autorización de acceso)
+      const tokenResult = await user.getIdTokenResult();
+
+      if (!tokenResult.claims.admin) {
+        setError("No tienes permisos de administrador.");
+        return;
       }
-      // 2. Si no existe → asumir que es admin (ya que si no es user, debe ser admin)
-      alert("Bienvenido Administrador!");
-      navigate("/dashboard-admin", { state: { nombre: "Administrador" } });
-      
+
+      // 🔥 3. (OPCIONAL) Obtener datos de Firestore
+      let nombre = "Administrador";
+
+      try {
+        const userRef = doc(db, "Usuario", user.uid);
+        const userSnap = await getDoc(userRef);
+
+        if (userSnap.exists()) {
+          nombre = userSnap.data().Nombre;
+        }
+      } catch (err) {
+        console.warn("Firestore no disponible, usando nombre genérico");
+      }
+
+      // 4. Acceso
+      alert(`Bienvenido ${nombre} ✨`);
+      navigate("/dashboard-admin", { state: { nombre } });
 
     } catch (err) {
       console.error(err);
       setError("Correo o contraseña incorrectos.");
-    }
-    finally {
+    } finally {
       setLoading(false);
     }
   };
