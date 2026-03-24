@@ -70,3 +70,141 @@
 .btn-detalle:hover {
     background: #2980b9;
 }
+
+/* --- Estilos para el Modal --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(3px); /* Efecto de desenfoque al fondo */
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 750px;
+    max-height: 85vh;
+    overflow-y: auto;
+    /* IMPORTANTE: Esto permite que el botón se posicione respecto a la caja */
+    position: relative; 
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #f1f1f1;
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+}
+
+.btn-cerrar {
+    /* Posicionamiento en la esquina */
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 10; /* Asegura que esté por encima de todo */
+}
+
+.btn-cerrar:hover {
+    background: #ff6b81;
+}
+
+/* --- Tabla de Detalles --- */
+.tabla-detalles {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-detalles th {
+    text-align: left;
+    padding: 12px;
+    background: #f8f9fa;
+    color: #2f3542;
+    border-bottom: 2px solid #dfe4ea;
+}
+
+.tabla-detalles td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #f1f1f1;
+    color: #57606f;
+}
+
+/* Filas que cambian de color al pasar el mouse */
+.tabla-detalles tr:hover {
+    background-color: #e8ecf0d7;
+}
+
+/* Componente de Total de precio de los componentes */
+.total-row {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #f1f1f1;
+    width: 100%;
+    
+    /* Usamos flex para empujar todo a la derecha */
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end; 
+    align-items: baseline; /* Alinea los textos por su base */
+    
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #27ae60; /* Un verde éxito para el precio final */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+}
+
+.total-row span:first-child {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    margin-right: 15px; /* Espacio entre la etiqueta y el monto */
+}
+
+.total-row span:last-child {
+    font-size: 1.8rem; /* Un poco más grande para resaltar */
+    font-weight: 800;
+    color: #2c3e50;
+    min-width: 150px; /* Ayuda a que se alinee con la columna de precios */
+    text-align: right;
+}
+
+/* --- Badges por Tipo de Componente --- */
+.badge-tipo {
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: inline-block;
+    min-width: 80px;
+    text-align: center;
+}
+
+.tipo-cpu { background: #ffeaa7; color: #d6a01d; }         /* Amarillo */
+.tipo-gpu { background: #fab1a0; color: #e17055; }         /* Naranja */
+.tipo-ram { background: #a29bfe; color: #6c5ce7; }         /* Morado */
+.tipo-storage { background: #74b9ff; color: #0984e3; }     /* Azul */
+.tipo-psu { background: #636e72; color: #f1f2f6; }         /* Gris Oscuro */
+.tipo-motherboard { background: #55efc4; color: #00b894; } /* Verde Esmeralda */
+.tipo-case { background: #dfe6e9; color: #2d3436; }        /* Gris Claro */
+.tipo-cooler { background: #81ecec; color: #00838f; }      /* Cian */
+.tipo-default { background: #f1f2f6; color: #57606f; }
