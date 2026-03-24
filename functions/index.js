@@ -49,7 +49,6 @@ exports.crearAdmin = onCall(async (request) => {
   }
 });
 
-
 /**
  * Eliminar usuario
  */
@@ -63,22 +62,28 @@ exports.eliminarUsuario = onCall(async (request) => {
   );
 }
 
-  const { uid, docId } = request.data; // UID del usuario a eliminar y ID del documento en Firestore
+  const { uid } = request.data; // UID del usuario a eliminar 
 
   // Evitar que un admin elimine su propia cuenta
   if (uid === request.auth.uid) {
-  throw new HttpsError(
-    "permission-denied",
-    "No puedes eliminar tu propia cuenta."
-  );
-}
+    throw new HttpsError(
+      "permission-denied",
+      "No puedes eliminar tu propia cuenta."
+    );
+  }
+
+  const userToDelete = await admin.auth().getUser(uid);
+
+  if (userToDelete.customClaims?.admin) {
+    throw new HttpsError("permission-denied", "No puedes eliminar otro admin.");
+  }
 
   try {
     await admin.auth().deleteUser(uid);
 
     await admin.firestore()
       .collection("Usuario")
-      .doc(docId) 
+      .doc(uid) // uid = docId
       .delete();
 
     return { success: true };
@@ -101,7 +106,14 @@ exports.cambiarRol = onCall(async (request) => {
     );
   }
 
-  const { uid, docId, nuevoRol } = request.data;
+  const { uid, nuevoRol } = request.data;
+
+  const rolesValidos = ["user", "admin"]; // roles permitidos para hacer el cambio
+
+  // Validamos que sea alguno de estos roles
+  if (!rolesValidos.includes(nuevoRol)) {
+    throw new HttpsError("invalid-argument", "Rol inválido.");
+  }
 
   try {
 
@@ -113,7 +125,7 @@ exports.cambiarRol = onCall(async (request) => {
     // 2️⃣ Actualizar Firestore
     await admin.firestore()
       .collection("Usuario")
-      .doc(docId)
+      .doc(uid)
       .update({
         Rol: nuevoRol,
       });
