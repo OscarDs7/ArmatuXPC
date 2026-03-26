@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../estilos/DashBoardUser.css";
 import logoProyecto from "../assets/Logo.png"; // imagen del logo del proyecto
@@ -12,14 +12,26 @@ export default function DashBoardUser() {
 
   const nombre = location.state?.nombre || localStorage.getItem("userName") || "Usuario";
 
+
   return (
     <div className="min-h-screen bg-linear-to-br from-blue-300 via-blue-400 to-blue-500 flex flex-col p-6">
       {/* HEADER */}
       <header className="dash-user-header">
       {/* BOTÓN MENÚ */}
-      <button className="dash-menu-btn" onClick={() => setMenuOpen(!menuOpen)}>
-        💻
-      </button>
+      <div className="relative">
+          <button
+            className="dash-menu-btn relative group"
+            onClick={() => {
+              setMenuOpen(!menuOpen);
+            }}
+          >
+            💻
+          <span className="absolute hidden group-hover:block top-12 left-0 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+            Abrir menú lateral de opciones
+          </span>
+
+          </button>
+        </div>
 
       {/* CENTRO */}
       {/* HEADER */}
