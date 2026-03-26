@@ -32,13 +32,13 @@ export default function DashBoardUser() {
         />
 
         {/* Título centrado */}
-        <h1 className="text-5xl font-bold text-white text-center">
+        <h1 className="text-5xl font-bold text-blue-800 text-center">
           ArmatuXPC
         </h1>
 
         {/* Descripción debajo del título */}
         <p className="mt-2 text-center italic font-semibold text-white">
-          Plataforma web para el correcto armado de computadoras de escritorio (PCS) de manera personalizada.
+          Plataforma web para el correcto armado de computadoras de escritorio (PCs) de manera personalizada.
         </p>
       </header>
 
