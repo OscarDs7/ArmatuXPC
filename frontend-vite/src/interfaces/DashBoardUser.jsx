@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState} from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../estilos/DashBoardUser.css";
 import logoProyecto from "../assets/Logo.png"; // imagen del logo del proyecto
@@ -18,7 +18,7 @@ export default function DashBoardUser() {
       {/* HEADER */}
       <header className="dash-user-header">
       {/* BOTÓN MENÚ */}
-      <div className="relative">
+      <div className="relative bg-blue-700 rounded-2xl **:">
           <button
             className="dash-menu-btn relative group"
             onClick={() => {
@@ -26,7 +26,8 @@ export default function DashBoardUser() {
             }}
           >
             💻
-          <span className="absolute hidden group-hover:block top-12 left-0 bg-blue-600 text-white text-xs px-2 py-1 rounded">
+
+          <span className="absolute hidden group-hover:block top-12 left-0 bg-blue-800 text-white text-xs px-2 py-1 rounded">
             Abrir menú lateral de opciones
           </span>
 
