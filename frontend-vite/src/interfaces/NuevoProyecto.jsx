@@ -62,7 +62,7 @@ useEffect(() => {
     }
   }, [pcActual.Gabinete]);
 
-  const componentes = ["CPU", "Motherboard", "RAM", "GPU", "Almacenamiento", "Fuente de poder", "Refrigeracion", "Gabinete"];
+  const componentes = ["Motherboard", "CPU", "RAM", "GPU", "Almacenamiento", "Fuente de poder", "Refrigeracion", "Gabinete"];
 
   const agregarComponente = (componente) => {
     setPcActual({ ...pcActual, [selectedComponent]: componente });
