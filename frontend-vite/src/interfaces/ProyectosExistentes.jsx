@@ -15,6 +15,9 @@ export default function ProyectosExistentes() {
         .then(data => setProyectos(data))
         .catch(err => console.log(err));
     }
+    else {
+      alert("Aún no cuentas con armados existentes!");
+    }
   }, [uid]);
 
   // Función para cerrar el modal
