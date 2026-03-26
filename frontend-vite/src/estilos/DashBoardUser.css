@@ -62,7 +62,7 @@
   left: 0;
   width: 260px;
   min-height: 100vh;        /* 👈 mejor que height */
-  background: linear-gradient(180deg, #0f3c46, #145f6d);
+  background: linear-gradient(180deg,  #1c1c85b8, #3fb4c4);
   padding: 90px 20px 20px;
   display: flex;
   flex-direction: column;
@@ -138,7 +138,7 @@
   width: 65px;
   height: 65px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #1e90ff, #3fb4c4);
+  background: linear-gradient(135deg, #1e90ff, #1b69b6);
   border: none;
   font-size: 30px;
   cursor: pointer;
