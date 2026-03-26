@@ -266,8 +266,8 @@
 /* Botón de cerrar (Crucecita) */
 .btn-cerrar-modal {
   position: absolute;
-  top: -15px;
-  right: -15px;
+  top: 4px;
+  right: 4px;
   background: linear-gradient(135deg, #00c6ff, #0072ff);
   color: white;
   border: none;
