@@ -52,6 +52,13 @@
   /* No lleva scroll porque suele ser una lista fija corta */
 }
 
+.lista-componentes {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-top: 20px;
+}
+
 .comp-btn {
   padding: 10px;
   border: none;
@@ -516,4 +523,62 @@
 .vs-icon {
   font-size: 0.9rem;
   opacity: 0.8;
+}
+
+/* Mejoras visuales en el mini tutorial de pasos para el buen uso de la ventana NuevoProyecto.jsx */
+.tutorial-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0,0,0,0.6);
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Contenedor del tutorial */
+.tutorial-box {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  max-width: 400px;
+  text-align: center;
+}
+
+/* Botones de navegación del tutorial */
+.tutorial-buttons {
+  margin-top: 15px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Grupo de botones para mantener el salto separado de los controles de navegación */
+.nav-group {
+  display: flex;
+  gap: 8px;
+}
+
+/* Botón de salto global */
+.btn-saltar {
+  background: transparent;
+  border: none;
+  color: #6b7280;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.btn-saltar:hover {
+  color: #374151;
+}
+
+/* Clase para resaltar el componente relacionado con el paso del tutorial */
+.highlight {
+  outline: 3px solid #22c55e;
+  border-radius: 10px;
+  transition: 0.3s;
+  box-shadow: 0 0 15px rgba(34,197,94,0.5);
 }

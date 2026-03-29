@@ -5,7 +5,8 @@ import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal } from
 import "../estilos/NuevoProyecto.css";
 
 export default function NuevoProyecto() {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Hook para navegación programática
+  // Estados principales del componente
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [listaComponentes, setListaComponentes] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -13,21 +14,53 @@ export default function NuevoProyecto() {
   const [imagenCentral, setImagenCentral] = useState(null);
   const [modoGuia, setModoGuia] = useState(true);
   const [incompatibilidades, setIncompatibilidades] = useState([]);
-  
+  const [pasoTutorial, setPasoTutorial] = useState(0);
+  const [mostrarTutorial, setMostrarTutorial] = useState(true);
+
   // Guardaremos el ID del componente que está expandido
   const [expandidoId, setExpandidoId] = useState(null); 
 
+  // Estado que representa el armado actual del PC: cada propiedad es un tipo de componente y su valor es el modelo seleccionado (o null si no hay selección)
   const [pcActual, setPcActual] = useState({
     CPU: null, Motherboard: null, RAM: null, GPU: null,
     Almacenamiento: null, "Fuente de poder": null,
     Refrigeracion: null, Gabinete: null
   });
 
+  // Mapeo para traducir el nombre del componente al tipo esperado por el backend
   const mapTipo = {
     CPU: "CPU", GPU: "GPU", RAM: "MemoriaRAM",
     Almacenamiento: "Almacenamiento", "Fuente de poder": "FuentePoder",
     Motherboard: "PlacaBase", Refrigeracion: "Refrigeracion", Gabinete: "Gabinete"
   };
+
+  // Definimos los pasos del tutorial con sus selectores y textos explicativos (son pasos introductorios para guiar al usuario en su primera visita)
+  const pasos = [
+  {
+    selector: ".modo-panel",
+    texto: "Aquí puedes cambiar entre modo guía (paso a paso ordenadamente) y libre (elige cualquier componente sin orden)."
+  },
+  {
+    selector: ".modo-switch",
+    texto: "Usa este switch para alternar el modo (guía / libre)"
+  },
+  {
+    selector: ".lista-componentes",
+    texto: "En el panel de componentes selecciona un tipo de componente para ver los modelos disponibles"
+  },
+  {
+    selector: ".vista-gabinete",
+    texto: "Aquí se mostrará una vista general de tu PC, que irá cambiando según lo que selecciones"
+  },
+  {
+    selector: ".catalogo-componentes",
+    texto: "En este panel derecho verás los modelos disponibles para el componente seleccionado"
+  },
+  {
+    selector: ".resumen-pc",
+    texto: "Aquí verás un resumen de los componentes seleccionados en tu PC y su consumo energético"
+  },
+];
 
   // Cada vez que cambie el componente seleccionado, obtenemos su lista desde el backend
   useEffect(() => {
@@ -47,7 +80,7 @@ export default function NuevoProyecto() {
     obtenerComponentes();
   }, [selectedComponent]);
 
-  // Bloquear scroll cuando el modal está abierto y desbloquearlo al cerrarlo
+  // ---  Bloquear scroll cuando el modal está abierto y desbloquearlo al cerrarlo --- //
 useEffect(() => {
   if (imagenSeleccionada) {
     document.body.style.overflow = 'hidden';
@@ -56,7 +89,7 @@ useEffect(() => {
   }
 }, [imagenSeleccionada]);
 
-// Función para alternar los cambios en la imagen central del Gabinete cuando seleccione uno diferente
+// ---  Función para alternar los cambios en la imagen central del Gabinete cuando seleccione uno diferente --- //
   useEffect(() => {
     if (pcActual.Gabinete?.imagenUrl) {
       setImagenCentral(pcActual.Gabinete.imagenUrl);
@@ -65,7 +98,7 @@ useEffect(() => {
     }
   }, [pcActual.Gabinete]);
 
-  // Función para comprobar compatibilidad de componentes en tiempo real
+  // ---  Función para comprobar compatibilidad de componentes en tiempo real --- //
   useEffect(() => {
   const evaluar = async () => {
     try {
@@ -94,6 +127,46 @@ useEffect(() => {
 
   evaluar();
 }, [pcActual]);
+
+// ---  Función para resaltar el componente relacionado al paso actual del tutorial --- //
+useEffect(() => {
+  // 1. Si el tutorial está apagado, no hacemos nada
+  if (!mostrarTutorial) return;
+
+  const pasoActual = pasos[pasoTutorial]; // Obtenemos el paso actual según el índice
+  if (!pasoActual) return; // Si el paso no existe (por ejemplo, si el array de pasos cambia), evitamos errores
+
+  const elemento = document.querySelector(pasoActual.selector); // Buscamos el elemento en el DOM usando el selector definido en el paso
+
+  if (elemento) {
+    elemento.scrollIntoView({ behavior: "smooth", block: "center" });
+    elemento.classList.add("highlight");
+
+    // 2. Esta función de limpieza se ejecutará:
+    //    - Cuando cambies de paso (remueve el highlight del anterior)
+    //    - Cuando el componente se desmonte
+    //    - CUANDO 'mostrarTutorial' cambie a false
+    return () => elemento.classList.remove("highlight");
+  } else {
+    // Si no encuentra el elemento, mejor no resetear a 0 forzosamente 
+    // a menos que sea un error crítico.
+    console.warn(`Selector no encontrado: ${pasoActual.selector}`);
+  }
+
+}, [pasoTutorial, mostrarTutorial]); 
+
+// ---  Función para verificar si el usuario ya ha visto el tutorial y evitar mostrarlo de nuevo --- //
+useEffect(() => {
+  const visto = localStorage.getItem("tutorialVisto");
+  if (visto) setMostrarTutorial(false);
+}, []);
+
+// Función para finalizar el tutorial y guardar la preferencia del usuario en localStorage
+const finalizarTutorial = () => {
+  localStorage.setItem("tutorialVisto", "true");
+  setMostrarTutorial(false); // Ocultamos el tutorial
+  setPasoTutorial(0); // Limpia el paso para futuras sesiones si decides reabrirlo
+};
 
   // Función para resolver incompatibilidades: por simplicidad, vamos a quitar el componente que causa el conflicto (el segundo en la regla)
   const resolverIncompatibilidad = () => {
@@ -266,7 +339,7 @@ const estaDesbloqueado = (comp) => {
       <div className="nuevo-main">
         {/* SIDEBAR IZQUIERDO */}
         <div className="componentes-menu">
-          <div className="bg-blue-300 p-3 rounded-lg mt-3">
+          <div className="bg-blue-300 p-3 rounded-lg mt-3 modo-panel">
             <span>
               {modoGuia ? "🧭 Modo guía" : "🎮 Modo libre"}
               <p style={{ fontSize: "0.9rem", marginTop: "5px" }}>
@@ -276,8 +349,7 @@ const estaDesbloqueado = (comp) => {
             </p>
             </span>
           </div>
-        <div className="modo-switch-container">
-
+        <div className="modo-switch">
           <span className={`${modoGuia ? "text-green-400 font-bold" : "text-gray-400"}`}>
             🧭 Guía
           </span>
@@ -292,9 +364,9 @@ const estaDesbloqueado = (comp) => {
           <span className={`${!modoGuia ? "text-green-400 font-bold" : "text-gray-400"}`}>
             🎮 Libre
           </span>
-
         </div>
 
+       <div className="lista-componentes">
           <h3><strong>Componentes</strong></h3>
           {/* Listamos los componentes disponibles en el menú lateral */}
           {componentes.map((comp) => {
@@ -315,17 +387,18 @@ const estaDesbloqueado = (comp) => {
           );
         })}
         </div>
-
+        
+        </div>
         {/* VISTA CENTRAL */}
         <div className="central-view">
-          <div className="gabinete-view">
+          <div className="gabinete-view vista-gabinete">
             <img 
                 src={imagenCentral || gabinete} 
                 alt="Gabinete PC" 
                 className="imagen-central"
               />
           </div>
-          <div className="pc-resumen">
+          <div className="pc-resumen resumen-pc">
             <h2>Resumen del armado</h2>
             <ul>
               {Object.entries(pcActual).map(([key, modelo]) => (
@@ -406,7 +479,7 @@ const estaDesbloqueado = (comp) => {
             
 
         {/* PANEL DERECHO: CATÁLOGO */}
-        <div className="component-details">
+        <div className="component-details catalogo-componentes">
           {selectedComponent ? (
             <>
               <h3><strong>Catálogo de {selectedComponent}</strong></h3>
@@ -472,6 +545,46 @@ const estaDesbloqueado = (comp) => {
         </div>
       </div>
 
+      {/* TUTORIAL INTERACTIVO: Solo se muestra si el usuario no lo ha cerrado previamente (puedes mejorar esto guardando su preferencia en localStorage) */}
+      {mostrarTutorial && (
+      <div className="tutorial-overlay">
+        <div className="tutorial-box">
+          <p>{pasos[pasoTutorial].texto}</p>
+
+          <div className="tutorial-buttons">
+            {/* Botón de Salto Global (Siempre visible) */}
+            <button 
+              className="btn-saltar" 
+              onClick={finalizarTutorial}
+              style={{ opacity: 0.7, fontSize: '0.8rem' }}
+            >
+              ✖ Saltar tutorial
+            </button>
+            {/* Botón de Anterior */}
+            <button 
+              onClick={() => setPasoTutorial(p => Math.max(p - 1, 0))}
+              disabled={pasoTutorial === 0}
+            >
+              ⬅ Anterior
+            </button>
+              {/* Botón de Siguiente o Finalizar */}
+            {pasoTutorial < pasos.length - 1 ? (
+              <button onClick={() => setPasoTutorial(p => p + 1)}>
+                Siguiente ➡
+              </button>
+          
+            ) : (
+              <button onClick={() => {
+                finalizarTutorial(); // Guardamos la preferencia de no mostrar el tutorial de nuevo y cerramos el tutorial
+              }}>
+                ✅ Finalizar
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+    )} 
+
       {/* MODAL DE IMAGEN DEL CARDVIEW PARA AMPLIARLA */}
         {imagenSeleccionada && (
           <div 
@@ -499,5 +612,8 @@ const estaDesbloqueado = (comp) => {
           </div>
         )}
        </div>
+       
   );
+
+  
 }
