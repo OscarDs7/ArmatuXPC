@@ -623,6 +623,7 @@ const estaDesbloqueado = (comp) => {
       {mostrarTutorial && (
       <div className="tutorial-overlay">
         <div className="tutorial-box">
+          <p> <h3> <strong> Tutorial introductorio del uso de esta ventana de Armado </strong></h3></p>
           <p>{pasos[pasoTutorial].texto}</p>
 
           <div className="tutorial-buttons">
