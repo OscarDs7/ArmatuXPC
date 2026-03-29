@@ -11,6 +11,7 @@ export default function NuevoProyecto() {
   const [loading, setLoading] = useState(false);
   const [imagenSeleccionada, setImagenSeleccionada] = useState(null);
   const [imagenCentral, setImagenCentral] = useState(null);
+  const [modoGuia, setModoGuia] = useState(true);
   
   // Guardaremos el ID del componente que está expandido
   const [expandidoId, setExpandidoId] = useState(null); 
@@ -61,9 +62,40 @@ useEffect(() => {
       setImagenCentral(null);
     }
   }, [pcActual.Gabinete]);
+const componentes = [
+  "Gabinete",
+  "Fuente de poder",
+  "Motherboard",
+  "Refrigeracion",
+  "CPU",
+  "GPU",
+  "RAM",
+  "Almacenamiento"
+];
 
-  const componentes = ["Motherboard", "CPU", "RAM", "GPU", "Almacenamiento", "Fuente de poder", "Refrigeracion", "Gabinete"];
+const ordenComponentes = [
+  "Gabinete",
+  "Fuente de poder",
+  "Motherboard",
+  "Refrigeracion",
+  "CPU",
+  "GPU",
+  "RAM",
+  "Almacenamiento"
+];
 
+const estaDesbloqueado = (comp) => {
+  // 🔓 Si está en modo libre → todo desbloqueado
+  if (!modoGuia) return true;
+
+  const index = ordenComponentes.indexOf(comp);
+
+  if (index === 0) return true;
+
+  const anterior = ordenComponentes[index - 1];
+
+  return pcActual[anterior] !== null;
+};
   const agregarComponente = (componente) => {
     setPcActual({ ...pcActual, [selectedComponent]: componente });
     setExpandidoId(null);
@@ -171,12 +203,47 @@ useEffect(() => {
       <div className="nuevo-main">
         {/* SIDEBAR IZQUIERDO */}
         <div className="componentes-menu">
+<span>
+  {modoGuia ? "🧭 Modo guía" : "🎮 Modo libre"}
+  <p style={{ fontSize: "0.9rem", marginTop: "5px" }}>
+  {modoGuia 
+    ? "Modo guía activado: sigue el orden recomendado"
+    : "Modo libre: puedes elegir cualquier componente"}
+</p>
+</span>
+          <div className="modo-switch-container">
+  <span>🧭 Guía</span>
+
+  <label className="switch">
+    <input 
+      type="checkbox" 
+      checked={!modoGuia}
+      onChange={() => setModoGuia(!modoGuia)}
+    />
+    <span className="slider"></span>
+  </label>
+
+  <span>🎮 Libre</span>
+</div>
+
           <h3>Componentes</h3>
-          {componentes.map((comp) => (
-            <button key={comp} className={`comp-btn ${selectedComponent === comp ? "active" : ""}`} onClick={() => setSelectedComponent(comp)}>
-              {comp}
-            </button>
-          ))}
+         {componentes.map((comp) => {
+  const bloqueado = !estaDesbloqueado(comp);
+
+  return (
+    <button 
+      key={comp}
+      className={`comp-btn 
+        ${selectedComponent === comp ? "active" : ""} 
+        ${bloqueado ? "bloqueado" : ""}
+      `}
+      onClick={() => !bloqueado && setSelectedComponent(comp)}
+      disabled={bloqueado}
+    >
+      {comp} {bloqueado && <span className="lock-icon">🔒</span>}
+    </button>
+  );
+})}
         </div>
 
         {/* VISTA CENTRAL */}
