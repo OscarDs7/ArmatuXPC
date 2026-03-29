@@ -273,9 +273,19 @@ const estaDesbloqueado = (comp) => {
 
   // --- FUNCIÓN PARA GUARDAR UN ARMADO NUEVO --- //
   const handleGuardarArmado = async () => {
-    // 1. Obtenemos el usuario actual de Firebase almacenado en localStorage para mayor persistencia del dato
-    const uidSession = localStorage.getItem("userUid"); // Aquí está tu string de Firebase 
-    
+    // 1. Verificación de Seguridad (Doble validación)
+    if (incompatibilidades.length > 0) {
+      alert("No puedes guardar: Existen piezas incompatibles en tu configuración.");
+      return;
+    }
+
+    if (!energiaValida) {
+      alert("No puedes guardar: El consumo energético es demasiado alto para la fuente seleccionada.");
+      return;
+    }
+
+    // 2. Validación de sesión (tu código actual...)
+    const uidSession = localStorage.getItem("userUid");
     if (!uidSession) {
       alert("No se detectó sesión activa.");
       return;
@@ -328,6 +338,13 @@ const estaDesbloqueado = (comp) => {
       setLoading(false);
     }
   };
+
+  // El armado es inválido si: 
+  // 1. Hay incompatibilidades en el array
+  // 2. La energía no es válida
+  // 3. Está cargando
+  const tieneErrores = incompatibilidades.length > 0 || !energiaValida;
+  const puedeGuardar = !tieneErrores && !loading;
 
   return (
     <div className="nuevo-proyecto-container">
@@ -386,18 +403,57 @@ const estaDesbloqueado = (comp) => {
             </button>
           );
         })}
+          </div>
         </div>
-        
-        </div>
+
         {/* VISTA CENTRAL */}
         <div className="central-view">
           <div className="gabinete-view vista-gabinete">
-            <img 
-                src={imagenCentral || gabinete} 
-                alt="Gabinete PC" 
-                className="imagen-central"
-              />
-          </div>
+            {/* El contenedor principal debe ser relativo */}
+              <div className="gabinete-container-relativo">
+                <img 
+                  src={imagenCentral || gabinete} 
+                  alt="Gabinete PC" 
+                  className="imagen-central"
+                />
+                {/* Mapeamos los componentes para renderizar los globos */}
+                {Object.entries(pcActual).map(([tipo, componente]) => {
+                  // Solo mostramos globos para componentes seleccionados (no nulos)
+                  // y opcionalmente excluimos el Gabinete mismo si ya es la imagen central
+                  if (!componente || tipo === "Gabinete") return null;
+
+                  // Verificamos si este componente específico tiene conflictos
+                  const tieneError = esComponenteIncompatible(componente);
+
+                  return (
+                    <div 
+                      key={tipo} 
+                      // Usamos una clase dinámica para posicionar cada tipo (ej: globo-cpu)
+                      className={`globito-componente globo-${tipo.toLowerCase().replace(/ /g, '-')}`}
+                    >
+                      {/* Contenido del globo */}
+                      <div className="globito-content">
+                        {/* Si hay error, podemos añadir un pequeño badge de advertencia sobre la imagen */}
+                        <div className="globito-img-container">
+                          <img src={componente.imagenUrl} alt={componente.nombre} className="globito-img" />
+                          {tieneError && <span className="error-badge">!</span>}
+                        </div>
+
+                        <div className="globito-info">
+                          <span className="globito-tipo">{tipo}{tieneError && <span className="error-badge">!</span>}</span>
+                          <span className="globito-nombre">{componente.nombre}</span>
+                        </div>
+                      </div>
+                      {/* Línea conectora (opcional, da un toque pro) */}
+                              <div className="globito-linea"></div>
+                            </div>
+                          );
+                        })}
+                        </div>
+                        
+                    </div> {/* Fin del contenedor relativo para los globos */}
+
+          {/* RESUMEN DEL ARMADO Y BOTÓN DE GUARDAR */}   
           <div className="pc-resumen resumen-pc">
             <h2>Resumen del armado</h2>
             <ul>
@@ -416,19 +472,33 @@ const estaDesbloqueado = (comp) => {
                 </li>
               ))}
             </ul>
+            {/* Barra de progreso de consumo energético */}
+            <div className="energy-bar-overlay">
+              <div className="energy-text">
+                <span>Consumo Energético: {Math.round(wattsConMargen)}W / {fuente?.capacidadWatts || 0}W (fuente de poder)</span>
+              </div>
+              <div className="energy-progress-bg">
+                <div 
+                  className="energy-progress-fill"
+                  style={{ 
+                    width: `${Math.min((wattsConMargen / (fuente?.capacidadWatts || 1)) * 100, 100)}%`,
+                    backgroundColor: energiaValida ? '#10b981' : '#ef4444'
+                  }}
+                ></div>
+              </div>
+            </div>
+            {/* Detalles adicionales de consumo y validación energética */}
             <div className="resumen-extra">
                 <p>Total: <strong>${total}</strong></p>
                 <p>Consumo Real: <strong>{watts}W</strong></p>
                 
                 {/* Mostramos el consumo recomendado con el margen del 20% */}
-                <p>Consumo Recomendado (+20%):  
-                  <strong style={{ color: energiaValida ? "inherit" : "#dc2626" }}>
+                <p>Consumo Recomendado (+20%): <strong style={{ color: energiaValida ? "inherit" : "#dc2626" }}>
                       {Math.round(watts * 1.2)}W
                   </strong>
                 </p>
-
-                <p>Capacidad Fuente: <strong>{fuente?.capacidadWatts || 0}W</strong></p>
               </div>
+
               <div className="mensaje-energetico">
                 <p style={{ color: energiaValida ? "#059669" : "#dc2626", fontWeight: "bold", marginTop: "10px" }}>
                   {energiaValida 
@@ -436,20 +506,24 @@ const estaDesbloqueado = (comp) => {
                     : "⚠ Se recomienda una fuente más potente (Margen de seguridad insuficiente)"}
                 </p>
               </div>
+
             {/* Botón de Guardar */}
               <button 
                 className="btn-guardar-final" 
                 onClick={handleGuardarArmado}
-                disabled={loading} // Deshabilitar si hay error de energía
+                disabled={!puedeGuardar} // Deshabilitar si hay error de energía
               >
                 {loading ? "Procesando..." : "Guardar Proyecto"}
               </button>
-              {/* Mensaje de ayuda visual */}
-              {!energiaValida && (
-                <p style={{ color: "#dc2626", fontSize: "0.8rem", marginTop: "10px" }}>
-                  ⚠️ Revisa la fuente de poder antes de guardar.
-                </p>
-              )}
+              {/* Mensajes de advertencia dinámicos */}
+              <div className="mensajes-validacion"> 
+                {!energiaValida && (
+                  <p className="error-text">⚠️ El consumo excede la capacidad de la fuente.</p>
+                )}
+                {incompatibilidades.length > 0 && (
+                  <p className="error-text">⚠️ Existen conflictos de compatibilidad sin resolver.</p>
+                )}
+              </div>
           </div>
         </div>
 
