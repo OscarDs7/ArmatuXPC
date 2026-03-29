@@ -545,7 +545,7 @@ const estaDesbloqueado = (comp) => {
         </div>
       </div>
 
-      {/* TUTORIAL INTERACTIVO: Solo se muestra si el usuario no lo ha cerrado previamente (puedes mejorar esto guardando su preferencia en localStorage) */}
+      {/* TUTORIAL INTERACTIVO: Solo se muestra si el usuario no lo ha cerrado previamente */}
       {mostrarTutorial && (
       <div className="tutorial-overlay">
         <div className="tutorial-box">
