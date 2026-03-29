@@ -122,3 +122,19 @@ export const obtenerMisArmados = async (uid) => {
     throw error;
   }
 };
+
+//  Método para evaluar compatibilidad en tiempo real
+export const evaluarCompatibilidadTiempoReal = async (componenteIds) => {
+  const response = await fetch(`${API_URL}/Armados/evaluar-compatibilidad-tiempo-real`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(componenteIds),
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al evaluar compatibilidad");
+  }
+
+  return response.json();
+
+};
