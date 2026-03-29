@@ -215,6 +215,14 @@
   display: flex;
   justify-content: space-between;
   padding: 5px 0;
+  transition: all 0.3s ease;
+
+}
+
+.resumen-item.error {
+  background-color: #ffe5e5;
+  border-left: 4px solid red;
+  box-shadow: 0 0 6px rgba(255, 0, 0, 0.3);
 }
 
 /* Efecto en la imagen del cardview de cada componente */
@@ -354,6 +362,11 @@
   align-items: center;
   gap: 10px;
   font-weight: bold;
+  justify-content: space-between;
+  background: linear-gradient(135deg, #0b9ec7, #0072ff);
+  padding: 10px;
+  border-radius: 10px;
+  color: white;
 }
 
 /* SWITCH BASE */
@@ -405,4 +418,102 @@
 /* Movimiento */
 .switch input:checked + .slider:before {
   transform: translateX(24px);
+}
+
+/* Mensaje de error por incompatibilidades */
+  /* Contenedor principal de alertas */
+.alerta-error {
+  background: #fffafa; /* Rojo muy tenue */
+  border: 1px solid #fee2e2;
+  border-left: 5px solid #ef4444; /* Acento fuerte a la izquierda */
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+}
+
+.alerta-error strong {
+  color: #991b1b;
+  font-size: 1.1rem;
+  display: block;
+  margin-bottom: 15px;
+}
+
+/* Estilo de cada item de conflicto */
+.incompatibility-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: white;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  border: 1px solid #fecaca;
+}
+
+.incompatibility-icon {
+  font-size: 1.2rem;
+  background: #fee2e2;
+  padding: 5px;
+  border-radius: 50%;
+}
+
+/* Botón Corregir Estilo "Action" */
+.btn-corregir {
+  background: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.btn-corregir:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
+  background: linear-gradient(135deg, #4338ca 0%, #3730a3 100%);
+}
+
+/* Contenedor de la lista */
+.conflict-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px; /* 👈 Esto crea el espacio uniforme entre errores */
+  margin-bottom: 20px;
+  margin-top: 15px;
+}
+
+/* Tarjeta individual de error */
+.conflict-card {
+  background: rgba(255, 255, 255, 0.5); /* Fondo ligero para resaltar */
+  padding: 12px 16px;
+  border-radius: 8px;
+  border: 1px solid #fecaca; /* Un borde sutil rojo */
+}
+
+/* Estilo para los nombres de componentes */
+.conflict-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  color: #b91c1c; /* Rojo oscuro profesional */
+  margin-bottom: 4px; /* Separa el título del motivo */
+}
+
+/* El motivo del error (el texto pequeño) */
+.conflict-reason {
+  font-size: 0.85rem;
+  color: #4b5563; /* Gris oscuro para que no compita con el título */
+  margin: 0;
+  padding-left: 2px;
+}
+
+.vs-icon {
+  font-size: 0.9rem;
+  opacity: 0.8;
 }

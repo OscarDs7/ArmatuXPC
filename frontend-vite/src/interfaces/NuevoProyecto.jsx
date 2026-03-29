@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import gabinete from "../assets/gabinete.png"; 
-import { filtroComponente, guardarArmado } from "../services/api"; 
+import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal } from "../services/api"; 
 import "../estilos/NuevoProyecto.css";
 
 export default function NuevoProyecto() {
@@ -12,6 +12,7 @@ export default function NuevoProyecto() {
   const [imagenSeleccionada, setImagenSeleccionada] = useState(null);
   const [imagenCentral, setImagenCentral] = useState(null);
   const [modoGuia, setModoGuia] = useState(true);
+  const [incompatibilidades, setIncompatibilidades] = useState([]);
   
   // Guardaremos el ID del componente que está expandido
   const [expandidoId, setExpandidoId] = useState(null); 
@@ -28,6 +29,7 @@ export default function NuevoProyecto() {
     Motherboard: "PlacaBase", Refrigeracion: "Refrigeracion", Gabinete: "Gabinete"
   };
 
+  // Cada vez que cambie el componente seleccionado, obtenemos su lista desde el backend
   useEffect(() => {
     if (!selectedComponent) return;
     const obtenerComponentes = async () => {
@@ -45,7 +47,7 @@ export default function NuevoProyecto() {
     obtenerComponentes();
   }, [selectedComponent]);
 
-  // Bloquear scroll cuando el modal está abierto
+  // Bloquear scroll cuando el modal está abierto y desbloquearlo al cerrarlo
 useEffect(() => {
   if (imagenSeleccionada) {
     document.body.style.overflow = 'hidden';
@@ -62,6 +64,64 @@ useEffect(() => {
       setImagenCentral(null);
     }
   }, [pcActual.Gabinete]);
+
+  // Función para comprobar compatibilidad de componentes en tiempo real
+  useEffect(() => {
+  const evaluar = async () => {
+    try {
+      const ids = Object.values(pcActual)
+        .filter(Boolean)
+        .map(comp => comp.componenteId);
+
+      if (ids.length < 2) {
+        setIncompatibilidades([]);
+        return;
+      }
+
+      const resultado = await evaluarCompatibilidadTiempoReal(ids);
+
+      // 🔥 SOLO guarda si hay errores
+      if (resultado.length > 0) {
+        setIncompatibilidades(resultado);
+      } else {
+        setIncompatibilidades([]); // limpia automáticamente
+      }
+
+    } catch (error) {
+      console.error("Error evaluando compatibilidad:", error);
+    }
+  };
+
+  evaluar();
+}, [pcActual]);
+
+  // Función para resolver incompatibilidades: por simplicidad, vamos a quitar el componente que causa el conflicto (el segundo en la regla)
+  const resolverIncompatibilidad = () => {
+    if (incompatibilidades.length === 0) return;
+
+    const conflicto = incompatibilidades[0];
+
+    setPcActual(prev => {
+      const nuevo = { ...prev };
+
+      Object.keys(nuevo).forEach(key => {
+        if (nuevo[key]?.nombre === conflicto.componenteB) {
+          nuevo[key] = null;
+        }
+      });
+
+      return nuevo;
+    });
+  };
+
+  // Método para validar si un componente está en error por incompatibilidad: lo usamos para marcar en rojo los componentes que tienen conflictos
+  const esComponenteIncompatible = (componente) => {
+    return incompatibilidades.some(inc =>
+      inc.componenteA === componente?.nombre ||
+      inc.componenteB === componente?.nombre
+    );
+  };
+
 const componentes = [
   "Gabinete",
   "Fuente de poder",
@@ -84,8 +144,9 @@ const ordenComponentes = [
   "Almacenamiento"
 ];
 
+// Función para determinar si un componente está desbloqueado o no según el modo y el orden
 const estaDesbloqueado = (comp) => {
-  // 🔓 Si está en modo libre → todo desbloqueado
+  //  Si está en modo libre → todo desbloqueado
   if (!modoGuia) return true;
 
   const index = ordenComponentes.indexOf(comp);
@@ -96,11 +157,13 @@ const estaDesbloqueado = (comp) => {
 
   return pcActual[anterior] !== null;
 };
+  // Función para agregar un componente al armado actual
   const agregarComponente = (componente) => {
     setPcActual({ ...pcActual, [selectedComponent]: componente });
     setExpandidoId(null);
   };
 
+  // Función para quitar un componente del armado actual
   const quitarComponente = () => {
   setPcActual({
     ...pcActual,
@@ -203,47 +266,54 @@ const estaDesbloqueado = (comp) => {
       <div className="nuevo-main">
         {/* SIDEBAR IZQUIERDO */}
         <div className="componentes-menu">
-<span>
-  {modoGuia ? "🧭 Modo guía" : "🎮 Modo libre"}
-  <p style={{ fontSize: "0.9rem", marginTop: "5px" }}>
-  {modoGuia 
-    ? "Modo guía activado: sigue el orden recomendado"
-    : "Modo libre: puedes elegir cualquier componente"}
-</p>
-</span>
-          <div className="modo-switch-container">
-  <span>🧭 Guía</span>
+          <div className="bg-blue-300 p-3 rounded-lg mt-3">
+            <span>
+              {modoGuia ? "🧭 Modo guía" : "🎮 Modo libre"}
+              <p style={{ fontSize: "0.9rem", marginTop: "5px" }}>
+              {modoGuia 
+                ? "Modo guía activado: sigue el orden recomendado"
+                : "Modo libre: puedes elegir cualquier componente"}
+            </p>
+            </span>
+          </div>
+        <div className="modo-switch-container">
 
-  <label className="switch">
-    <input 
-      type="checkbox" 
-      checked={!modoGuia}
-      onChange={() => setModoGuia(!modoGuia)}
-    />
-    <span className="slider"></span>
-  </label>
+          <span className={`${modoGuia ? "text-green-400 font-bold" : "text-gray-400"}`}>
+            🧭 Guía
+          </span>
+          <label className="switch">
+            <input 
+              type="checkbox" 
+              checked={!modoGuia}
+              onChange={() => setModoGuia(!modoGuia)}
+            />
+            <span className="slider"></span>
+          </label>
+          <span className={`${!modoGuia ? "text-green-400 font-bold" : "text-gray-400"}`}>
+            🎮 Libre
+          </span>
 
-  <span>🎮 Libre</span>
-</div>
+        </div>
 
-          <h3>Componentes</h3>
-         {componentes.map((comp) => {
-  const bloqueado = !estaDesbloqueado(comp);
+          <h3><strong>Componentes</strong></h3>
+          {/* Listamos los componentes disponibles en el menú lateral */}
+          {componentes.map((comp) => {
+          const bloqueado = !estaDesbloqueado(comp);
 
-  return (
-    <button 
-      key={comp}
-      className={`comp-btn 
-        ${selectedComponent === comp ? "active" : ""} 
-        ${bloqueado ? "bloqueado" : ""}
-      `}
-      onClick={() => !bloqueado && setSelectedComponent(comp)}
-      disabled={bloqueado}
-    >
-      {comp} {bloqueado && <span className="lock-icon">🔒</span>}
-    </button>
-  );
-})}
+          return (
+            <button 
+              key={comp}
+              className={`comp-btn 
+                ${selectedComponent === comp ? "active" : ""} 
+                ${bloqueado ? "bloqueado" : ""}
+              `}
+              onClick={() => !bloqueado && setSelectedComponent(comp)}
+              disabled={bloqueado}
+            >
+              {comp} {bloqueado && <span className="lock-icon">🔒</span>}
+            </button>
+          );
+        })}
         </div>
 
         {/* VISTA CENTRAL */}
@@ -259,8 +329,17 @@ const estaDesbloqueado = (comp) => {
             <h2>Resumen del armado</h2>
             <ul>
               {Object.entries(pcActual).map(([key, modelo]) => (
-                <li key={key} className="resumen-item">
-                  <strong>{key}:</strong> {modelo ? `${modelo.nombre} ($${modelo.precio})` : "Sin seleccionar"}
+                <li key={key} 
+                className={`resumen-item ${esComponenteIncompatible(modelo) ? "incompatible" : ""}`}>
+                  <strong>{key}:</strong> 
+                  {modelo ? `${modelo.nombre} ($${modelo.precio})` : "Sin seleccionar"}
+
+                  {/* 🔥 Indicador visual */}
+                  {esComponenteIncompatible(modelo) && (
+                    <span style={{ color: "red", marginLeft: "10px" }}>
+                      ⚠ Incompatible
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
@@ -301,11 +380,36 @@ const estaDesbloqueado = (comp) => {
           </div>
         </div>
 
+        {/* INCOMPATIBILIDADES EN TIEMPO REAL */}
+        {incompatibilidades.length > 0 && (
+        <div className="alerta-error">
+          <h3>⚠️ Incompatibilidades detectadas:</h3>
+          
+          <div className="conflict-list">
+            {incompatibilidades.map((inc, index) => (
+              <div key={index} className="conflict-card">
+                <div className="conflict-header">
+                  <span className="comp-name">{inc.componenteA}</span>
+                  <span className="vs-icon">❌</span>
+                  <span className="comp-name">{inc.componenteB}</span>
+                </div>
+                <p className="conflict-reason">{inc.motivo}</p>
+              </div>
+            ))}
+          </div>
+
+          <button onClick={resolverIncompatibilidad} className="btn-corregir">
+            ✨ Corregir incompatibilidades
+          </button>
+        </div>
+      )}
+            
+
         {/* PANEL DERECHO: CATÁLOGO */}
         <div className="component-details">
           {selectedComponent ? (
             <>
-              <h3>Catálogo de {selectedComponent}</h3>
+              <h3><strong>Catálogo de {selectedComponent}</strong></h3>
               <div className="lista-modelos">
                 {loading ? <p>Cargando...</p> : 
                   listaComponentes.map((comp) => (
