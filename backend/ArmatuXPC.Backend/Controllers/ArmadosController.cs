@@ -134,7 +134,7 @@ namespace ArmatuXPC.Backend.Controllers
         // ===============================
         // VALIDAR COMPATIBILIDAD
         // ===============================
-        [HttpGet("{id}/validarCompatibilidad")]
+        [HttpGet("{id}/validarCompatibilidadArmado")]
         public async Task<ActionResult> ValidarCompatibilidad(int id)
         {
             var armado = await _context.Armados
@@ -263,7 +263,7 @@ namespace ArmatuXPC.Backend.Controllers
         }
 
         //  ================================
-        // NUEVO ENDPOINT: RESUMEN ENERGÉTICO
+        // ENDPOINT: RESUMEN ENERGÉTICO
         // =================================
 
         [HttpGet("{id}/resumen")]
@@ -277,6 +277,36 @@ namespace ArmatuXPC.Backend.Controllers
             return Ok(resumen);
         }
 
+        // ===============================
+        // ENDPOINT: EVALUAR COMPATIBILIDAD EN TIEMPO REAL
+        // ===============================
+        [HttpPost("evaluar-compatibilidad-tiempo-real")]
+        public async Task<IActionResult> EvaluarCompatibilidadTiempoReal([FromBody] List<int> componenteIds)
+        {
+            if (componenteIds == null || componenteIds.Count < 2)
+                return Ok(new List<object>());
+
+            var reglas = await _context.Compatibilidades
+                .Where(r =>
+                    (!r.EsCompatible) &&
+                    (
+                        (componenteIds.Contains(r.ComponenteAId) && componenteIds.Contains(r.ComponenteBId)) ||
+                        (componenteIds.Contains(r.ComponenteBId) && componenteIds.Contains(r.ComponenteAId))
+                    )
+                )
+                .Include(r => r.ComponenteA)
+                .Include(r => r.ComponenteB)
+                .ToListAsync();
+
+            var resultado = reglas.Select(r => new
+            {
+                componenteA = r.ComponenteA!.Nombre,
+                componenteB = r.ComponenteB!.Nombre,
+                motivo = r.Motivo
+            });
+
+            return Ok(resultado);
+        }
 
     } // ArmadosController
 } // namespace ArmatuXPC.Backend.Controllers
