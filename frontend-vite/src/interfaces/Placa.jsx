@@ -210,9 +210,17 @@ const pasosDesinstalar = [
 <div className="mt-4 p-4 bg-slate-800/70 border border-slate-700/50 rounded-xl shadow-md text-slate-200 text-sm text-center">
 <strong className="block mb-2 text-cyan-400">Instrucciones del Visor 3D</strong>
 <ul className="list-disc list-inside space-y-1">
-<li>Con clic izquierdo puedes mover la vista de la cámara.</li>
-<li>Con clic derecho puedes mover la posición de la cámara.</li>
-<li>Con la rueda del ratón puedes hacer zoom o alejar la cámara.</li>
+<li className="flex items-center gap-2">
+  🖱️ <span><strong>Clic izquierdo:</strong> mover la vista de la cámara.</span>
+</li>
+
+<li className="flex items-center gap-2">
+  🖱️ <span><strong>Clic derecho:</strong> mover la posición de la cámara.</span>
+</li>
+
+<li className="flex items-center gap-2">
+  🔍 <span><strong>Rueda:</strong> zoom o alejar la cámara.</span>
+</li>
 </ul>
 </div>
 
