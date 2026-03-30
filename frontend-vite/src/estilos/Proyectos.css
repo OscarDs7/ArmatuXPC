@@ -129,6 +129,41 @@
     background: #ff6b81;
 }
 
+.btn-eliminar {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.btn-eliminar:hover {
+    background: #c0392b;
+}
+
+.btn-volver {
+  margin-right: 20px;
+  padding: 8px 14px;
+  border: none;
+  background: #0072ff;
+  color: white; /* Color acorde al degradado */
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+
+}
+
+.title {
+    font-size: 2rem;
+    color: #34495e;
+    text-align: center;
+    margin-bottom: 30px;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+}
+
 /* --- Tabla de Detalles --- */
 .tabla-detalles {
     width: 100%;
@@ -208,3 +243,50 @@
 .tipo-case { background: #dfe6e9; color: #2d3436; }        /* Gris Claro */
 .tipo-cooler { background: #81ecec; color: #00838f; }      /* Cian */
 .tipo-default { background: #f1f2f6; color: #57606f; }
+
+/* --- Botones de Publicar/Despublicar --- */
+/* Estilo para cuando la tarjeta ya está publicada */
+.card-publicada {
+  border: 2px solid #4caf50; /* Un borde verde sutil */
+  position: relative;
+}
+
+.badge-publicado {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #4caf50;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+/* Botones */
+.btn-publicar {
+  background-color: #2196f3; /* Azul */
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 5px 0;
+}
+
+.btn-despublicar {
+  background-color: #ff9800; /* Naranja */
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 5px 0;
+}
+
+.proyecto-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 15px;
+}
