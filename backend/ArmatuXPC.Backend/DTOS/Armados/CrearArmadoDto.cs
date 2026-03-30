@@ -4,6 +4,7 @@ public class CrearArmadoDto
 {
     public string UsuarioId { get; set; } = string.Empty;
     public string NombreArmado { get; set; } = string.Empty;
+    public string AutorNombre { get; set; } = string.Empty; // Nuevo campo para el nombre del autor
      public string FechaCreacion { get; set; } = string.Empty;
 
 
