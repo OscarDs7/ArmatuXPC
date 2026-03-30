@@ -1,35 +1,89 @@
 import { useEffect, useState } from "react";
-import { obtenerMisArmados } from "../services/api";
+import { useNavigate } from "react-router-dom";
+import { obtenerMisArmados, eliminarArmado, publicarArmado, despublicarArmado } from "../services/api";
 import "../estilos/Proyectos.css";
+
 
 export default function ProyectosExistentes() {
   const [proyectos, setProyectos] = useState([]);
   // 💡 Nuevo estado para controlar qué proyecto se ve en el modal
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
+  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  // En un entorno real, obtendrías el nombre desde tu contexto de Auth/Firebase
+  const nombreUsuario = localStorage.getItem("userName") || "Usuario de ArmatuXPC";
   
   const uid = localStorage.getItem("userUid");
 
+  // Función para cargar los proyectos del usuario al montar el componente y comprobar si hay un proyecto previamente publicado para auto-seleccionarlo
   useEffect(() => {
-    if (uid) {
-      obtenerMisArmados(uid)
-        .then(data => setProyectos(data))
-        .catch(err => console.log(err));
+  if (uid) {
+    setLoading(true);
+    obtenerMisArmados(uid)
+      .then(data => {
+        setProyectos(data);
+        
+        // LÓGICA DE AUTO-SELECCIÓN:
+        const idPersistido = localStorage.getItem("ultimoProyectoPublicado");
+        if (idPersistido) {
+          // Buscamos el proyecto en la data recién llegada
+          const encontrado = data.find(proy => proy.armadoId === parseInt(idPersistido));
+          if (encontrado) {
+            setProyectoSeleccionado(encontrado);
+          }
+        }
+      })
+      .catch(err => console.log(err));
+  }
+}, [uid]);
+
+  // --- NUEVA LÓGICA DE PUBLICACIÓN ---
+  const handleTogglePublicar = async (p) => {
+    try {
+      if (!p.esPublicado) {
+        // Nombre limpio de espacios y caracteres especiales para URL
+        const nombreAEnviar = String(nombreUsuario).split(':')[0]; // Por si acaso trae basura
+        // Publicar
+        await publicarArmado(p.armadoId, nombreAEnviar);
+        // Guardamos la persistencia de la id del armado publicado para se mantenga seleccionado al volver a la comunidad
+        localStorage.setItem("ultimoProyectoPublicado", p.armadoId);
+        alert("¡Tu armado ahora es visible en la comunidad! 🎉");
+      } else {
+        // Despublicar
+        await despublicarArmado(p.armadoId);
+        // Limpiamos la persistencia ya que el armado se ha retirado de la comunidad
+        localStorage.removeItem("ultimoProyectoPublicado");
+        alert("Se ha retirado el armado de la comunidad.");
+      }
+
+      // Actualizamos el estado local para que el botón cambie visualmente
+      setProyectos(proyectos.map(proy => 
+        proy.armadoId === p.armadoId 
+          ? { ...proy, esPublicado: !proy.esPublicado } 
+          : proy
+      ));
+    } catch (err) {
+      alert(err.message);
     }
-    else {
-      alert("Aún no cuentas con armados existentes!");
-    }
-  }, [uid]);
+  };
 
   // Función para cerrar el modal
   const cerrarModal = () => setProyectoSeleccionado(null);
 
+
   return (
     <div className="proyectos-container">
-      <h2>Mis PCs Armadas 🖥️</h2>
+      <button className="btn-volver" onClick={() => navigate("/dashboard-user")}>← Volver</button>
+
+      <h2 className="title">Mis PCs Armadas 🖥️</h2>
 
       <div className="proyectos-grid">
-        {proyectos.map((p) => (
-          <div key={p.armadoId} className="proyecto-card">
+          {proyectos.map((p) => (
+          <div key={p.armadoId} className={`proyecto-card ${p.esPublicado ? 'card-publicada' : ''}`}>
+            {/* Badge visual de estado */}
+            {p.esPublicado && <span className="badge-publicado">Publicado</span>}
+
             <div className="proyecto-header">
               <h3 className="proyecto-nombre">{p.nombreArmado}</h3>
               <p className="proyecto-fecha">
@@ -55,8 +109,24 @@ export default function ProyectosExistentes() {
             <button className="btn-detalle" onClick={() => setProyectoSeleccionado(p)}>
               Ver Configuración Completa
             </button>
+
+            {/* BOTÓN DINÁMICO DE PUBLICAR/DESPUBLICAR */}
+            <button 
+                className={p.esPublicado ? "btn-despublicar" : "btn-publicar"} 
+                onClick={() => handleTogglePublicar(p)}
+            >
+              {p.esPublicado ? "Quitar de Comunidad" : "Publicar en Comunidad"}
+            </button>
+
+            <button className="btn-eliminar" onClick={() => eliminarArmado(p.armadoId).then(() => {
+              // Actualizamos la lista de proyectos después de eliminar
+              setProyectos(proyectos.filter(proy => proy.armadoId !== p.armadoId));
+            })}>
+              Eliminar
+            </button>
           </div>
         ))}
+        
       </div>
 
       {/* ===============================
