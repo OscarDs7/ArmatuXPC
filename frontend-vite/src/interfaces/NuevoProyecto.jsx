@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import gabinete from "../assets/gabinete.png"; 
 import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal } from "../services/api"; 
 import "../estilos/NuevoProyecto.css";
@@ -307,17 +307,27 @@ const estaDesbloqueado = (comp) => {
     }
 
     // --- SOLICITUD DE NOMBRE ---
-    const nombrePrompt = window.prompt("Dale un nombre a tu creación:", "Mi PC Nueva");
+    const nombrePrompt = window.prompt("Dale un nombre a tu creación:", nombreProyecto || "Mi PC Nueva");
     if (!nombrePrompt) return;
 
     // --- ESTRUCTURA PARA EL DTO DE C# ---
     // Obtenemos todos los componentes seleccionados (ignoramos los nulos)
     const componentesPayload = Object.entries(pcActual)
       .filter(([key, value]) => value !== null)
-      .map(([key, comp]) => ({
-        componenteId: comp.componenteId,
-        cantidad: 1 
-      }));
+      .map(([key, comp]) => {
+        // Si esto imprime 0 o undefined, el error persistirá
+        console.log(`Verificando ID para ${key}:`, comp.componenteId);
+        return {
+          componenteId: parseInt(comp.componenteId),
+          cantidad: 1
+        };
+      });
+
+    // Si algún ID es NaN o 0, detenemos el proceso
+    if (componentesPayload.some(c => !c.componenteId)) {
+      alert("Error: Uno de los componentes de la plantilla no tiene un ID válido.");
+      return;
+    }
 
     const nuevoArmado = {
       usuarioId: uidSession,
@@ -346,6 +356,47 @@ const estaDesbloqueado = (comp) => {
   const tieneErrores = incompatibilidades.length > 0 || !energiaValida;
   const puedeGuardar = !tieneErrores && !loading;
 
+  
+  // --- Estados para recibir solicitud de plantilla desde la Comunidad y cargarla automáticamente en el configurador --- //
+  const location = useLocation();
+  const [carrito, setCarrito] = useState([]);
+  const [nombreProyecto, setNombreProyecto] = useState("");
+
+  // Si venimos de la comunidad con una plantilla, cargamos los componentes en el estado local del configurador
+  useEffect(() => {
+  if (location.state && location.state.componentesPlantilla) {
+    const { componentesPlantilla, nombreOriginal } = location.state;
+
+    const nuevaConfiguracion = {
+      CPU: null, Motherboard: null, RAM: null, GPU: null,
+      Almacenamiento: null, "Fuente de poder": null,
+      Refrigeracion: null, Gabinete: null
+    };
+
+    componentesPlantilla.forEach(comp => {
+      const categoriaEnPC = Object.keys(mapTipo).find(key => mapTipo[key] === comp.tipo);
+      
+      if (categoriaEnPC) {
+        // NORMALIZACIÓN CRÍTICA
+        nuevaConfiguracion[categoriaEnPC] = {
+          ...comp,
+          // Intentamos obtener el ID de todas las formas posibles que pueda venir del JSON
+          componenteId: comp.componenteId || comp.id || comp.ComponenteId,
+          // Hacemos lo mismo para la imagen
+          imagenUrl: comp.imagenUrl || comp.imagen || comp.ImagenUrl
+        };
+      }
+    });
+
+    setPcActual(nuevaConfiguracion);
+    setNombreProyecto(`Copia de ${nombreOriginal}`);
+    setModoGuia(false);
+    window.history.replaceState({}, document.title);
+  }
+}, [location]);
+
+  // Fin de la lógica de carga de plantilla desde la comunidad. El resto del código se mantiene igual, pero ahora si el usuario viene de la comunidad con una plantilla, verá su configuración cargada automáticamente en el configurador para que pueda editarla o guardarla como un nuevo proyecto.
+
   return (
     <div className="nuevo-proyecto-container">
       <header className="nuevo-header">
@@ -356,7 +407,7 @@ const estaDesbloqueado = (comp) => {
       <div className="nuevo-main">
         {/* SIDEBAR IZQUIERDO */}
         <div className="componentes-menu">
-          <div className="bg-blue-300 p-3 rounded-lg mt-3 modo-panel">
+          <div className="bg-blue-200 p-3 rounded-lg mt-3 modo-panel">
             <span>
               {modoGuia ? "🧭 Modo guía" : "🎮 Modo libre"}
               <p style={{ fontSize: "0.9rem", marginTop: "5px" }}>
