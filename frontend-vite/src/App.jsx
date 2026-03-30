@@ -18,6 +18,7 @@ import MonitoreoLogistica from "./components/MonitoreoLogistica";
 import PruebaThree from "./interfaces/PruebaThree";
 import NuevoProyecto from "./interfaces/NuevoProyecto";
 import ProyectosExistentes from "./interfaces/ProyectosExistentes";
+import Comunidad from "./interfaces/Comunidad";
 import Memorias from "./interfaces/Memorias";
 import Placa from "./interfaces/Placa";
 import Rams from "./interfaces/Rams";
@@ -94,6 +95,12 @@ function App() {
       <Route path="/mis-armados" element={
         <ProtectedRoute>
           <ProyectosExistentes />
+          </ProtectedRoute>
+        } 
+      />
+        <Route path="/comunidad" element={
+        <ProtectedRoute>
+          <Comunidad />
           </ProtectedRoute>
         } 
       />
