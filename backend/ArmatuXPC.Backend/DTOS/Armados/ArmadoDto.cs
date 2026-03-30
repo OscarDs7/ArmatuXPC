@@ -10,6 +10,7 @@ public class ArmadoDto
     public string UsuarioId { get; set; } = string.Empty;
     public string NombreArmado { get; set; } = string.Empty;
     public string AutorNombre { get; set; } = string.Empty;
+    public bool EsPublicado { get; set; }
     public DateTime FechaCreacion { get; set; }
 
     public List<ArmadoComponenteDto> Componentes { get; set; } = new();
