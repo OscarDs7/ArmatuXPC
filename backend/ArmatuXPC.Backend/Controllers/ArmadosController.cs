@@ -77,6 +77,7 @@ namespace ArmatuXPC.Backend.Controllers
                     ArmadoId = a.ArmadoId,
                     UsuarioId = a.UsuarioId,
                     NombreArmado = a.NombreArmado,
+                    AutorNombre = a.AutorNombre,
                     FechaCreacion = a.FechaCreacion,
                     Componentes = a.Componentes
                         .Select(ac => new ArmadoComponenteDto
@@ -111,8 +112,9 @@ namespace ArmatuXPC.Backend.Controllers
                     .Select(a => new {
                         a.ArmadoId,
                         a.NombreArmado,
-                        // Si ya agregaste la propiedad al modelo, úsala así:
+                        a.AutorNombre,
                         FechaCreacion = a.FechaCreacion, 
+                        EsPublicado = a.EsPublicado,
                         Componentes = a.Componentes.Select(ac => new {
                             ac.ComponenteId,
                             Nombre = ac.Componente.Nombre,
@@ -166,6 +168,7 @@ namespace ArmatuXPC.Backend.Controllers
                 {
                     UsuarioId = armadoDto.UsuarioId,
                     NombreArmado = armadoDto.NombreArmado,
+                    AutorNombre = armadoDto.AutorNombre,
                     FechaCreacion = DateTime.UtcNow // Mantén UtcNow para Postgres
                 };
 
@@ -307,6 +310,76 @@ namespace ArmatuXPC.Backend.Controllers
 
             return Ok(resultado);
         }
+
+        // ENDPOINT: PUBLICAR ARMADO EN LA INTERFAZ DE LA COMUNIDAD
+        [HttpPost("{id}/publicar")]
+        public async Task<IActionResult> PublicarArmado(
+            [FromRoute] int id, 
+            [FromQuery] string nombreUsuario) 
+        {
+            // El código interno se queda igual
+            var armado = await _context.Armados.FindAsync(id);
+            if (armado == null) return NotFound();
+
+            // Si el nombre viene vacío, podrías poner uno por defecto o devolver un error
+            nombreUsuario = string.IsNullOrWhiteSpace(nombreUsuario) ? "Usuario Anónimo" : nombreUsuario;
+            // Actualizamos el estado de publicación y el nombre del autor
+            armado.EsPublicado = true;
+            armado.AutorNombre = nombreUsuario; 
+
+            await _context.SaveChangesAsync();
+            return Ok(new { mensaje = "¡Publicado!", autor = armado.AutorNombre });
+        }
+
+        // ENDPOINT: OBTENER ARMADOS PUBLICADOS EN LA COMUNIDAD
+        [HttpGet("comunidad")]
+        public async Task<ActionResult<IEnumerable<ArmadoDto>>> GetComunidad()
+        {
+            // Agregamos los Includes para evitar NullReferenceException en los componentes
+            var armados = await _context.Armados
+                    .Include(a => a.Componentes)
+                    .ThenInclude(c => c.Componente)
+                .Where(a => a.EsPublicado)
+                .Select(a => new ArmadoDto {
+                    ArmadoId = a.ArmadoId,
+                    UsuarioId = a.UsuarioId,
+                    NombreArmado = a.NombreArmado,
+                    AutorNombre = a.AutorNombre, // Ahora sí lo reconocerá
+                    FechaCreacion = a.FechaCreacion,
+                    // Mapeamos los componentes con sus detalles para el DTO
+                    Componentes = a.Componentes.Select(c => new ArmadoComponenteDto {
+                        ComponenteId = c.ComponenteId,
+                        Nombre = c.Componente.Nombre,
+                        Marca = c.Componente.Marca,
+                        Modelo = c.Componente.Modelo,
+                        Tipo = c.Componente.Tipo,
+                        Precio = c.Componente.Precio,
+                        ConsumoWatts = c.Componente.ConsumoWatts,
+                        CapacidadWatts = c.Componente.CapacidadWatts,
+                        Cantidad = c.Cantidad,
+                        ImagenUrl = c.Componente.ImagenUrl // Asegúrate de que esta propiedad exista en tu modelo Componente
+                    }).ToList()
+                })
+                .ToListAsync();
+            return Ok(armados);
+        }
+
+        // ENDPOINT: DESPUBLICAR ARMADO DE LA INTERFAZ DE LA COMUNIDAD
+        [HttpPost("{id}/despublicar")]
+        public async Task<IActionResult> DespublicarArmado(int id)
+        {
+            var armado = await _context.Armados.FindAsync(id);
+
+            if (armado == null) return NotFound();
+
+            armado.EsPublicado = false;
+            armado.AutorNombre = string.Empty; // Limpiamos el nombre del autor al despublicar
+
+            await _context.SaveChangesAsync();
+
+            return Ok(new { mensaje = "Tu armado ha sido retirado de la comunidad." });
+        }
+
 
     } // ArmadosController
 } // namespace ArmatuXPC.Backend.Controllers
