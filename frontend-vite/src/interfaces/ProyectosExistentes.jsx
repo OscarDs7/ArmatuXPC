@@ -34,7 +34,8 @@ export default function ProyectosExistentes() {
           }
         }
       })
-      .catch(err => console.log(err));
+      .catch(err => console.log(err))
+      .finally(() => setLoading(false));
   }
 }, [uid]);
 
@@ -63,6 +64,12 @@ export default function ProyectosExistentes() {
           ? { ...proy, esPublicado: !proy.esPublicado } 
           : proy
       ));
+
+      // 💡 Si el proyecto que acabamos de cambiar es el que está en el modal, lo actualizamos también
+      if (proyectoSeleccionado && proyectoSeleccionado.armadoId === p.armadoId) {
+        setProyectoSeleccionado({ ...proyectoSeleccionado, esPublicado: !p.esPublicado });
+      }
+
     } catch (err) {
       alert(err.message);
     }
@@ -77,6 +84,10 @@ export default function ProyectosExistentes() {
       <button className="btn-volver" onClick={() => navigate("/dashboard-user")}>← Volver</button>
 
       <h2 className="title">Mis PCs Armadas 🖥️</h2>
+
+      {loading ? (
+        <div className="loader">Cargando tus proyectos...</div>
+      ) : (
 
       <div className="proyectos-grid">
           {proyectos.map((p) => (
@@ -128,6 +139,7 @@ export default function ProyectosExistentes() {
         ))}
         
       </div>
+      )}
 
       {/* ===============================
           LÓGICA DEL MODAL (VENTANA EMERGENTE)
@@ -152,35 +164,47 @@ export default function ProyectosExistentes() {
                 </tr>
               </thead>
               <tbody>
-                {proyectoSeleccionado.componentes.map((c, index) => {
-                // Mapeo exacto del Enum (TipoComponente.cs) de C# a clases de CSS
+              {proyectoSeleccionado.componentes.map((c, index) => {
                 const obtenerClaseTipo = (tipo) => {
-                  switch (tipo) {
-                    case "CPU": return "tipo-cpu";
-                    case "GPU": return "tipo-gpu";
-                    case "MemoriaRAM": return "tipo-ram";
-                    case "Almacenamiento": return "tipo-storage";
-                    case "FuentePoder": return "tipo-psu";
-                    case "PlacaBase": return "tipo-motherboard";
-                    case "Gabinete": return "tipo-case";
-                    case "Refrigeracion": return "tipo-cooler";
-                    default: return "tipo-default";
-                  }
+                  const clases = {
+                    CPU: "tipo-cpu",
+                    GPU: "tipo-gpu",
+                    MemoriaRAM: "tipo-ram",
+                    Almacenamiento: "tipo-storage",
+                    FuentePoder: "tipo-psu",
+                    PlacaBase: "tipo-motherboard",
+                    Gabinete: "tipo-case",
+                    Refrigeracion: "tipo-cooler"
+                  };
+                  return clases[tipo] || "tipo-default";
                 };
 
                 return (
-                  <tr key={index}>
+                  <tr key={c.componenteId || index}>
                     <td>
-                      <span className={`badge-tipo ${obtenerClaseTipo(c.tipo)}`}>
-                        {c.tipo}
-                      </span>
+                      <div className="componente-info-celda">
+                        {/* 🖼️ Imagen con manejo de Error y Carga */}
+                        <img 
+                          src={c.imagenUrl || "../assets/pc-default.png"} 
+                          alt={c.nombre}
+                          className="mini-imagen-tabla"
+                          loading="lazy"
+                          onError={(e) => {
+                            e.target.onerror = null; 
+                            e.target.src = "../assets/pc-default.png";
+                          }}
+                        />
+                        <span className={`badge-tipo ${obtenerClaseTipo(c.tipo)}`}>
+                          {c.tipo}
+                        </span>
+                      </div>
                     </td>
-                    <td>{c.nombre}</td>
-                    <td><strong>${c.precio.toLocaleString()}</strong></td>
+                    <td className="nombre-celda">{c.nombre}</td>
+                    <td><strong>${c.precio.toLocaleString('es-MX')}</strong></td>
                   </tr>
                 );
               })}
-              </tbody>
+            </tbody>
             </table>
 
             <div className="total-row">
