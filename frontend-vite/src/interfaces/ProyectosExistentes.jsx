@@ -183,17 +183,6 @@ export default function ProyectosExistentes() {
                   <tr key={c.componenteId || index}>
                     <td>
                       <div className="componente-info-celda">
-                        {/* 🖼️ Imagen con manejo de Error y Carga */}
-                        <img 
-                          src={c.imagenUrl || "../assets/pc-default.png"} 
-                          alt={c.nombre}
-                          className="mini-imagen-tabla"
-                          loading="lazy"
-                          onError={(e) => {
-                            e.target.onerror = null; 
-                            e.target.src = "../assets/pc-default.png";
-                          }}
-                        />
                         <span className={`badge-tipo ${obtenerClaseTipo(c.tipo)}`}>
                           {c.tipo}
                         </span>
