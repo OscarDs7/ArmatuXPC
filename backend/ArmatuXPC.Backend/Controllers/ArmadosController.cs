@@ -78,6 +78,7 @@ namespace ArmatuXPC.Backend.Controllers
                     UsuarioId = a.UsuarioId,
                     NombreArmado = a.NombreArmado,
                     AutorNombre = a.AutorNombre,
+                    EsPublicado = a.EsPublicado,
                     FechaCreacion = a.FechaCreacion,
                     Componentes = a.Componentes
                         .Select(ac => new ArmadoComponenteDto
@@ -90,7 +91,8 @@ namespace ArmatuXPC.Backend.Controllers
                             Precio = ac.Componente.Precio,
                             ConsumoWatts = ac.Componente.ConsumoWatts,
                             CapacidadWatts = ac.Componente.CapacidadWatts,
-                            Cantidad = ac.Cantidad
+                            Cantidad = ac.Cantidad,
+                            ImagenUrl = ac.Componente.ImagenUrl
                         })
                         .ToList()
                 })
@@ -120,7 +122,8 @@ namespace ArmatuXPC.Backend.Controllers
                             Nombre = ac.Componente.Nombre,
                             Precio = ac.Componente.Precio,
                             Tipo = ac.Componente.Tipo.ToString(), // Lo enviamos como texto para React
-                            Cantidad = ac.Cantidad
+                            Cantidad = ac.Cantidad,
+                            ImagenUrl = ac.Componente.ImagenUrl
                         })
                     })
                     .ToListAsync();
