@@ -9,6 +9,8 @@ public class ArmadoDto
     public int ArmadoId { get; set; }
     public string UsuarioId { get; set; } = string.Empty;
     public string NombreArmado { get; set; } = string.Empty;
+    public string AutorNombre { get; set; } = string.Empty;
+    public bool EsPublicado { get; set; }
     public DateTime FechaCreacion { get; set; }
 
     public List<ArmadoComponenteDto> Componentes { get; set; } = new();
@@ -26,4 +28,5 @@ public class ArmadoComponenteDto
     public decimal? ConsumoWatts { get; set; }
     public int? CapacidadWatts { get; set; }
     public int Cantidad { get; set; }
+    public string? ImagenUrl { get; set; } = string.Empty;
 }

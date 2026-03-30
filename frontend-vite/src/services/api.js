@@ -138,3 +138,70 @@ export const evaluarCompatibilidadTiempoReal = async (componenteIds) => {
   return response.json();
 
 };
+
+// Método para eliminar un armado por su ID
+export const eliminarArmado = async (armadoId) => {
+  const response = await fetch(`${API_URL}/Armados/${armadoId}`, {
+    method: "DELETE",
+     
+  });
+  if (!response.ok) {
+    throw new Error("Error al eliminar armado");
+  }
+  return response.json();
+};
+
+// Método para publicar un armado enviando el nombre del autor
+export const publicarArmado = async (armadoId, nombreUsuario) => {
+  const nombreLimpio = String(nombreUsuario).split(':')[0].trim();
+  
+  // Construimos la URL
+  const url = `${API_URL}/Armados/${armadoId}/publicar?nombreUsuario=${encodeURIComponent(nombreLimpio)}`;
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      // Eliminamos el Content-Type para que el navegador no espere un JSON en el cuerpo
+      "Accept": "application/json"
+    }
+    // NOTA: No enviamos propiedad 'body' en absoluto
+  });
+
+  if (!response.ok) {
+    // Si da error, leemos el JSON para saber exactamente qué campo falla
+    const errorData = await response.json();
+    console.error("Error del servidor:", errorData);
+    throw new Error(errorData.title || "Error al publicar");
+  }
+
+  return response.json();
+};
+
+// Obtener todos los armados marcados como publicados
+export const getComunidad = async () => {
+  const response = await fetch(`${API_URL}/Armados/comunidad`, {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    throw new Error("No se pudo cargar la comunidad");
+  }
+
+  return response.json();
+};
+
+// Quitar un armado de la comunidad
+export const despublicarArmado = async (armadoId) => {
+  const response = await fetch(`${API_URL}/Armados/${armadoId}/despublicar`, {
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    throw new Error("Error al despublicar el armado");
+  }
+
+  return response.json();
+};
