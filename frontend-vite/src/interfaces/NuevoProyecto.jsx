@@ -6,6 +6,7 @@ import "../estilos/NuevoProyecto.css";
 
 export default function NuevoProyecto() {
   const navigate = useNavigate(); // Hook para navegación programática
+  const location = useLocation(); // Hook para acceder al estado pasado por navigate
   // Estados principales del componente
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [listaComponentes, setListaComponentes] = useState([]);
@@ -16,9 +17,18 @@ export default function NuevoProyecto() {
   const [incompatibilidades, setIncompatibilidades] = useState([]);
   const [pasoTutorial, setPasoTutorial] = useState(0);
   const [mostrarTutorial, setMostrarTutorial] = useState(true);
+  const [cargandoDatos, setCargandoDatos] = useState(true);
+  // Estados para la persistencia del proyecto en localStorage: UID de sesión, nombre del usuario y clave de almacenamiento específica para este proyecto
+  const uidSession = localStorage.getItem("userUid");
+  const nombreUsuario = localStorage.getItem("userName") || "Usuario Anónimo";
+  const STORAGE_KEY = `pc_borrador_${uidSession}`; // Llave única por usuario para guardar el progreso del último proyecto en localStorage
+
 
   // Guardaremos el ID del componente que está expandido
   const [expandidoId, setExpandidoId] = useState(null); 
+
+  // Determinamos el modo (por defecto es "nuevo" si entra directo por URL)
+  const modo = location.state?.modo || "nuevo";
 
   // Estado que representa el armado actual del PC: cada propiedad es un tipo de componente y su valor es el modelo seleccionado (o null si no hay selección)
   const [pcActual, setPcActual] = useState({
@@ -195,6 +205,38 @@ const finalizarTutorial = () => {
     );
   };
 
+  // --- LÓGICA DE PERSISTENCIA ---
+
+  // 1. Efecto de Carga Inicial
+  useEffect(() => {
+    if (modo === "continuar") {
+      const guardado = localStorage.getItem(STORAGE_KEY);
+      if (guardado) {
+        setPcActual(JSON.parse(guardado)); // Cargamos el progreso guardado
+        // Opcional: Desactivar tutorial si está continuando
+        setMostrarTutorial(false);
+      }
+    } else if (modo === "nuevo") {
+      // Si el modo es "nuevo", podrías querer limpiar el storage anterior
+      // o simplemente dejar el estado inicial vacío.
+      localStorage.removeItem(STORAGE_KEY); // Limpiamos cualquier progreso anterior al iniciar un nuevo proyecto
+    }
+    setCargandoDatos(false); // Ya no estamos cargando después de intentar cargar el proyecto
+
+  }, [modo, uidSession]); // Re-ejecuta si cambia el modo o el usuario (por seguridad)
+
+  // 2. Efecto de Auto-guardado (Siempre activo)
+  useEffect(() => {
+    // Si todavía estamos cargando los datos iniciales, no guardamos nada (evita sobrescribir el progreso al cargar)
+    if (cargandoDatos || !uidSession) return;
+
+    // Si ya terminamos de cargar, entonces sí guardamos cada cambio automáticamente
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(pcActual));
+  }, [pcActual, cargandoDatos, uidSession]);
+
+// --- FIN DE LA LÓGICA DE PERSISTENCIA ---
+
+
 const componentes = [
   "Gabinete",
   "Fuente de poder",
@@ -285,7 +327,6 @@ const estaDesbloqueado = (comp) => {
     }
 
     // 2. Validación de sesión (tu código actual...)
-    const uidSession = localStorage.getItem("userUid");
     if (!uidSession) {
       alert("No se detectó sesión activa.");
       return;
@@ -332,6 +373,7 @@ const estaDesbloqueado = (comp) => {
     const nuevoArmado = {
       usuarioId: uidSession,
       nombreArmado: nombrePrompt,
+      nombreUsuario: nombreUsuario,
       componentes: componentesPayload
     };
 
@@ -339,6 +381,7 @@ const estaDesbloqueado = (comp) => {
       setLoading(true);
       await guardarArmado(nuevoArmado);
       alert("🚀 ¡Proyecto guardado exitosamente!");
+      localStorage.removeItem(`pc_borrador_${uidSession}`); // Limpiamos el borrador específico del usuario
       navigate("/mis-armados"); // Redirige a la lista de proyectos del usuario
     } catch (error) {
       // Si el backend lanza el BadRequest que vimos en tu C# (Error energético)
@@ -358,11 +401,9 @@ const estaDesbloqueado = (comp) => {
 
   
   // --- Estados para recibir solicitud de plantilla desde la Comunidad y cargarla automáticamente en el configurador --- //
-  const location = useLocation();
-  const [carrito, setCarrito] = useState([]);
   const [nombreProyecto, setNombreProyecto] = useState("");
 
-  // Si venimos de la comunidad con una plantilla, cargamos los componentes en el estado local del configurador
+  // --- Si venimos de la comunidad con una plantilla, cargamos los componentes en el estado local del configurador --- //
   useEffect(() => {
   if (location.state && location.state.componentesPlantilla) {
     const { componentesPlantilla, nombreOriginal } = location.state;
@@ -394,14 +435,14 @@ const estaDesbloqueado = (comp) => {
     window.history.replaceState({}, document.title);
   }
 }, [location]);
-
-  // Fin de la lógica de carga de plantilla desde la comunidad. El resto del código se mantiene igual, pero ahora si el usuario viene de la comunidad con una plantilla, verá su configuración cargada automáticamente en el configurador para que pueda editarla o guardarla como un nuevo proyecto.
+  // FIN de la lógica de carga automática desde la comunidad (esto permite que al hacer click en "Usar esta plantilla" en la comunidad, se abra el configurador con esa plantilla ya cargada y lista para editar)
 
   return (
     <div className="nuevo-proyecto-container">
       <header className="nuevo-header">
         <button className="btn-volver" onClick={() => navigate("/dashboard-user")}>← Volver</button>
-        <h1>Crear nuevo proyecto</h1>
+        {/* El título cambia según el modo */}
+        <h1>{modo === "continuar" ? "Continuar Proyecto" : "Crear Nuevo Proyecto"}</h1>
       </header>
 
       <div className="nuevo-main">
@@ -507,6 +548,11 @@ const estaDesbloqueado = (comp) => {
           {/* RESUMEN DEL ARMADO Y BOTÓN DE GUARDAR */}   
           <div className="pc-resumen resumen-pc">
             <h2>Resumen del armado</h2>
+              {modo === "continuar" && (
+                <p style={{ color: "#3b82f6", fontSize: "0.8rem", marginBottom: "10px" }}>
+                  ℹ️ Estas viendo tu progreso guardado localmente.
+                </p>
+              )}
             <ul>
               {Object.entries(pcActual).map(([key, modelo]) => (
                 <li key={key} 
