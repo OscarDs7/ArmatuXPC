@@ -22,7 +22,8 @@ export default function NuevoProyecto() {
   const uidSession = localStorage.getItem("userUid");
   const nombreUsuario = localStorage.getItem("userName") || "Usuario Anónimo";
   const STORAGE_KEY = `pc_borrador_${uidSession}`; // Llave única por usuario para guardar el progreso del último proyecto en localStorage
-
+  // Estado de autoguardado que el usuario puede activar o desactivar según su preferencia (por defecto activado para no perder progreso)
+  const [autoGuardado, setAutoGuardado] = useState(true);
 
   // Guardaremos el ID del componente que está expandido
   const [expandidoId, setExpandidoId] = useState(null); 
@@ -228,13 +229,21 @@ const finalizarTutorial = () => {
   // 2. Efecto de Auto-guardado (Siempre activo)
   useEffect(() => {
     // Si todavía estamos cargando los datos iniciales, no guardamos nada (evita sobrescribir el progreso al cargar)
-    if (cargandoDatos || !uidSession) return;
+    if (cargandoDatos || !uidSession || !autoGuardado) return;
 
     // Si ya terminamos de cargar, entonces sí guardamos cada cambio automáticamente
     localStorage.setItem(STORAGE_KEY, JSON.stringify(pcActual));
-  }, [pcActual, cargandoDatos, uidSession]);
+    console.log("Progreso guardado automáticamente:", pcActual);
+  }, [pcActual, cargandoDatos, uidSession, autoGuardado]);
 
 // --- FIN DE LA LÓGICA DE PERSISTENCIA ---
+
+// -- Función de guardado manual -- //
+const guardarProgresoManual = () => {
+  if (!uidSession) return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pcActual));
+  alert("💾 Progreso guardado manualmente en este navegador.");
+};
 
 
 const componentes = [
@@ -272,6 +281,7 @@ const estaDesbloqueado = (comp) => {
 
   return pcActual[anterior] !== null;
 };
+
   // Función para agregar un componente al armado actual
   const agregarComponente = (componente) => {
     setPcActual({ ...pcActual, [selectedComponent]: componente });
@@ -315,7 +325,7 @@ const estaDesbloqueado = (comp) => {
 
   // --- FUNCIÓN PARA GUARDAR UN ARMADO NUEVO --- //
   const handleGuardarArmado = async () => {
-    // 1. Verificación de Seguridad (Doble validación)
+    // 1. Verificación de Seguridad (Doble validación: compatibilidad y energía, para evitar que el usuario intente guardar algo que sabemos que no funcionará)
     if (incompatibilidades.length > 0) {
       alert("No puedes guardar: Existen piezas incompatibles en tu configuración.");
       return;
@@ -326,7 +336,7 @@ const estaDesbloqueado = (comp) => {
       return;
     }
 
-    // 2. Validación de sesión (tu código actual...)
+    // 2. Validación de sesión activa (necesitamos el UID para asociar el armado al usuario)
     if (!uidSession) {
       alert("No se detectó sesión activa.");
       return;
@@ -338,12 +348,6 @@ const estaDesbloqueado = (comp) => {
 
     if (faltantes.length > 0) {
       alert(`Para un armado funcional, aún te falta seleccionar: ${faltantes.join(", ")}`);
-      return;
-    }
-
-    // --- VALIDACIÓN ENERGÉTICA ---
-    if (!energiaValida) {
-      alert("No puedes guardar el armado: el consumo total excede la capacidad de la fuente de poder.");
       return;
     }
 
@@ -370,6 +374,7 @@ const estaDesbloqueado = (comp) => {
       return;
     }
 
+    // Construimos el objeto que espera el backend para guardar el armado
     const nuevoArmado = {
       usuarioId: uidSession,
       nombreArmado: nombrePrompt,
@@ -377,6 +382,7 @@ const estaDesbloqueado = (comp) => {
       componentes: componentesPayload
     };
 
+    // 3. Enviamos la solicitud al backend para guardar el armado
     try {
       setLoading(true);
       await guardarArmado(nuevoArmado);
@@ -428,15 +434,17 @@ const estaDesbloqueado = (comp) => {
         };
       }
     });
-
+    // Actualizamos el estado del configurador con la plantilla recibida
     setPcActual(nuevaConfiguracion);
     setNombreProyecto(`Copia de ${nombreOriginal}`);
     setModoGuia(false);
-    window.history.replaceState({}, document.title);
+    window.history.replaceState({}, document.title); // Limpiamos el estado de la URL para evitar recargas accidentales con la plantilla
   }
 }, [location]);
   // FIN de la lógica de carga automática desde la comunidad (esto permite que al hacer click en "Usar esta plantilla" en la comunidad, se abra el configurador con esa plantilla ya cargada y lista para editar)
 
+  
+  // Renderizamos el componente //
   return (
     <div className="nuevo-proyecto-container">
       <header className="nuevo-header">
@@ -445,6 +453,51 @@ const estaDesbloqueado = (comp) => {
         <h1>{modo === "continuar" ? "Continuar Proyecto" : "Crear Nuevo Proyecto"}</h1>
       </header>
 
+      {/* Diseño UI de Autoguardado y botón de Guardado manual */ }
+      <div className="project-controls-bar">
+        <div className="status-group">
+          {/* Switch de Autoguardado */}
+          <div className="flex items-center gap-2 mr-4">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                className="sr-only peer" 
+                checked={autoGuardado}
+                onChange={() => setAutoGuardado(!autoGuardado)}
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+            <span className="text-sm font-medium text-gray-700">
+              Autoguardado {autoGuardado ? "ON" : "OFF"}
+            </span>
+          </div>
+
+          {/* Indicador de Estado */}
+          <div className="status-indicator">
+            {autoGuardado ? (
+              <span className="flex items-center text-green-600 text-sm">
+                <span className="dot-green mr-2">●</span> Cambios guardados
+              </span>
+            ) : (
+              <span className="flex items-center text-gray-500 text-sm">
+                <span className="dot-gray mr-2">●</span> Modo manual
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="action-group">
+          {/* Botón de Guardado Manual (Solo se resalta si el autoguardado está OFF) */}
+          <button 
+            onClick={guardarProgresoManual}
+            className={`btn-manual-save ${!autoGuardado ? 'active' : 'disabled'}`}
+            title="Guardar progreso actual"
+          >
+            💾 Guardar Borrador
+          </button>
+        </div>
+      </div>
+      
       <div className="nuevo-main">
         {/* SIDEBAR IZQUIERDO */}
         <div className="componentes-menu">
@@ -545,247 +598,245 @@ const estaDesbloqueado = (comp) => {
                         
                     </div> {/* Fin del contenedor relativo para los globos */}
 
-          {/* RESUMEN DEL ARMADO Y BOTÓN DE GUARDAR */}   
-          <div className="pc-resumen resumen-pc">
-            <h2>Resumen del armado</h2>
-              {modo === "continuar" && (
-                <p style={{ color: "#3b82f6", fontSize: "0.8rem", marginBottom: "10px" }}>
-                  ℹ️ Estas viendo tu progreso guardado localmente.
-                </p>
-              )}
-            <ul>
-              {Object.entries(pcActual).map(([key, modelo]) => (
-                <li key={key} 
-                className={`resumen-item ${esComponenteIncompatible(modelo) ? "incompatible" : ""}`}>
-                  <strong>{key}:</strong> 
-                  {modelo ? `${modelo.nombre} ($${modelo.precio})` : "Sin seleccionar"}
+                    {/* RESUMEN DEL ARMADO Y BOTÓN DE GUARDAR */}   
+                    <div className="pc-resumen resumen-pc">
+                      <h2>Resumen del armado</h2>
+                        {modo === "continuar" && (
+                          <p style={{ color: "#3b82f6", fontSize: "0.8rem", marginBottom: "10px" }}>
+                            ℹ️ Estas viendo tu progreso guardado localmente.
+                          </p>
+                        )}
+                      <ul>
+                        {Object.entries(pcActual).map(([key, modelo]) => (
+                          <li key={key} 
+                          className={`resumen-item ${esComponenteIncompatible(modelo) ? "incompatible" : ""}`}>
+                            <strong>{key}:</strong> 
+                            {modelo ? `${modelo.nombre} ($${modelo.precio})` : "Sin seleccionar"}
 
-                  {/* 🔥 Indicador visual */}
-                  {esComponenteIncompatible(modelo) && (
-                    <span style={{ color: "red", marginLeft: "10px" }}>
-                      ⚠ Incompatible
-                    </span>
-                  )}
-                </li>
-              ))}
-            </ul>
-            {/* Barra de progreso de consumo energético */}
-            <div className="energy-bar-overlay">
-              <div className="energy-text">
-                <span>Consumo Energético: {Math.round(wattsConMargen)}W / {fuente?.capacidadWatts || 0}W (fuente de poder)</span>
-              </div>
-              <div className="energy-progress-bg">
-                <div 
-                  className="energy-progress-fill"
-                  style={{ 
-                    width: `${Math.min((wattsConMargen / (fuente?.capacidadWatts || 1)) * 100, 100)}%`,
-                    backgroundColor: energiaValida ? '#10b981' : '#ef4444'
-                  }}
-                ></div>
-              </div>
-            </div>
-            {/* Detalles adicionales de consumo y validación energética */}
-            <div className="resumen-extra">
-                <p>Total: <strong>${total}</strong></p>
-                <p>Consumo Real: <strong>{watts}W</strong></p>
-                
-                {/* Mostramos el consumo recomendado con el margen del 20% */}
-                <p>Consumo Recomendado (+20%): <strong style={{ color: energiaValida ? "inherit" : "#dc2626" }}>
-                      {Math.round(watts * 1.2)}W
-                  </strong>
-                </p>
-              </div>
-
-              <div className="mensaje-energetico">
-                <p style={{ color: energiaValida ? "#059669" : "#dc2626", fontWeight: "bold", marginTop: "10px" }}>
-                  {energiaValida 
-                    ? "✔ Configuración Energética Segura" 
-                    : "⚠ Se recomienda una fuente más potente (Margen de seguridad insuficiente)"}
-                </p>
-              </div>
-
-            {/* Botón de Guardar */}
-              <button 
-                className="btn-guardar-final" 
-                onClick={handleGuardarArmado}
-                disabled={!puedeGuardar} // Deshabilitar si hay error de energía
-              >
-                {loading ? "Procesando..." : "Guardar Proyecto"}
-              </button>
-              {/* Mensajes de advertencia dinámicos */}
-              <div className="mensajes-validacion"> 
-                {!energiaValida && (
-                  <p className="error-text">⚠️ El consumo excede la capacidad de la fuente.</p>
-                )}
-                {incompatibilidades.length > 0 && (
-                  <p className="error-text">⚠️ Existen conflictos de compatibilidad sin resolver.</p>
-                )}
-              </div>
-          </div>
-        </div>
-
-        {/* INCOMPATIBILIDADES EN TIEMPO REAL */}
-        {incompatibilidades.length > 0 && (
-        <div className="alerta-error">
-          <h3>⚠️ Incompatibilidades detectadas:</h3>
-          
-          <div className="conflict-list">
-            {incompatibilidades.map((inc, index) => (
-              <div key={index} className="conflict-card">
-                <div className="conflict-header">
-                  <span className="comp-name">{inc.componenteA}</span>
-                  <span className="vs-icon">❌</span>
-                  <span className="comp-name">{inc.componenteB}</span>
-                </div>
-                <p className="conflict-reason">{inc.motivo}</p>
-              </div>
-            ))}
-          </div>
-
-          <button onClick={resolverIncompatibilidad} className="btn-corregir">
-            ✨ Corregir incompatibilidades
-          </button>
-        </div>
-      )}
-            
-
-        {/* PANEL DERECHO: CATÁLOGO */}
-        <div className="component-details catalogo-componentes">
-          {selectedComponent ? (
-            <>
-              <h3><strong>Catálogo de {selectedComponent}</strong></h3>
-              <div className="lista-modelos">
-                {loading ? <p>Cargando...</p> : 
-                  listaComponentes.map((comp) => (
-                    <div key={comp.componenteId} className={`card-componente ${
-                        pcActual[selectedComponent]?.componenteId === comp.componenteId 
-                          ? "seleccionado" 
-                          : ""
-                      }`}>
-                      {/* Cabecera de la tarjeta: Siempre visible */}
-                      <div className="card-header-simple">
-                        <h4>{comp.nombre}</h4>
-                        <button 
-                          className="btn-expandir" 
-                          onClick={() => setExpandidoId(expandidoId === comp.componenteId ? null : comp.componenteId)}
-                        >
-                          {expandidoId === comp.componenteId ? "− Ver menos" : "+ Detalles"}
-                        </button>
-                      </div>
-
-                      {/* Cuerpo de la tarjeta: Solo si está expandido */}
-                      {expandidoId === comp.componenteId && (
-                        <div className="card-expanded-content">
-                          <img 
-                            src={comp.imagenUrl} 
-                            alt={comp.nombre} 
-                            className="card-img-small clickable"
-                            onClick={() => setImagenSeleccionada(comp.imagenUrl)}
-                          />
-                          <div className="info-detallada">
-                            <p><strong>Marca:</strong> {comp.marca}</p>
-                            <p><strong>Modelo:</strong> {comp.modelo}</p>
-                            <p className="precio"><strong>Precio:</strong> ${comp.precio}</p>
-                            {renderWatts(comp)}
-                              <div className="acciones-botones">
-                                  {! pcActual[selectedComponent]? (
-                                    <button 
-                                      className="btn-agregar"
-                                      onClick={() => agregarComponente(comp)}
-                                    >
-                                      Seleccionar
-                                    </button>
-                                  ) : (
-                                    <button 
-                                      className="btn-quitar"
-                                      onClick={quitarComponente}
-                                    >
-                                      Quitar
-                                    </button>
-                                  )}
-                                </div>
-                          </div>
+                            {/* 🔥 Indicador visual */}
+                            {esComponenteIncompatible(modelo) && (
+                              <span style={{ color: "red", marginLeft: "10px" }}>
+                                ⚠ Incompatible
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                      {/* Barra de progreso de consumo energético */}
+                      <div className="energy-bar-overlay">
+                        <div className="energy-text">
+                          <span>Consumo Energético: {Math.round(wattsConMargen)}W / {fuente?.capacidadWatts || 0}W (fuente de poder)</span>
                         </div>
+                        <div className="energy-progress-bg">
+                          <div 
+                            className="energy-progress-fill"
+                            style={{ 
+                              width: `${Math.min((wattsConMargen / (fuente?.capacidadWatts || 1)) * 100, 100)}%`,
+                              backgroundColor: energiaValida ? '#10b981' : '#ef4444'
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                      {/* Detalles adicionales de consumo y validación energética */}
+                      <div className="resumen-extra">
+                          <p>Total: <strong>${total}</strong></p>
+                          <p>Consumo Real: <strong>{watts}W</strong></p>
+                          
+                          {/* Mostramos el consumo recomendado con el margen del 20% */}
+                          <p>Consumo Recomendado (+20%): <strong style={{ color: energiaValida ? "inherit" : "#dc2626" }}>
+                                {Math.round(watts * 1.2)}W
+                            </strong>
+                          </p>
+                        </div>
+
+                        <div className="mensaje-energetico">
+                          <p style={{ color: energiaValida ? "#059669" : "#dc2626", fontWeight: "bold", marginTop: "10px" }}>
+                            {energiaValida 
+                              ? "✔ Configuración Energética Segura" 
+                              : "⚠ Se recomienda una fuente más potente (Margen de seguridad insuficiente)"}
+                          </p>
+                        </div>
+
+                        {/* Botón de Guardar */}
+                          <button 
+                            className="btn-guardar-final" 
+                            onClick={handleGuardarArmado}
+                            disabled={!puedeGuardar} // Deshabilitar si hay error de energía
+                          >
+                            {loading ? "Procesando..." : "Guardar Proyecto"}
+                          </button>
+                          {/* Mensajes de advertencia dinámicos */}
+                          <div className="mensajes-validacion"> 
+                            {!energiaValida && (
+                              <p className="error-text">⚠️ El consumo excede la capacidad de la fuente.</p>
+                            )}
+                            {incompatibilidades.length > 0 && (
+                              <p className="error-text">⚠️ Existen conflictos de compatibilidad sin resolver.</p>
+                            )}
+                          </div>
+                      </div>
+                    </div>
+
+                    {/* INCOMPATIBILIDADES EN TIEMPO REAL */}
+                    {incompatibilidades.length > 0 && (
+                    <div className="alerta-error">
+                      <h3>⚠️ Incompatibilidades detectadas:</h3>
+                      
+                      <div className="conflict-list">
+                        {incompatibilidades.map((inc, index) => (
+                          <div key={index} className="conflict-card">
+                            <div className="conflict-header">
+                              <span className="comp-name">{inc.componenteA}</span>
+                              <span className="vs-icon">❌</span>
+                              <span className="comp-name">{inc.componenteB}</span>
+                            </div>
+                            <p className="conflict-reason">{inc.motivo}</p>
+                          </div>
+                        ))}
+                      </div>
+                      <button onClick={resolverIncompatibilidad} className="btn-corregir">
+                        ✨ Corregir incompatibilidades
+                      </button>
+                    </div>
+                  )}
+                        
+                  {/* PANEL DERECHO: CATÁLOGO */}
+                  <div className="component-details catalogo-componentes">
+                    {selectedComponent ? (
+                      <>
+                        <h3><strong>Catálogo de {selectedComponent}</strong></h3>
+                        <div className="lista-modelos">
+                          {loading ? <p>Cargando...</p> : 
+                            listaComponentes.map((comp) => (
+                              <div key={comp.componenteId} className={`card-componente ${
+                                  pcActual[selectedComponent]?.componenteId === comp.componenteId 
+                                    ? "seleccionado" 
+                                    : ""
+                                }`}>
+                                {/* Cabecera de la tarjeta: Siempre visible */}
+                                <div className="card-header-simple">
+                                  <h4>{comp.nombre}</h4>
+                                  <button 
+                                    className="btn-expandir" 
+                                    onClick={() => setExpandidoId(expandidoId === comp.componenteId ? null : comp.componenteId)}
+                                  >
+                                    {expandidoId === comp.componenteId ? "− Ver menos" : "+ Detalles"}
+                                  </button>
+                                </div>
+
+                                {/* Cuerpo de la tarjeta: Solo si está expandido */}
+                                {expandidoId === comp.componenteId && (
+                                  <div className="card-expanded-content">
+                                    <img 
+                                      src={comp.imagenUrl} 
+                                      alt={comp.nombre} 
+                                      className="card-img-small clickable"
+                                      onClick={() => setImagenSeleccionada(comp.imagenUrl)}
+                                    />
+                                    <div className="info-detallada">
+                                      <p><strong>Marca:</strong> {comp.marca}</p>
+                                      <p><strong>Modelo:</strong> {comp.modelo}</p>
+                                      <p className="precio"><strong>Precio:</strong> ${comp.precio}</p>
+                                      {renderWatts(comp)}
+                                        <div className="acciones-botones">
+                                            {! pcActual[selectedComponent]? (
+                                              <button 
+                                                className="btn-agregar"
+                                                onClick={() => agregarComponente(comp)}
+                                              >
+                                                Seleccionar
+                                              </button>
+                                            ) : (
+                                              <button 
+                                                className="btn-quitar"
+                                                onClick={quitarComponente}
+                                              >
+                                                Quitar
+                                              </button>
+                                            )}
+                                          </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          }
+                        </div>
+                      </>
+                    ) : <p>Selecciona una categoría a la izquierda</p>}
+                  </div>
+                </div>
+
+                {/* TUTORIAL INTERACTIVO: Solo se muestra si el usuario no lo ha cerrado previamente */}
+                {mostrarTutorial && (
+                <div className="tutorial-overlay">
+                  <div className="tutorial-box">
+                    <p> <h3> <strong> Tutorial introductorio del uso de esta ventana de Armado </strong></h3></p>
+                    <p>{pasos[pasoTutorial].texto}</p>
+
+                    <div className="tutorial-buttons">
+                      {/* Botón de Salto Global (Siempre visible) */}
+                      <button 
+                        className="btn-saltar" 
+                        onClick={finalizarTutorial}
+                        style={{ opacity: 0.7, fontSize: '0.8rem' }}
+                      >
+                        ✖ Saltar tutorial
+                      </button>
+                      {/* Botón de Anterior */}
+                      <button 
+                        onClick={() => setPasoTutorial(p => Math.max(p - 1, 0))}
+                        disabled={pasoTutorial === 0}
+                      >
+                        ⬅ Anterior
+                      </button>
+                        {/* Botón de Siguiente o Finalizar */}
+                      {pasoTutorial < pasos.length - 1 ? (
+                        <button onClick={() => setPasoTutorial(p => p + 1)}>
+                          Siguiente ➡
+                        </button>
+                    
+                      ) : (
+                        <button onClick={() => {
+                          finalizarTutorial(); // Guardamos la preferencia de no mostrar el tutorial de nuevo y cerramos el tutorial
+                        }}>
+                          ✅ Finalizar
+                        </button>
                       )}
                     </div>
-                  ))
-                }
+                  </div>
+                </div>
+              )} 
+
+              {/* MODAL DE IMAGEN DEL CARDVIEW PARA AMPLIARLA */}
+                {imagenSeleccionada && (
+                  <div 
+                    className="modal-overlay"
+                    onClick={() => setImagenSeleccionada(null)}
+                  >
+                    <div 
+                      className="modal-content"
+                      onClick={(e) => e.stopPropagation()} // 🔥 evita cerrar al hacer click dentro
+                    >
+                      <img 
+                        src={imagenSeleccionada} 
+                        alt="Vista ampliada" 
+                        className="modal-img"
+                      />
+
+                      <button 
+                        className="btn-cerrar-modal"
+                        onClick={() => setImagenSeleccionada(null)}
+                      >
+                        ✕
+                      </button>
+                      
+                    </div>
+                  </div>
+                )}
               </div>
-            </>
-          ) : <p>Selecciona una categoría a la izquierda</p>}
-        </div>
-      </div>
-
-      {/* TUTORIAL INTERACTIVO: Solo se muestra si el usuario no lo ha cerrado previamente */}
-      {mostrarTutorial && (
-      <div className="tutorial-overlay">
-        <div className="tutorial-box">
-          <p> <h3> <strong> Tutorial introductorio del uso de esta ventana de Armado </strong></h3></p>
-          <p>{pasos[pasoTutorial].texto}</p>
-
-          <div className="tutorial-buttons">
-            {/* Botón de Salto Global (Siempre visible) */}
-            <button 
-              className="btn-saltar" 
-              onClick={finalizarTutorial}
-              style={{ opacity: 0.7, fontSize: '0.8rem' }}
-            >
-              ✖ Saltar tutorial
-            </button>
-            {/* Botón de Anterior */}
-            <button 
-              onClick={() => setPasoTutorial(p => Math.max(p - 1, 0))}
-              disabled={pasoTutorial === 0}
-            >
-              ⬅ Anterior
-            </button>
-              {/* Botón de Siguiente o Finalizar */}
-            {pasoTutorial < pasos.length - 1 ? (
-              <button onClick={() => setPasoTutorial(p => p + 1)}>
-                Siguiente ➡
-              </button>
-          
-            ) : (
-              <button onClick={() => {
-                finalizarTutorial(); // Guardamos la preferencia de no mostrar el tutorial de nuevo y cerramos el tutorial
-              }}>
-                ✅ Finalizar
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    )} 
-
-      {/* MODAL DE IMAGEN DEL CARDVIEW PARA AMPLIARLA */}
-        {imagenSeleccionada && (
-          <div 
-            className="modal-overlay"
-            onClick={() => setImagenSeleccionada(null)}
-          >
-            <div 
-              className="modal-content"
-              onClick={(e) => e.stopPropagation()} // 🔥 evita cerrar al hacer click dentro
-            >
-              <img 
-                src={imagenSeleccionada} 
-                alt="Vista ampliada" 
-                className="modal-img"
-              />
-
-              <button 
-                className="btn-cerrar-modal"
-                onClick={() => setImagenSeleccionada(null)}
-              >
-                ✕
-              </button>
-              
-            </div>
-          </div>
-        )}
-       </div>
        
-  );
-
+      );
+      // --- FIN DEL COMPONENTE PRINCIPAL DE CONFIGURACIÓN DE ARMADO --- //
   
-}
+} // --- FIN DEL COMPONENTE --- //
