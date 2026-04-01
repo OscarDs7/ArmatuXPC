@@ -75,6 +75,32 @@ export default function ProyectosExistentes() {
     }
   };
 
+  // Función para eliminar un armado
+  const eliminarArmadoYActualizar = async (armadoId) => {
+    if (window.confirm("¿Estás seguro de que quieres eliminar este armado?")) {
+      try {
+        await eliminarArmado(armadoId);
+
+        // 1. Actualizamos el estado local PRIMERO para feedback instantáneo
+        setProyectos((prevProyectos) => prevProyectos.filter(proy => proy.armadoId !== armadoId));
+
+        // 2. Cerramos el modal si estaba abierto con ese proyecto
+        if (proyectoSeleccionado?.armadoId === armadoId) {
+          setProyectoSeleccionado(null);
+        }
+
+        // 3. Notificamos al usuario
+        alert("Armado eliminado exitosamente. ✅");
+        
+      } catch (err) {
+        // Si el error es el de JSON pero sabemos que el status fue 200/204, 
+        // podrías manejarlo aquí, aunque lo ideal es arreglar la API como puse arriba.
+        alert("Hubo un problema: " + err.message);
+      }
+    }
+  };
+
+
   // Función para cerrar el modal
   const cerrarModal = () => setProyectoSeleccionado(null);
 
@@ -129,10 +155,7 @@ export default function ProyectosExistentes() {
               {p.esPublicado ? "Quitar de Comunidad" : "Publicar en Comunidad"}
             </button>
 
-            <button className="btn-eliminar" onClick={() => eliminarArmado(p.armadoId).then(() => {
-              // Actualizamos la lista de proyectos después de eliminar
-              setProyectos(proyectos.filter(proy => proy.armadoId !== p.armadoId));
-            })}>
+            <button className="btn-eliminar" onClick={() => eliminarArmadoYActualizar(p.armadoId)}>
               Eliminar
             </button>
           </div>
