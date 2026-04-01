@@ -60,7 +60,7 @@ export default function DashBoardUser() {
           />
           <h1 className="text-5xl font-bold text-blue-800 text-center">ArmatuXPC</h1>
           <p className="mt-2 text-center italic font-semibold text-white">
-            Plataforma web para el correcto armado de computadoras.
+            Plataforma web para el correcto armado de computadoras de escritorio de manera personalizada.
           </p>
         </header>
         <div className="dash-header-spacer"></div>
@@ -99,10 +99,10 @@ export default function DashBoardUser() {
             }).catch((error) => console.error(error));
           }}
         >
-          Cerrar sesión
+          Cerrar sesión 🚪
         </button>
       </aside>
-
+      
       {menuOpen && <div className="dash-menu-overlay" onClick={() => setMenuOpen(false)} />}
 
       {/* CONTENIDO PRINCIPAL */}
