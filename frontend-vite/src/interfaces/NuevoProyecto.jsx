@@ -22,7 +22,8 @@ export default function NuevoProyecto() {
   const uidSession = localStorage.getItem("userUid");
   const nombreUsuario = localStorage.getItem("userName") || "Usuario Anónimo";
   const STORAGE_KEY = `pc_borrador_${uidSession}`; // Llave única por usuario para guardar el progreso del último proyecto en localStorage
-
+  // Estado de autoguardado que el usuario puede activar o desactivar según su preferencia (por defecto activado para no perder progreso)
+  const [autoGuardado, setAutoGuardado] = useState(true);
 
   // Guardaremos el ID del componente que está expandido
   const [expandidoId, setExpandidoId] = useState(null); 
@@ -228,13 +229,21 @@ const finalizarTutorial = () => {
   // 2. Efecto de Auto-guardado (Siempre activo)
   useEffect(() => {
     // Si todavía estamos cargando los datos iniciales, no guardamos nada (evita sobrescribir el progreso al cargar)
-    if (cargandoDatos || !uidSession) return;
+    if (cargandoDatos || !uidSession || !autoGuardado) return;
 
     // Si ya terminamos de cargar, entonces sí guardamos cada cambio automáticamente
     localStorage.setItem(STORAGE_KEY, JSON.stringify(pcActual));
-  }, [pcActual, cargandoDatos, uidSession]);
+    console.log("Progreso guardado automáticamente:", pcActual);
+  }, [pcActual, cargandoDatos, uidSession, autoGuardado]);
 
 // --- FIN DE LA LÓGICA DE PERSISTENCIA ---
+
+// -- Función de guardado manual -- //
+const guardarProgresoManual = () => {
+  if (!uidSession) return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pcActual));
+  alert("💾 Progreso guardado manualmente en este navegador.");
+};
 
 
 const componentes = [
@@ -445,6 +454,51 @@ const estaDesbloqueado = (comp) => {
         <h1>{modo === "continuar" ? "Continuar Proyecto" : "Crear Nuevo Proyecto"}</h1>
       </header>
 
+      {/* Diseño UI de Autoguardado y botón de Guardado manual */ }
+      <div className="project-controls-bar">
+        <div className="status-group">
+          {/* Switch de Autoguardado */}
+          <div className="flex items-center gap-2 mr-4">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                className="sr-only peer" 
+                checked={autoGuardado}
+                onChange={() => setAutoGuardado(!autoGuardado)}
+              />
+              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+            <span className="text-sm font-medium text-gray-700">
+              Autoguardado {autoGuardado ? "ON" : "OFF"}
+            </span>
+          </div>
+
+          {/* Indicador de Estado */}
+          <div className="status-indicator">
+            {autoGuardado ? (
+              <span className="flex items-center text-green-600 text-sm">
+                <span className="dot-green mr-2">●</span> Cambios guardados
+              </span>
+            ) : (
+              <span className="flex items-center text-gray-500 text-sm">
+                <span className="dot-gray mr-2">●</span> Modo manual
+              </span>
+            )}
+          </div>
+        </div>
+
+        <div className="action-group">
+          {/* Botón de Guardado Manual (Solo se resalta si el autoguardado está OFF) */}
+          <button 
+            onClick={guardarProgresoManual}
+            className={`btn-manual-save ${!autoGuardado ? 'active' : 'disabled'}`}
+            title="Guardar progreso actual"
+          >
+            💾 Guardar Borrador
+          </button>
+        </div>
+      </div>
+      
       <div className="nuevo-main">
         {/* SIDEBAR IZQUIERDO */}
         <div className="componentes-menu">
