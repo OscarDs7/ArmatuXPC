@@ -142,13 +142,25 @@ export const evaluarCompatibilidadTiempoReal = async (componenteIds) => {
 // Método para eliminar un armado por su ID
 export const eliminarArmado = async (armadoId) => {
   const response = await fetch(`${API_URL}/Armados/${armadoId}`, {
-    method: "DELETE",
-     
+    method: 'DELETE',
   });
+
   if (!response.ok) {
-    throw new Error("Error al eliminar armado");
+    throw new Error("No se pudo eliminar el proyecto");
   }
-  return response.json();
+
+  // 💡 LA CLAVE: Si el status es 204 (No Content), no llames a .json()
+  if (response.status === 204) {
+    return true; 
+  }
+
+  // Para otros casos, verifica si hay contenido antes de parsear
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return await response.json();
+  }
+
+  return true;
 };
 
 // Método para publicar un armado enviando el nombre del autor
