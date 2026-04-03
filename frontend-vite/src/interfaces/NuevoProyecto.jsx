@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../utilidades/firebase";
 import gabinete from "../assets/gabinete.png"; 
 import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal } from "../services/api"; 
 import "../estilos/NuevoProyecto.css";
@@ -18,6 +20,8 @@ export default function NuevoProyecto() {
   const [pasoTutorial, setPasoTutorial] = useState(0);
   const [mostrarTutorial, setMostrarTutorial] = useState(true);
   const [cargandoDatos, setCargandoDatos] = useState(true);
+  const [tokens, setTokens] = useState(0); // ✨ Nuevo estado para tokens
+
   // Estados para la persistencia del proyecto en localStorage: UID de sesión, nombre del usuario y clave de almacenamiento específica para este proyecto
   const uidSession = localStorage.getItem("userUid");
   const nombreUsuario = localStorage.getItem("userName") || "Usuario Anónimo";
@@ -245,6 +249,19 @@ const guardarProgresoManual = () => {
   alert("💾 Progreso guardado manualmente en este navegador.");
 };
 
+  // ESCUCHA DE TOKENS EN TIEMPO REAL
+  useEffect(() => {
+    if (!uidSession) return;
+
+    // Creamos una conexión en tiempo real con el documento del usuario
+    const unsub = onSnapshot(doc(db, "Usuario", uidSession), (docSnap) => {
+      if (docSnap.exists()) {
+        setTokens(docSnap.data().TokensDisponibles || 0);
+      }
+    });
+
+    return () => unsub(); // Limpiamos la conexión al salir del componente
+  }, [uidSession]);
 
 const componentes = [
   "Gabinete",
@@ -339,6 +356,12 @@ const estaDesbloqueado = (comp) => {
     // 2. Validación de sesión activa (necesitamos el UID para asociar el armado al usuario)
     if (!uidSession) {
       alert("No se detectó sesión activa.");
+      return;
+    }
+
+    // 3. Validación de tokens disponibles (si el usuario no tiene tokens, no puede guardar un nuevo proyecto)
+    if (tokens === 0) {
+      alert("No tienes tokens disponibles para guardar un nuevo proyecto. Elimina uno de tus proyectos existentes para liberar espacio o adquiere más tokens. ¡Gracias por ser parte de ArmatuXPC! 🚀");
       return;
     }
 
@@ -553,6 +576,13 @@ const estaDesbloqueado = (comp) => {
 
         {/* VISTA CENTRAL */}
         <div className="central-view">
+            {/* Mostrar mensaje cuando ya no quedan tokens */}
+            {tokens === 0 && (
+               <div className="aviso-tokens">
+                  ⚠️ Has alcanzado el límite de armados. Elimina uno para liberar espacio o compra más tokens para guardar más proyectos en tu cuenta. ¡Gracias por ser parte de ArmatuXPC! 🚀
+                </div>
+              )}
+
           <div className="gabinete-view vista-gabinete">
             {/* El contenedor principal debe ser relativo */}
               <div className="gabinete-container-relativo">
@@ -665,6 +695,7 @@ const estaDesbloqueado = (comp) => {
                           >
                             {loading ? "Procesando..." : "Guardar Proyecto"}
                           </button>
+                          
                           {/* Mensajes de advertencia dinámicos */}
                           <div className="mensajes-validacion"> 
                             {!energiaValida && (
