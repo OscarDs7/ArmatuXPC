@@ -582,7 +582,7 @@ const estaDesbloqueado = (comp) => {
                 <div className="aviso-tokens-card">
                   <div className="aviso-header">
                     <span className="aviso-icon">⚠️</span>
-                    <h3>Límite de Armados Alcanzado</h3>
+                    <h3><strong>Límite de Armados Alcanzado</strong></h3>
                   </div>
                   
                   <p className="aviso-texto">
