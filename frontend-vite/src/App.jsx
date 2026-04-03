@@ -19,6 +19,7 @@ import PruebaThree from "./interfaces/PruebaThree";
 import NuevoProyecto from "./interfaces/NuevoProyecto";
 import ProyectosExistentes from "./interfaces/ProyectosExistentes";
 import Comunidad from "./interfaces/Comunidad";
+import ComprarTokens from "./interfaces/ComprarTokens";
 import Memorias from "./interfaces/Memorias";
 import Placa from "./interfaces/Placa";
 import Rams from "./interfaces/Rams";
@@ -103,6 +104,12 @@ function App() {
           <Comunidad />
           </ProtectedRoute>
         } 
+      />
+        <Route path="/comprar-tokens" element={
+        <ProtectedRoute>
+          <ComprarTokens />
+          </ProtectedRoute>
+        }
       />
         <Route
         path="/monitoreo-logistica-admin"

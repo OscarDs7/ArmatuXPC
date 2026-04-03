@@ -3,11 +3,24 @@ using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
 using System.Text.Json.Serialization;
 using ArmatuXPC.Backend.Services.Armados;
+using Google.Cloud.Firestore;
 
 
 Env.Load(); // Cargar variables de entorno desde el archivo .env
 
 var builder = WebApplication.CreateBuilder(args); // Crear el constructor de la aplicación
+
+// CONFIGURACIÓN DE FIREBASE //
+
+//1. La variable de entorno (para que Google encuentre tu JSON)
+string rutaFirebase = Path.Combine(Directory.GetCurrentDirectory(), "firebase-adminsdk.json");
+Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", rutaFirebase);
+
+// OPCIONAL: Registrar FirestoreDb como un Singleton para inyectarlo en tus Controllers
+// 2. Registro del servicio (Para poder usarlo en los Controllers)
+builder.Services.AddSingleton(s => {
+    return FirestoreDb.Create("armatuxpc");
+});
 
 // Controllers
 builder.Services.AddControllers()

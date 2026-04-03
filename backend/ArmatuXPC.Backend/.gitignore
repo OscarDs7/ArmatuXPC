@@ -5,3 +5,8 @@ appsettings.Development.json
 # .NET build artifacts
 **/bin/
 **/obj/
+# Archivos json de firebase
+firebase-config.json
+firebase-service-account.json
+firebase-adminsdk.json
+**/obj/

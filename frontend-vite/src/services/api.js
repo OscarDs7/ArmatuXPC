@@ -217,3 +217,18 @@ export const despublicarArmado = async (armadoId) => {
 
   return response.json();
 };
+
+//  Método para recargar tokens (ejemplo: comprar más tokens)
+export const comprarTokens = async (uid, cantidad) => {
+  const response = await fetch(`${API_URL}/usuarios/recargar-tokens`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ 
+      usuarioUid: uid, 
+      cantidadComprada: cantidad 
+      // paymentId: "id_de_stripe_aqui" (Próximamente)
+    }),
+  });
+  if (!response.ok) throw new Error("No se pudo procesar la compra");
+  return await response.json();
+};

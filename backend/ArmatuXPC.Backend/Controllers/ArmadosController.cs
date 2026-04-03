@@ -4,6 +4,7 @@ using ArmatuXPC.Backend.Data;
 using ArmatuXPC.Backend.Models;
 using ArmatuXPC.Backend.DTOs;
 using ArmatuXPC.Backend.Services.Armados;
+using Google.Cloud.Firestore;
 
 namespace ArmatuXPC.Backend.Controllers
 {
@@ -13,6 +14,16 @@ namespace ArmatuXPC.Backend.Controllers
     {
         private readonly AppDbContext _context;
         private readonly IArmadoEnergiaService _armadoEnergiaService;
+        private readonly FirestoreDb _firestoreDb;
+
+        public ArmadosController(
+            AppDbContext context, 
+            IArmadoEnergiaService armadoEnergiaService,
+            FirestoreDb firestoreDb)
+        {
+            _context = context;
+            _armadoEnergiaService = armadoEnergiaService;
+            _firestoreDb = firestoreDb;
 
         public ArmadosController(
             AppDbContext context, 
@@ -167,12 +178,31 @@ namespace ArmatuXPC.Backend.Controllers
         {
             try
             {
+                // 1️⃣ VALIDACIÓN DE TOKENS EN FIRESTORE
+                // Buscamos el documento del usuario usando el UsuarioId (UID de Firebase)
+                DocumentReference userRef = _firestoreDb.Collection("Usuario").Document(armadoDto.UsuarioId);
+                DocumentSnapshot snapshot = await userRef.GetSnapshotAsync();
+
+                if (!snapshot.Exists)
+                {
+                    return NotFound(new { mensaje = "Usuario no encontrado en el sistema de tokens." });
+                }
+
+                // Obtenemos los tokens actuales
+                int tokensDisponibles = snapshot.GetValue<int>("TokensDisponibles");
+
+                if (tokensDisponibles <= 0)
+                {
+                    return BadRequest(new { mensaje = "No tienes tokens disponibles para guardar este armado." });
+                }
+
+                // 2️⃣ PROCESO DE GUARDADO EN POSTGRESQL
                 var nuevoArmado = new Armado
                 {
                     UsuarioId = armadoDto.UsuarioId,
                     NombreArmado = armadoDto.NombreArmado,
                     AutorNombre = armadoDto.AutorNombre,
-                    FechaCreacion = DateTime.UtcNow // Mantén UtcNow para Postgres
+                    FechaCreacion = DateTime.UtcNow 
                 };
 
                 foreach (var item in armadoDto.Componentes)
@@ -185,6 +215,18 @@ namespace ArmatuXPC.Backend.Controllers
                 }
 
                 _context.Armados.Add(nuevoArmado);
+                await _context.SaveChangesAsync(); // Guardamos en Postgres/SQL Server
+
+                // 3️⃣ DESCUENTO DEL TOKEN EN FIRESTORE
+                // Solo llegamos aquí si el guardado en SQL fue exitoso.
+                // Si SaveChangesAsync falla, el código salta al catch y no se descuenta el token.
+                await userRef.UpdateAsync("TokensDisponibles", tokensDisponibles - 1);
+
+                return Ok(new { 
+                    nuevoArmado.ArmadoId, 
+                    nuevoArmado.NombreArmado, 
+                    tokensRestantes = tokensDisponibles - 1,
+                    mensaje = "Armado guardado y token descontado con éxito 🎉" 
                 await _context.SaveChangesAsync();
 
                 // Devolvemos el ID y el nombre para confirmar éxito al frontend
@@ -198,10 +240,9 @@ namespace ArmatuXPC.Backend.Controllers
             {
                 var errorReal = ex.InnerException?.Message ?? ex.Message;
                 Console.WriteLine($"[ERROR CRÍTICO]: {errorReal}");
-                return StatusCode(500, new { detalle = errorReal });
+                return StatusCode(500, new { mensaje = "Error al procesar el armado", detalle = errorReal });
             }
         }
-
 
         // ===============================
         // PUT
@@ -253,19 +294,35 @@ namespace ArmatuXPC.Backend.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteArmado(int id)
         {
+            // 1. Buscamos el armado antes de borrarlo para saber de quién es y así poder devolver el token al usuario correcto
             var armado = await _context.Armados
                 .Include(a => a.Componentes)
                 .FirstOrDefaultAsync(a => a.ArmadoId == id);
 
             if (armado == null)
                 return NotFound();
+            
+            string usuarioId = armado.UsuarioId;
 
-            _context.ArmadoComponentes.RemoveRange(armado.Componentes);
-            _context.Armados.Remove(armado);
+            try 
+                {
+                    // 2. Borramos de PostgreSQL
+                    _context.ArmadoComponentes.RemoveRange(armado.Componentes);
+                    _context.Armados.Remove(armado);
+                    await _context.SaveChangesAsync();
 
-            await _context.SaveChangesAsync();
+                    // 3. DEVOLVEMOS EL TOKEN EN FIRESTORE
+                    DocumentReference userRef = _firestoreDb.Collection("Usuario").Document(usuarioId);
+                    
+                    // Usamos FieldValue.Increment(1) para que sea una operación atómica y segura
+                    await userRef.UpdateAsync("TokensDisponibles", FieldValue.Increment(1));
 
-            return NoContent();
+                    return Ok(new { mensaje = "Armado eliminado y token devuelto con éxito." });
+                }
+                catch (Exception ex)
+                {
+                    return StatusCode(500, new { mensaje = "Error al eliminar", detalle = ex.Message });
+                }
         }
 
         //  ================================

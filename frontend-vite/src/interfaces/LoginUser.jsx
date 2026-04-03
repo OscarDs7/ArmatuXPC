@@ -4,7 +4,7 @@ import {
   setDoc,
   doc
 } from "firebase/firestore";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail} from "firebase/auth";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile} from "firebase/auth";
 import { auth, db } from "../utilidades/firebase";
 import fondoProyecto from "../assets/fondo1.jpg"; // imagen de fondo del proyecto
 import BackButton from "../utilidades/BackButton"; // Botón para regresar al menú de roles
@@ -177,9 +177,14 @@ const isRegistroValido =
 
     // 1️⃣ Crear usuario en Firebase Auth
     const cred = await createUserWithEmailAndPassword(auth, cleanEmail, password);
-    const uid = cred.user.uid;
+    const uid = cred.user.uid; // Obtenemos el UID del usuario recién creado
 
-    // 2️⃣ Guardar datos del usuario en Firestore
+    // 2️⃣ Actualizar el perfil en Auth inmediatamente
+    await updateProfile(cred.user, {
+      displayName: nombre // Esto nos permitirá mostrar el nombre en el dashboard sin necesidad de recargar datos de Firestore
+    });
+
+    // 3️⃣ Guardar datos del usuario en Firestore
     await setDoc(doc(db, "Usuario", uid), {  // usamos el UID como ID del documento para fácil acceso
       UID: uid,
       Nombre: nombre,
@@ -192,7 +197,7 @@ const isRegistroValido =
     localStorage.setItem("userUid", uid);
     localStorage.setItem("userName", nombre);
 
-    alert("Registro exitoso 🎉 Ya puedes iniciar sesión.");
+    alert(`Bienvenido ${nombre} ✨ Ya puedes iniciar sesión.`);
     setModoRegistro(false);
 
   } catch (err) {

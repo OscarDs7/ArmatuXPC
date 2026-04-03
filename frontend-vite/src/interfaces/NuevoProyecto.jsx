@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../utilidades/firebase";
 import gabinete from "../assets/gabinete.png"; 
 import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal } from "../services/api"; 
 import "../estilos/NuevoProyecto.css";
@@ -18,6 +20,8 @@ export default function NuevoProyecto() {
   const [pasoTutorial, setPasoTutorial] = useState(0);
   const [mostrarTutorial, setMostrarTutorial] = useState(true);
   const [cargandoDatos, setCargandoDatos] = useState(true);
+  const [tokens, setTokens] = useState(0); // ✨ Nuevo estado para tokens
+
   // Estados para la persistencia del proyecto en localStorage: UID de sesión, nombre del usuario y clave de almacenamiento específica para este proyecto
   const uidSession = localStorage.getItem("userUid");
   const nombreUsuario = localStorage.getItem("userName") || "Usuario Anónimo";
@@ -64,7 +68,7 @@ export default function NuevoProyecto() {
     texto: "Aquí se mostrará una vista general de tu PC, que irá cambiando según lo que selecciones"
   },
   {
-    selector: ".catalogo-componentes",
+    selector: ".component-details",
     texto: "En este panel derecho verás los modelos disponibles para el componente seleccionado"
   },
   {
@@ -245,6 +249,19 @@ const guardarProgresoManual = () => {
   alert("💾 Progreso guardado manualmente en este navegador.");
 };
 
+  // ESCUCHA DE TOKENS EN TIEMPO REAL
+  useEffect(() => {
+    if (!uidSession) return;
+
+    // Creamos una conexión en tiempo real con el documento del usuario
+    const unsub = onSnapshot(doc(db, "Usuario", uidSession), (docSnap) => {
+      if (docSnap.exists()) {
+        setTokens(docSnap.data().TokensDisponibles || 0);
+      }
+    });
+
+    return () => unsub(); // Limpiamos la conexión al salir del componente
+  }, [uidSession]);
 
 const componentes = [
   "Gabinete",
@@ -339,6 +356,12 @@ const estaDesbloqueado = (comp) => {
     // 2. Validación de sesión activa (necesitamos el UID para asociar el armado al usuario)
     if (!uidSession) {
       alert("No se detectó sesión activa.");
+      return;
+    }
+
+    // 3. Validación de tokens disponibles (si el usuario no tiene tokens, no puede guardar un nuevo proyecto)
+    if (tokens === 0) {
+      alert("No tienes tokens disponibles para guardar un nuevo proyecto. Elimina uno de tus proyectos existentes para liberar espacio o adquiere más tokens. ¡Gracias por ser parte de ArmatuXPC! 🚀");
       return;
     }
 
@@ -500,7 +523,7 @@ const estaDesbloqueado = (comp) => {
       
       <div className="nuevo-main">
         {/* SIDEBAR IZQUIERDO */}
-        <div className="componentes-menu">
+        <div className="componentes-menu bg-amber-200 p-4 rounded-lg">
           <div className="bg-blue-200 p-3 rounded-lg mt-3 modo-panel">
             <span>
               {modoGuia ? "🧭 Modo guía" : "🎮 Modo libre"}
@@ -553,6 +576,41 @@ const estaDesbloqueado = (comp) => {
 
         {/* VISTA CENTRAL */}
         <div className="central-view">
+           {/* Mostrar mensaje cuando ya no quedan tokens */}
+            {tokens === 0 && (
+              <div className="aviso-tokens-container">
+                <div className="aviso-tokens-card">
+                  <div className="aviso-header">
+                    <span className="aviso-icon">⚠️</span>
+                    <h3><strong>Límite de Armados Alcanzado</strong></h3>
+                  </div>
+                  
+                  <p className="aviso-texto">
+                    Has alcanzado el límite de armados (3/3). Para guardar este nuevo proyecto, 
+                    necesitas liberar un espacio de armado o ampliar tu capacidad comprando más tokens. 
+                    <br />
+                    <strong> ¡Gracias por ser parte de ArmatuXPC! 🚀</strong>
+                  </p>
+
+                  <div className="aviso-acciones">
+                    <button 
+                      className="btn-accion-tokens comprar" 
+                      onClick={() => navigate("/comprar-tokens")}
+                    >
+                      💳 Comprar más tokens
+                    </button>
+                    
+                    <button 
+                      className="btn-accion-tokens gestionar" 
+                      onClick={() => navigate("/mis-armados")}
+                    >
+                      🗑️ Gestionar mis armados
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
           <div className="gabinete-view vista-gabinete">
             {/* El contenedor principal debe ser relativo */}
               <div className="gabinete-container-relativo">
@@ -661,10 +719,11 @@ const estaDesbloqueado = (comp) => {
                           <button 
                             className="btn-guardar-final" 
                             onClick={handleGuardarArmado}
-                            disabled={!puedeGuardar} // Deshabilitar si hay error de energía
+                            disabled={!puedeGuardar || tokens == 0} // Deshabilitar si hay error de energía
                           >
                             {loading ? "Procesando..." : "Guardar Proyecto"}
                           </button>
+                          
                           {/* Mensajes de advertencia dinámicos */}
                           <div className="mensajes-validacion"> 
                             {!energiaValida && (
