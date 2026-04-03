@@ -96,7 +96,34 @@
   background: #ccc;
   border-radius: 10px;
 }
+.central-view::-webkit-scrollbar-thumb:hover,
+.component-details::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
 
+.componentes-menu::-webkit-scrollbar {
+  width: 6px;
+}
+.componentes-menu::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+.componentes-menu::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+.catalogo-componentes::-webkit-scrollbar {
+  width: 6px;
+}
+.catalogo-componentes::-webkit-scrollbar-thumb {
+  background: #ccc;
+  border-radius: 10px;
+}
+.catalogo-componentes::-webkit-scrollbar-thumb:hover {
+  background: #999;
+}
+
+/* Estilos específicos para el gabinete y el resumen */
 .gabinete-view {
   display: flex;
   justify-content: center;
