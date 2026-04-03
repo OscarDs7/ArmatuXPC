@@ -321,7 +321,7 @@
 }
 
 .token-counter-badge {
-  background: #0a5bad;
+  background: linear-gradient(135deg, #1e5799, #2989d8);
   color: white;
   padding: 10px 20px;
   border-radius: 50px;
@@ -330,6 +330,13 @@
   gap: 12px;
   border: 2px solid #3498db;
   box-shadow: 0 4px 15px rgba(89, 91, 166, 0.2);
+}
+
+/* Clase cuando el conteo llega al tope */
+.token-counter-badge.limite-alcanzado {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  border-color: #ff9f94;
+  animation: pulse 2s infinite; /* Un pulso suave para llamar la atención */
 }
 
 .token-icon {
@@ -354,4 +361,10 @@
   margin-bottom: 1.5rem;
   text-align: center;
   border: 1px solid #ffeeba;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
 }
