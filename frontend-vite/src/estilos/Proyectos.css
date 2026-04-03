@@ -311,3 +311,47 @@
   font-size: 0.9rem;
   max-width: 250px;
 }
+
+/* --- Estilos para el contador de tokens --- */
+.header-proyectos {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.token-counter-badge {
+  background: #0a5bad;
+  color: white;
+  padding: 10px 20px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 2px solid #3498db;
+  box-shadow: 0 4px 15px rgba(89, 91, 166, 0.2);
+}
+
+.token-icon {
+  font-size: 1.5rem;
+}
+
+.token-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.token-count {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.aviso-tokens {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  border: 1px solid #ffeeba;
+}
