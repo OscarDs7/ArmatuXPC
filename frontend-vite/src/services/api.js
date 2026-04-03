@@ -220,7 +220,7 @@ export const despublicarArmado = async (armadoId) => {
 
 //  Método para recargar tokens (ejemplo: comprar más tokens)
 export const comprarTokens = async (uid, cantidad) => {
-  const response = await fetch(`${API_URL}/api/usuarios/recargar-tokens`, {
+  const response = await fetch(`${API_URL}/usuarios/recargar-tokens`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ 
