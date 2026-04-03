@@ -576,12 +576,40 @@ const estaDesbloqueado = (comp) => {
 
         {/* VISTA CENTRAL */}
         <div className="central-view">
-            {/* Mostrar mensaje cuando ya no quedan tokens */}
+           {/* Mostrar mensaje cuando ya no quedan tokens */}
             {tokens === 0 && (
-               <div className="aviso-tokens">
-                  ⚠️ Has alcanzado el límite de armados. Elimina uno para liberar espacio o compra más tokens para guardar más proyectos en tu cuenta. ¡Gracias por ser parte de ArmatuXPC! 🚀
+              <div className="aviso-tokens-container">
+                <div className="aviso-tokens-card">
+                  <div className="aviso-header">
+                    <span className="aviso-icon">⚠️</span>
+                    <h3>Límite de Armados Alcanzado</h3>
+                  </div>
+                  
+                  <p className="aviso-texto">
+                    Has alcanzado el límite de armados (3/3). Para guardar este nuevo proyecto, 
+                    necesitas liberar un espacio de armado o ampliar tu capacidad comprando más tokens. 
+                    <br />
+                    <strong> ¡Gracias por ser parte de ArmatuXPC! 🚀</strong>
+                  </p>
+
+                  <div className="aviso-acciones">
+                    <button 
+                      className="btn-accion-tokens comprar" 
+                      onClick={() => navigate("/comprar-tokens")}
+                    >
+                      💳 Comprar más tokens
+                    </button>
+                    
+                    <button 
+                      className="btn-accion-tokens gestionar" 
+                      onClick={() => navigate("/mis-armados")}
+                    >
+                      🗑️ Gestionar mis armados
+                    </button>
+                  </div>
                 </div>
-              )}
+              </div>
+            )}
 
           <div className="gabinete-view vista-gabinete">
             {/* El contenedor principal debe ser relativo */}
@@ -691,7 +719,7 @@ const estaDesbloqueado = (comp) => {
                           <button 
                             className="btn-guardar-final" 
                             onClick={handleGuardarArmado}
-                            disabled={!puedeGuardar} // Deshabilitar si hay error de energía
+                            disabled={!puedeGuardar || tokens == 0} // Deshabilitar si hay error de energía
                           >
                             {loading ? "Procesando..." : "Guardar Proyecto"}
                           </button>
