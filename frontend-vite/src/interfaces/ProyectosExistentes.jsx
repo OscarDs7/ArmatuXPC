@@ -23,6 +23,11 @@ export default function ProyectosExistentes() {
   
   const uid = localStorage.getItem("userUid");
 
+  // Cálculo de capacidad total (proyectos ocupados + tokens disponibles)
+  const proyectosOcupados = proyectos.length;
+  const tokensRestantes = tokens; // El estado que traemos de Firestore
+  const capacidadTotal = proyectosOcupados + tokensRestantes;
+
 
   // Función para cargar los proyectos del usuario al montar el componente y comprobar si hay un proyecto previamente publicado para auto-seleccionarlo
   useEffect(() => {
@@ -133,14 +138,22 @@ export default function ProyectosExistentes() {
       <button className="btn-volver" onClick={() => navigate("/dashboard-user")}>← Volver</button>
 
       <h2 className="title">Mis PCs Armadas 🖥️</h2>
+
       {/* ✨ CONTADOR DE TOKENS VISUAL */}
-              <div className="token-counter-badge">
-                <span className="token-icon">🪙</span>
-                <div className="token-info">
-                  <span className="token-count">{tokens} / 3</span>
-                  <small> Espacios de guardado</small>
-                </div>
-              </div>
+      <div className={`token-counter-badge ${tokens === 0 ? 'limite-alcanzado' : ''}`}>
+        <span className="token-icon">🪙</span>
+        <div className="token-info">
+          <span className="token-count">
+            {proyectosOcupados} / {capacidadTotal}
+          </span>
+          <small>
+            {tokens === 0 
+              ? "¡Capacidad máxima alcanzada!" 
+              : `Tienes ${tokens} ${tokens === 1 ? 'espacio libre' : 'espacios libres'}`}
+          </small>
+        </div>
+      </div>
+      <br />
 
       {/* Mostrar mensaje cuando ya no quedan tokens */}
       {tokens === 0 && (
