@@ -1,11 +1,18 @@
+// Importamos React y hooks necesarios
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+// Importamos funciones de la API para manejar los armados
 import { obtenerMisArmados, eliminarArmado, publicarArmado, despublicarArmado } from "../services/api";
+// Importamos librerías para el contador de tokens directo de Firestore
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../utilidades/firebase";
+// Importamos estilos específicos para esta sección
 import "../estilos/Proyectos.css";
 
 
 export default function ProyectosExistentes() {
   const [proyectos, setProyectos] = useState([]);
+  const [tokens, setTokens] = useState(0); // ✨ Nuevo estado para tokens
   // 💡 Nuevo estado para controlar qué proyecto se ve en el modal
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
   const navigate = useNavigate();
@@ -15,6 +22,7 @@ export default function ProyectosExistentes() {
   const nombreUsuario = localStorage.getItem("userName") || "Usuario de ArmatuXPC";
   
   const uid = localStorage.getItem("userUid");
+
 
   // Función para cargar los proyectos del usuario al montar el componente y comprobar si hay un proyecto previamente publicado para auto-seleccionarlo
   useEffect(() => {
@@ -38,6 +46,21 @@ export default function ProyectosExistentes() {
       .finally(() => setLoading(false));
   }
 }, [uid]);
+
+  // ESCUCHA DE TOKENS EN TIEMPO REAL
+  useEffect(() => {
+    if (!uid) return;
+
+    // Creamos una conexión en tiempo real con el documento del usuario
+    const unsub = onSnapshot(doc(db, "Usuario", uid), (docSnap) => {
+      if (docSnap.exists()) {
+        setTokens(docSnap.data().TokensDisponibles || 0);
+      }
+    });
+
+    return () => unsub(); // Limpiamos la conexión al salir del componente
+  }, [uid]);
+
 
   // --- NUEVA LÓGICA DE PUBLICACIÓN ---
   const handleTogglePublicar = async (p) => {
@@ -110,7 +133,23 @@ export default function ProyectosExistentes() {
       <button className="btn-volver" onClick={() => navigate("/dashboard-user")}>← Volver</button>
 
       <h2 className="title">Mis PCs Armadas 🖥️</h2>
+      {/* ✨ CONTADOR DE TOKENS VISUAL */}
+              <div className="token-counter-badge">
+                <span className="token-icon">🪙</span>
+                <div className="token-info">
+                  <span className="token-count">{tokens} / 3</span>
+                  <small> Espacios de guardado</small>
+                </div>
+              </div>
 
+      {/* Mostrar mensaje cuando ya no quedan tokens */}
+      {tokens === 0 && (
+        <div className="aviso-tokens">
+          ⚠️ Has alcanzado el límite de armados. Elimina uno para liberar espacio o compra más tokens para guardar más proyectos en tu cuenta. ¡Gracias por ser parte de ArmatuXPC! 🚀
+        </div>
+      )}
+
+      {/* CARGANDO PROYECTOS DESDE BASE DE DATOS */}
       {loading ? (
         <div className="loader">Cargando tus proyectos...</div>
       ) : (
