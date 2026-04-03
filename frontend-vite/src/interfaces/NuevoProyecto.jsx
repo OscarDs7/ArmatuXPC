@@ -760,7 +760,7 @@ const estaDesbloqueado = (comp) => {
                   )}
                         
                   {/* PANEL DERECHO: CATÁLOGO */}
-                  <div className="component-details">
+                  <div className="component-details catalogo-componentes">
                     {selectedComponent ? (
                       <>
                         <h3><strong>Catálogo de {selectedComponent}</strong></h3>

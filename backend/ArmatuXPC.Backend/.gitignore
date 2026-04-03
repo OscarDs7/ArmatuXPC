@@ -9,3 +9,4 @@ appsettings.Development.json
 firebase-config.json
 firebase-service-account.json
 firebase-adminsdk.json
+**/obj/

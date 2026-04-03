@@ -24,6 +24,13 @@ namespace ArmatuXPC.Backend.Controllers
             _context = context;
             _armadoEnergiaService = armadoEnergiaService;
             _firestoreDb = firestoreDb;
+
+        public ArmadosController(
+            AppDbContext context, 
+            IArmadoEnergiaService armadoEnergiaService)
+        {
+            _context = context;
+            _armadoEnergiaService = armadoEnergiaService;
         }
 
         // ===============================
@@ -220,6 +227,13 @@ namespace ArmatuXPC.Backend.Controllers
                     nuevoArmado.NombreArmado, 
                     tokensRestantes = tokensDisponibles - 1,
                     mensaje = "Armado guardado y token descontado con éxito 🎉" 
+                await _context.SaveChangesAsync();
+
+                // Devolvemos el ID y el nombre para confirmar éxito al frontend
+                return Ok(new { 
+                    nuevoArmado.ArmadoId, 
+                    nuevoArmado.NombreArmado, 
+                    mensaje = "Armado guardado con éxito" 
                 });
             }
             catch (Exception ex)
