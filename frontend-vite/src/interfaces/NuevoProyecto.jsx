@@ -64,7 +64,7 @@ export default function NuevoProyecto() {
     texto: "Aquí se mostrará una vista general de tu PC, que irá cambiando según lo que selecciones"
   },
   {
-    selector: ".catalogo-componentes",
+    selector: ".component-details",
     texto: "En este panel derecho verás los modelos disponibles para el componente seleccionado"
   },
   {
@@ -500,7 +500,7 @@ const estaDesbloqueado = (comp) => {
       
       <div className="nuevo-main">
         {/* SIDEBAR IZQUIERDO */}
-        <div className="componentes-menu">
+        <div className="componentes-menu bg-amber-200 p-4 rounded-lg">
           <div className="bg-blue-200 p-3 rounded-lg mt-3 modo-panel">
             <span>
               {modoGuia ? "🧭 Modo guía" : "🎮 Modo libre"}
@@ -701,7 +701,7 @@ const estaDesbloqueado = (comp) => {
                   )}
                         
                   {/* PANEL DERECHO: CATÁLOGO */}
-                  <div className="component-details catalogo-componentes">
+                  <div className="component-details">
                     {selectedComponent ? (
                       <>
                         <h3><strong>Catálogo de {selectedComponent}</strong></h3>
