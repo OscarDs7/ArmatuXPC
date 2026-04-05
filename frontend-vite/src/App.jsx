@@ -20,6 +20,7 @@ import NuevoProyecto from "./interfaces/NuevoProyecto";
 import ProyectosExistentes from "./interfaces/ProyectosExistentes";
 import Comunidad from "./interfaces/Comunidad";
 import ComprarTokens from "./interfaces/ComprarTokens";
+import PagoExitoso from "./interfaces/PagoExitoso";
 import Memorias from "./interfaces/Memorias";
 import Placa from "./interfaces/Placa";
 import Rams from "./interfaces/Rams";
@@ -108,6 +109,12 @@ function App() {
         <Route path="/comprar-tokens" element={
         <ProtectedRoute>
           <ComprarTokens />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/pago-exitoso" element={
+        <ProtectedRoute>
+          <PagoExitoso />
           </ProtectedRoute>
         }
       />
