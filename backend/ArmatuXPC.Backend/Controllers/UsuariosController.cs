@@ -86,8 +86,8 @@ namespace ArmatuXPC.Backend.Controllers
                 {
                     DocumentReference userRef = _firestoreDb.Collection("Usuario").Document(uid);
                     
-                    // Incremento atómico en Firestore
-                    await userRef.UpdateAsync("TokensDisponibles", FieldValue.Increment(tokens));
+                    // Línea comentada para evitar problemas de tokens dobles. El webhook se encargará de sumar los tokens una vez que Stripe confirme el pago.
+                    //await userRef.UpdateAsync("TokensDisponibles", FieldValue.Increment(tokens));
 
                     return Ok(new { mensaje = "Tokens acreditados exitosamente" });
                 }
@@ -156,7 +156,8 @@ namespace ArmatuXPC.Backend.Controllers
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"❌ Error general: {ex.Message}");
+                Console.WriteLine($"❌ ERROR CRÍTICO EN WEBHOOK: {ex.Message}");
+                Console.WriteLine($"🔍 STACKTRACE: {ex.StackTrace}");
                 return StatusCode(500);
             }
         }
