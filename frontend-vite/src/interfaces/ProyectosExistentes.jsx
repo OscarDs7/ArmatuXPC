@@ -11,12 +11,14 @@ import "../estilos/Proyectos.css";
 
 
 export default function ProyectosExistentes() {
-  const [proyectos, setProyectos] = useState([]);
-  const [tokens, setTokens] = useState(0); // ✨ Nuevo estado para tokens
+  const [proyectos, setProyectos] = useState([]); 
+  const [tokens, setTokens] = useState(null); // Cambiamos 0 por null para saber si ya cargó o no el dato de tokens desde Firestore
   // 💡 Nuevo estado para controlar qué proyecto se ve en el modal
   const [proyectoSeleccionado, setProyectoSeleccionado] = useState(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [loadingTokens, setLoadingTokens] = useState(true); // Estado específico para la carga de tokens, así podemos mostrar un mensaje o loader mientras se obtiene el dato de Firestore
+
 
   // En un entorno real, obtendrías el nombre desde tu contexto de Auth/Firebase
   const nombreUsuario = localStorage.getItem("userName") || "Usuario de ArmatuXPC";
@@ -61,6 +63,10 @@ export default function ProyectosExistentes() {
       if (docSnap.exists()) {
         setTokens(docSnap.data().TokensDisponibles || 0);
       }
+      else {
+        setTokens(0); // Si el documento no existe, asumimos que no tiene tokens disponibles
+      }
+      setLoadingTokens(false); // Ya cargamos el dato de tokens, sea cual sea el resultado
     });
 
     return () => unsub(); // Limpiamos la conexión al salir del componente
@@ -139,24 +145,29 @@ export default function ProyectosExistentes() {
 
       <h2 className="title">Mis PCs Armadas 🖥️</h2>
 
-      {/* ✨ CONTADOR DE TOKENS VISUAL */}
-      <div className={`token-counter-badge ${tokens === 0 ? 'limite-alcanzado' : ''}`}>
+      {/* ✨ CONTADOR DE TOKENS VISUAL ACTUALIZADO */}
+      <div className={`token-counter-badge ${!loadingTokens && tokens === 0 ? 'limite-alcanzado' : ''}`}>
         <span className="token-icon">🪙</span>
         <div className="token-info">
           <span className="token-count">
-            {proyectosOcupados} / {capacidadTotal}
+            {/* Si está cargando, mostramos "..." para evitar el 0 falso */}
+            {loadingTokens ? "..." : `${proyectosOcupados} / ${capacidadTotal}`}
           </span>
           <small>
-            {tokens === 0 
+            {
+              loadingTokens 
+              ? "Cargando capacidad de tokens..." : 
+              tokens === 0 
               ? "¡Capacidad máxima alcanzada!" 
-              : `Tienes ${tokens} ${tokens === 1 ? 'espacio libre' : 'espacios libres'}`}
+              : `Tienes ${tokens} ${tokens === 1 ? 'espacio libre' : 'espacios libres'}`
+            }
           </small>
         </div>
       </div>
       <br />
 
       {/* Mostrar mensaje cuando ya no quedan tokens */}
-      {tokens === 0 && (
+      {!loadingTokens && tokens === 0 && (
         <div className="aviso-tokens">
           ⚠️ Has alcanzado el límite de armados. Elimina uno para liberar espacio o compra más tokens para guardar más proyectos en tu cuenta. ¡Gracias por ser parte de ArmatuXPC! 🚀
         </div>

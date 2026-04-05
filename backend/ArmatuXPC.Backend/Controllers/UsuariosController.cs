@@ -19,14 +19,40 @@ namespace ArmatuXPC.Backend.Controllers
 
         // 1. Iniciar la sesión de pago
         // El frontend envía el UID del usuario, la cantidad de tokens que quiere comprar, y el precio en centavos.
-        [HttpPost("crear-sesion-pago")]
+       [HttpPost("crear-sesion-pago")]
         public async Task<IActionResult> CrearSesionPago([FromBody] RecargaRequest request)
         {
             try
             {
                 if (request == null || string.IsNullOrEmpty(request.UsuarioUid))
                 {
-                    return BadRequest(new { mensaje = "El UID del usuario es requerido." });
+                    return BadRequest(new { mensaje = "Datos inválidos." });
+                }
+
+                // --- HARDENING: Definimos los precios reales en el servidor ---
+                long precioRealCentavos = 0;
+                
+                // Usamos un switch para validar que solo se compren paquetes permitidos
+                switch (request.CantidadComprada)
+                {
+                    case 3:
+                        precioRealCentavos = 4900; // $49.00 MXN
+                        break;
+                    case 10:
+                        precioRealCentavos = 12900; // $129.00 MXN
+                        break;
+                    case 30:
+                        precioRealCentavos = 19900; // $199.00 MXN
+                        break;
+                    case 50:
+                        precioRealCentavos = 24900; // $249.00 MXN
+                        break;
+                    case 100:
+                        precioRealCentavos = 29900; // $299.00 MXN
+                        break;
+                    default:
+                        // Si intentan comprar una cantidad que no existe en el catálogo
+                        return BadRequest(new { mensaje = "Ese paquete no está disponible." });
                 }
 
                 var options = new SessionCreateOptions
@@ -38,22 +64,20 @@ namespace ArmatuXPC.Backend.Controllers
                         {
                             PriceData = new SessionLineItemPriceDataOptions
                             {
-                                UnitAmount = request.PrecioCentavos,
+                                // Usamos nuestra variable validada, NO request.PrecioCentavos
+                                UnitAmount = precioRealCentavos, 
                                 Currency = "mxn",
                                 ProductData = new SessionLineItemPriceDataProductDataOptions
                                 {
                                     Name = $"Paquete de {request.CantidadComprada} Tokens - ArmatuXPC",
                                 },
                             },
-                            Quantity = 1, // Siempre 1, porque el precio ya refleja la cantidad de tokens que se están comprando. Si quisieras permitir comprar múltiples paquetes a la vez, aquí podrías usar request.CantidadComprada y ajustar el precio unitario en consecuencia.
+                            Quantity = 1,
                         },
                     },
                     Mode = "payment",
-                    // Al tener éxito, Stripe redirige a esta ruta de tu React
                     SuccessUrl = $"http://localhost:5173/pago-exitoso?session_id={{CHECKOUT_SESSION_ID}}&uid={request.UsuarioUid}&tokens={request.CantidadComprada}",
                     CancelUrl = "http://localhost:5173/comprar-tokens",
-
-                    // Opcional: Guardar datos adicionales en Metadata para usarlos luego (ej: en el webhook)
                     Metadata = new Dictionary<string, string>
                     {
                         { "usuarioUid", request.UsuarioUid },
