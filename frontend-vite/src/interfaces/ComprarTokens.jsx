@@ -12,7 +12,9 @@ export default function ComprarTokens() {
   const paquetes = [
     { id: 1, nombre: "Básico", tokens: 3, precioTexto: "$49 MXN", precioValor: 49.00, color: "#3498db" },
     { id: 2, nombre: "Pro", tokens: 10, precioTexto: "$129 MXN", precioValor: 129.00, color: "#9b59b6" },
-    { id: 3, nombre: "Ilimitado (Mes)", tokens: 100, precioTexto: "$299 MXN", precioValor: 299.00, color: "#f1c40f" },
+    { id: 3, nombre: "Avanzado", tokens: 30, precioTexto: "$199 MXN", precioValor: 199.00, color: "#e67e22" },
+    { id: 4, nombre: "Ultimate", tokens: 50, precioTexto: "$249 MXN", precioValor: 249.00, color: "#2ecc71" },
+    { id: 5, nombre: "Ilimitado (Mes)", tokens: 100, precioTexto: "$299 MXN", precioValor: 299.00, color: "#f1c40f" }
   ];
 
   const handleCompra = async (paquete) => {
@@ -43,7 +45,7 @@ export default function ComprarTokens() {
 
   return (
     <div className="compra-container">
-      <button className="btn-volver" onClick={() => navigate(-1)} disabled={cargando}>
+      <button className="btn-volver" onClick={() => navigate("/dashboard-user")} disabled={cargando}>
         ← Volver
       </button>
       
