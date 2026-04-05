@@ -218,17 +218,54 @@ export const despublicarArmado = async (armadoId) => {
   return response.json();
 };
 
-//  Método para recargar tokens (ejemplo: comprar más tokens)
-export const comprarTokens = async (uid, cantidad) => {
-  const response = await fetch(`${API_URL}/usuarios/recargar-tokens`, {
+// --- MÉTODOS DE PAGO (STRIPE) ---
+/**
+ * 1. Envía al usuario a la pasarela de Stripe Checkout.
+ * @param {string} uid - El UID del usuario de Firebase.
+ * @param {number} tokens - Cantidad de tokens a comprar.
+ * @param {number} precioMXN - Precio en pesos (ej: 49.00).
+ */
+export const iniciarSesionPago = async (uid, tokens, precioMXN) => {
+  // Convertimos a centavos (Stripe Requirement)
+  const precioCentavos = Math.round(precioMXN * 100);
+
+  const response = await fetch(`${API_URL}/Usuarios/crear-sesion-pago`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ 
-      usuarioUid: uid, 
-      cantidadComprada: cantidad 
-      // paymentId: "id_de_stripe_aqui" (Próximamente)
+    body: JSON.stringify({
+      usuarioUid: uid,
+      cantidadComprada: tokens,
+      precioCentavos: precioCentavos
     }),
   });
-  if (!response.ok) throw new Error("No se pudo procesar la compra");
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.mensaje || "No se pudo iniciar la pasarela de pago");
+  }
+
+  // Retorna { url: "https://checkout.stripe.com/..." }
+  return await response.json();
+};
+
+/**
+ * 2. Valida el resultado del pago al volver de Stripe.
+ * @param {string} sessionId - El ID de sesión generado por Stripe.
+ * @param {string} uid - El UID del usuario.
+ * @param {number} tokens - Tokens a acreditar.
+ */
+export const confirmarPagoEnServidor = async (sessionId, uid, tokens) => {
+  const url = `${API_URL}/Usuarios/confirmar-pago?sessionId=${sessionId}&uid=${uid}&tokens=${tokens}`;
+  
+  const response = await fetch(url, {
+    method: "GET",
+    headers: { "Accept": "application/json" }
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.mensaje || "No se pudo verificar el pago con el servidor");
+  }
+
   return await response.json();
 };
