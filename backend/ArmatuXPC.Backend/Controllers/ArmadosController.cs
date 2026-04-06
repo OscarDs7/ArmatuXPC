@@ -5,6 +5,7 @@ using ArmatuXPC.Backend.Models;
 using ArmatuXPC.Backend.DTOs;
 using ArmatuXPC.Backend.Services.Armados;
 using Google.Cloud.Firestore;
+using Microsoft.AspNetCore.Authorization;
 
 namespace ArmatuXPC.Backend.Controllers
 {
@@ -424,6 +425,17 @@ namespace ArmatuXPC.Backend.Controllers
             await _context.SaveChangesAsync();
 
             return Ok(new { mensaje = "Tu armado ha sido retirado de la comunidad." });
+        }
+
+        [HttpPatch("{id}/toggle-public")]
+        public async Task<IActionResult> TogglePublic(int id)
+        {
+            var armado = await _context.Armados.FindAsync(id);
+            if (armado == null) return NotFound();
+
+            armado.EsPublicado = !armado.EsPublicado;
+            await _context.SaveChangesAsync();
+            return Ok(new { nuevoEstado = armado.EsPublicado });
         }
 
 
