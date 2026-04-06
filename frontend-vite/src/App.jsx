@@ -15,6 +15,7 @@ import AdministrarCuentas from "./interfaces/AdministrarCuentas";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import MonitoreoLogistica from "./components/MonitoreoLogistica";
+import MetricasReportes from "./interfaces/MetricasReportes";
 import PruebaThree from "./interfaces/PruebaThree";
 import NuevoProyecto from "./interfaces/NuevoProyecto";
 import ProyectosExistentes from "./interfaces/ProyectosExistentes";
@@ -125,6 +126,14 @@ function App() {
             <MonitoreoLogistica />
           </AdminRoute>
         }
+      />
+      <Route 
+      path="/metricas-reportes"
+      element = {
+        <AdminRoute>
+          <MetricasReportes />
+        </AdminRoute>
+       }
       />
 
       {/* Rutas de prueba para backend */}
