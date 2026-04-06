@@ -44,12 +44,45 @@ export const actualizarComponente = async (id, componente) => {
   return response.json();
 };
 
-
 export const getArmados = async () => {
-  const response = await fetch(`${API_URL}/Armados`);
-  if (!response.ok) throw new Error("Error al obtener armados");
-  return response.json();
+  try {
+    const response = await fetch(`${API_URL}/Armados`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({})); 
+      throw new Error(errorData.message || "Error al obtener armados");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error en getArmados service:", error);
+    throw error;
+  }
 };
+
+// Cambiar estado de publicación (público/privado)
+export const togglePublicado = async (id) => {
+  const response = await fetch(`${API_URL}/Armados/${id}/toggle-public`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`, // Si usas JWT
+      'Content-Type': 'application/json'
+    }
+  });
+  if (!response.ok) throw new Error("No se pudo cambiar el estado");
+  return await response.json();
+};
+
+// Eliminar un armado
+export const eliminarArmadoAdmin = async (id) => {
+  const response = await fetch(`${API_URL}/Armados/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
+  });
+  if (!response.ok) throw new Error("No se pudo eliminar el armado");
+  return true;
+};
+
 
 export const getCompatibilidades = async () => {
   const response = await fetch(`${API_URL}/Compatibilidades`);
