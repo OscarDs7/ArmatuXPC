@@ -166,16 +166,28 @@ export default function ComponentesAdmin({ onBack }) {
     );
   };
 
+  // --- NUEVA VARIABLE DINÁMICA para filtrar componentes ---
+  const componentesFiltrados = componentes
+    .filter(c =>
+      (c.nombre || "").toLowerCase().includes(busqueda) ||
+      (c.marca || "").toLowerCase().includes(busqueda) ||
+      (c.modelo || "").toLowerCase().includes(busqueda)
+    )
+    .filter(c =>
+      filtroTipo === "todos" ||
+      (c.tipo || "").toString().toLowerCase().trim() === filtroTipo.toLowerCase()
+    );
+
   return (
     <div className="w-full max-w-6xl">
 
-      <h2 className="text-xl font-semibold mb-6 bg-white text-slate-900 p-3 rounded">
+      <h2 className="text-xl font-semibold mb-6 bg-red text-slate-900 p-3 rounded">
         Administrar Componentes
       </h2>
       <div className="flex gap-2 mb-4">
 
       <input
-        placeholder="Buscar componente..."
+        placeholder="Buscar componente por nombre, marca o modelo..."
         className="p-2 rounded bg-slate-700 flex-1"
         value={busqueda}
         onChange={(e) => setBusqueda(e.target.value.toLowerCase())} // convertir a minúsculas para búsqueda insensible a mayúsculas
@@ -263,6 +275,7 @@ export default function ComponentesAdmin({ onBack }) {
         }`}
         >
           <tr>
+            <th className="p-3">ID</th>
             <th className="p-3">Imagen</th>
             <th className="text-center">Nombre</th>
             <th className="text-center">Tipo</th>
@@ -275,21 +288,14 @@ export default function ComponentesAdmin({ onBack }) {
         </thead>
 
         <tbody>
-
-          {componentes
-            .filter(c =>
-              (c.nombre || "").toLowerCase().includes(busqueda) ||
-              (c.marca || "").toLowerCase().includes(busqueda) ||
-              (c.modelo || "").toLowerCase().includes(busqueda)
-            )
-            .filter(c =>
-              filtroTipo === "todos" ||
-              (c.tipo || "").toLowerCase().trim() === filtroTipo
-            )
-            .map((c) => (
-
+          {/* Renderizar componentes filtrados */}
+          {componentesFiltrados.map((c, index) => (
             <tr key={c.componenteId} className="border-t border-slate-700 hover:bg-slate-600 transition">
-
+              {/* Mostrar id de manera secuencial para tener el control de la cantidad (1,2,3, etc.) */}
+              {/* 2. Muestra el índice + 1 para que empiece en 1 */}
+              <td className="text-center font-semibold text-slate-400">
+                {index + 1}
+              </td>
               <td className="p-2">
                 {c.imagenUrl && (
                   <img
@@ -299,7 +305,6 @@ export default function ComponentesAdmin({ onBack }) {
                   />
                 )}
               </td>
-
               {renderCeldaEditable(c, "nombre")}
               <td className="text-center">{c.tipo}</td>
               {renderCeldaEditable(c, "marca")}
@@ -323,18 +328,24 @@ export default function ComponentesAdmin({ onBack }) {
           ))}
 
         {/* FILA para avisar si no hay componentes registrados*/}
-        {componentes.length === 0 && (
+        {componentesFiltrados.length === 0 && (
           <tr>
-            <td colSpan="8" className="text-center p-4">
-              No hay componentes registrados
+            <td colSpan="9" className="text-center p-4">
+                {busqueda || filtroTipo !== "todos" 
+                    ? "No se encontraron componentes con esos filtros" 
+                    : "No hay componentes registrados"}
             </td>
           </tr>
         )}
         </tbody>
       </table>
-      <span className="mt-6 text-sm text-slate-400 text-center block">
-        {componentes.length} componentes
-      </span> <br />
+     <span className="mt-6 text-sm text-slate-400 text-center block">
+        {filtroTipo === "todos" 
+          ? `${componentesFiltrados.length} componentes en total` 
+          : `${componentesFiltrados.length} componentes de tipo "${filtroTipo.toUpperCase()}"`}
+        
+        {busqueda && ` (filtrados por: "${busqueda}")`}
+      </span>
       <button
         onClick={onBack}
         className="mt-6 bg-slate-700 p-3 rounded-lg"
