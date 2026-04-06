@@ -44,17 +44,89 @@ export const actualizarComponente = async (id, componente) => {
   return response.json();
 };
 
-
 export const getArmados = async () => {
-  const response = await fetch(`${API_URL}/Armados`);
-  if (!response.ok) throw new Error("Error al obtener armados");
-  return response.json();
+  try {
+    const response = await fetch(`${API_URL}/Armados`);
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => ({})); 
+      throw new Error(errorData.message || "Error al obtener armados");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error en getArmados service:", error);
+    throw error;
+  }
 };
+
+// Cambiar estado de publicación (público/privado)
+export const togglePublicado = async (id) => {
+  const response = await fetch(`${API_URL}/Armados/${id}/toggle-public`, {
+    method: 'PATCH',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`, // Si usas JWT
+      'Content-Type': 'application/json'
+    }
+  });
+  if (!response.ok) throw new Error("No se pudo cambiar el estado");
+  return await response.json();
+};
+
+// Eliminar un armado
+export const eliminarArmadoAdmin = async (id) => {
+  const response = await fetch(`${API_URL}/Armados/${id}`, {
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token')}`
+    }
+  });
+  if (!response.ok) throw new Error("No se pudo eliminar el armado");
+  return true;
+};
+
 
 export const getCompatibilidades = async () => {
   const response = await fetch(`${API_URL}/Compatibilidades`);
   if (!response.ok) throw new Error("Error al obtener compatibilidades");
   return response.json();
+};
+
+// Añade esto a tu archivo api.js
+export const guardarCompatibilidad = async (compatibilidad) => {
+  const response = await fetch(`${API_URL}/Compatibilidades`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(compatibilidad),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData || "Error al guardar la regla de compatibilidad");
+  }
+  return response.json();
+};
+
+export const eliminarCompatibilidad = async (id) => {
+  const response = await fetch(`${API_URL}/Compatibilidades/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("No se pudo eliminar la regla");
+  return true;
+};
+
+export const actualizarCompatibilidad = async (id, compatibilidad) => {
+  const response = await fetch(`${API_URL}/Compatibilidades/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(compatibilidad),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "Error al actualizar la regla");
+  }
+  
+  // El controlador devuelve NoContent (204), así que no intentamos parsear JSON
+  return true; 
 };
 
 // Agregar un nuevo componente
@@ -139,7 +211,7 @@ export const evaluarCompatibilidadTiempoReal = async (componenteIds) => {
 
 };
 
-// Método para eliminar un armado por su ID
+// Método para eliminar un armado por su ID (versión para usuarios, no admins)
 export const eliminarArmado = async (armadoId) => {
   const response = await fetch(`${API_URL}/Armados/${armadoId}`, {
     method: 'DELETE',

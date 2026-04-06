@@ -1,6 +1,7 @@
 using ArmatuXPC.Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using ArmatuXPC.Backend.Services.Armados;
 using Google.Cloud.Firestore;
@@ -47,6 +48,7 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; // Asegura que las propiedades se serialicen en camelCase, que es común en APIs REST
     });
 
 builder.Services.AddEndpointsApiExplorer();
