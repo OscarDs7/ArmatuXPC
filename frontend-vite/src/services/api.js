@@ -90,6 +90,45 @@ export const getCompatibilidades = async () => {
   return response.json();
 };
 
+// Añade esto a tu archivo api.js
+export const guardarCompatibilidad = async (compatibilidad) => {
+  const response = await fetch(`${API_URL}/Compatibilidades`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(compatibilidad),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData || "Error al guardar la regla de compatibilidad");
+  }
+  return response.json();
+};
+
+export const eliminarCompatibilidad = async (id) => {
+  const response = await fetch(`${API_URL}/Compatibilidades/${id}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) throw new Error("No se pudo eliminar la regla");
+  return true;
+};
+
+export const actualizarCompatibilidad = async (id, compatibilidad) => {
+  const response = await fetch(`${API_URL}/Compatibilidades/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(compatibilidad),
+  });
+
+  if (!response.ok) {
+    const errorText = await response.text();
+    throw new Error(errorText || "Error al actualizar la regla");
+  }
+  
+  // El controlador devuelve NoContent (204), así que no intentamos parsear JSON
+  return true; 
+};
+
 // Agregar un nuevo componente
 export const agregarComponente = async (componente) => {
   const response = await fetch(`${API_URL}/Componentes`, {
@@ -172,7 +211,7 @@ export const evaluarCompatibilidadTiempoReal = async (componenteIds) => {
 
 };
 
-// Método para eliminar un armado por su ID
+// Método para eliminar un armado por su ID (versión para usuarios, no admins)
 export const eliminarArmado = async (armadoId) => {
   const response = await fetch(`${API_URL}/Armados/${armadoId}`, {
     method: 'DELETE',
