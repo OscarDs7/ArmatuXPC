@@ -181,11 +181,15 @@ export default function ComponentesAdmin({ onBack }) {
   return (
     <div className="w-full max-w-6xl">
 
-      <h2 className="text-xl font-semibold mb-6 bg-red text-slate-900 p-3 rounded">
+      <button onClick={onBack} className="mt-6 bg-slate-700 p-3 rounded-lg hover:bg-gray-600">
+        Regresar
+      </button>
+
+      <h2 className="text-xl font-semibold mb-6 bg-red text-slate-900 p-3 rounded text-center">
         Administrar Componentes
       </h2>
-      <div className="flex gap-2 mb-4">
 
+      <div className="flex gap-2 mb-4">
       <input
         placeholder="Buscar componente por nombre, marca o modelo..."
         className="p-2 rounded bg-slate-700 flex-1"
@@ -346,12 +350,6 @@ export default function ComponentesAdmin({ onBack }) {
         
         {busqueda && ` (filtrados por: "${busqueda}")`}
       </span>
-      <button
-        onClick={onBack}
-        className="mt-6 bg-slate-700 p-3 rounded-lg"
-      >
-        Regresar
-      </button>
 
       {/* Modal Imagen */}
 
