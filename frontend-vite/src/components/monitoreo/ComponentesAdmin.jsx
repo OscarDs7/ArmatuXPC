@@ -70,7 +70,10 @@ export default function ComponentesAdmin({ onBack }) {
 
       // Guardamos el valor anterior por si hay que revertir (en caso de error real)
       const valorAnterior = componente[campo];
-      let valorFinal = campo === "precio" ? Number(valorTemporal) : valorTemporal;
+      // Si el campo es numérico, convertimos el valor temporal a número antes de actualizar el estado
+      let valorFinal = (campo === "precio" || campo === "consumoWatts" || campo === "capacidadWatts") 
+                   ? Number(valorTemporal) 
+                   : valorTemporal;
 
       // 1. ACTUALIZACIÓN OPTIMISTA (El usuario ve el cambio ya)
       setComponentes(prev =>
@@ -109,53 +112,59 @@ export default function ComponentesAdmin({ onBack }) {
   // fin guardarEdicion
 
   // Función para renderizar una celda editable para reducir código repetido en el renderizado de la tabla
-  const renderCeldaEditable = (c, campo, type = "text") => (
-  <td
-    onDoubleClick={() => !guardando && iniciarEdicion(c, campo)} 
-    className={`cursor-pointer hover:bg-slate-700 transition text-center ${
-      celdaEditando?.id === c.componenteId && celdaEditando?.campo === campo ? 'p-0' : ''
-    }`}
-    title="Doble click para editar"
-  >
-    {celdaEditando?.id === c.componenteId &&
-    celdaEditando?.campo === campo ? (
-      <input
-        value={valorTemporal}
-        autoFocus
-        type={type}
-        disabled={guardando} // Deshabilitar mientras se guarda
-        onChange={(e) => setValorTemporal(e.target.value)}
-        onKeyDown={(e) => {
-          if (e.key === "Enter") {
-            //e.preventDefault();
-           // setEnterPresionado(true);
-            guardarEdicion(c, campo);
-          }
+  const renderCeldaEditable = (c, campoOriginal, type = "text") => {
+  // 1. Identificar si estamos en la columna de energía
+    const esEnergia = campoOriginal === "energia";
+    
+    // 2. Determinar qué propiedad del objeto usar (según el DTO de C#)
+    // Si es energía, verificamos si el componente tiene capacidad (PSU) o consumo (otros)
+    const campoReal = esEnergia 
+      ? (c.capacidadWatts !== null && c.capacidadWatts !== undefined ? "capacidadWatts" : "consumoWatts")
+      : campoOriginal;
 
-          if (e.key === "Escape") {
-            setCeldaEditando(null);
-          }
+    // 3. Obtener el valor actual para mostrar
+    const valorMostrar = c[campoReal];
 
-        }}
-      
-        onBlur={() => {
-          // Solo guardamos al salir si el valor cambió, para evitar bucles
-          if (valorTemporal !== c[campo]) {
-            guardarEdicion(c, campo);
-          } else {
-            setCeldaEditando(null);
-          }
-        }}
-        className="bg-slate-700 p-1 rounded w-full border border-blue-400 outline-none"
-      />
-
-    ) : (
-      <span>
-        {campo === "precio" ? `$${Number(c[campo]).toLocaleString()}` : c[campo]}
-      </span>
-    )}
-  </td>
-); // fin renderCeldaEditable
+    return (
+      <td
+        onDoubleClick={() => !guardando && iniciarEdicion(c, campoReal)} 
+        className={`cursor-pointer hover:bg-slate-700 transition text-center ${
+          celdaEditando?.id === c.componenteId && celdaEditando?.campo === campoReal ? 'p-0' : ''
+        }`}
+        title="Doble click para editar"
+      >
+        {celdaEditando?.id === c.componenteId && celdaEditando?.campo === campoReal ? (
+          <input
+            value={valorTemporal}
+            autoFocus
+            type={type}
+            disabled={guardando}
+            onChange={(e) => setValorTemporal(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") guardarEdicion(c, campoReal);
+              if (e.key === "Escape") setCeldaEditando(null);
+            }}
+            onBlur={() => {
+              if (valorTemporal != c[campoReal]) { // != permite comparar string con number
+                guardarEdicion(c, campoReal);
+              } else {
+                setCeldaEditando(null);
+              }
+            }}
+            className="bg-slate-700 p-1 rounded w-full border border-blue-400 outline-none"
+          />
+        ) : (
+          <span>
+            {campoReal === "precio" 
+              ? `$${Number(c[campoReal]).toLocaleString()}` 
+              : esEnergia 
+                ? `${valorMostrar ?? 0} W` 
+                : c[campoReal]}
+          </span>
+        )}
+      </td>
+    );
+  };
 
   return (
     <div className="w-full max-w-6xl">
@@ -237,6 +246,12 @@ export default function ComponentesAdmin({ onBack }) {
       >
         Gabinete
       </button>
+      <button
+        onClick={() => setFiltroTipo("refrigeracion")}
+        className={`px-3 py-1 rounded ${filtroTipo === "refrigeracion" ? "bg-blue-600" : "bg-slate-700"}`}
+      >
+        Refrigeración
+      </button>
 
     </div>
 
@@ -254,6 +269,7 @@ export default function ComponentesAdmin({ onBack }) {
             <th className="text-center">Marca</th>
             <th className="text-center">Modelo</th>
             <th className="text-center">Precio</th>
+            <th className="text-center"> Energía (W)</th>
             <th className="text-center">Acciones</th>
           </tr>
         </thead>
@@ -289,6 +305,7 @@ export default function ComponentesAdmin({ onBack }) {
               {renderCeldaEditable(c, "marca")}
               {renderCeldaEditable(c, "modelo")}
               {renderCeldaEditable(c, "precio", "number")}
+              {renderCeldaEditable(c, "energia", "number")} {/* "energia" activa la lógica especial */}
 
             <td className="flex justify-center p-2">
 
@@ -308,7 +325,7 @@ export default function ComponentesAdmin({ onBack }) {
         {/* FILA para avisar si no hay componentes registrados*/}
         {componentes.length === 0 && (
           <tr>
-            <td colSpan="7" className="text-center p-4">
+            <td colSpan="8" className="text-center p-4">
               No hay componentes registrados
             </td>
           </tr>
