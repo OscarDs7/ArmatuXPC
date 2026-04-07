@@ -5,7 +5,7 @@ import {
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 // Importamos tus servicios reales
-import { getComponentes, getArmados, getComunidad } from "../services/api"; 
+import { getComponentes, getArmados, getComunidad, getStatsUsuarios } from "../services/api"; 
 
 export default function MetricasAdmin() {
   const navigate = useNavigate();
@@ -17,6 +17,10 @@ export default function MetricasAdmin() {
     totalArmados: 0,
     enComunidad: 0,
     valorInventario: 0,
+    totalUsuarios: 0,    // Nuevo
+    usuariosActivos: 0,  // Nuevo
+    topNombre: "",       // Nuevo
+    topCantidad: 0,      // Nuevo
     dataPopularidad: [],
     dataTipos: []
   });
@@ -24,7 +28,7 @@ export default function MetricasAdmin() {
  // Función para encontrar los componentes más usados en los armados reales
 const obtenerTopComponentes = (armados) => {
   const conteo = {};
-
+  // Recorrido dentro de cada armado para ir contando los componenetes más usados
   armados.forEach(armado => {
     // Verificamos que el arreglo de componentes exista según tu captura de consola
     if (armado.componentes && Array.isArray(armado.componentes)) {
@@ -62,17 +66,28 @@ const segmentarPresupuestos = (armados) => {
 
   // INDICADOR: Latencia (Carga paralela para optimizar tiempo de respuesta)
   useEffect(() => {
+    // Generamos y cargamos las estadísticas de los componentes y armados
     const cargarEstadisticasReales = async () => {
-        try {
+      try {
         setLoading(true);
-        const [componentes, armados] = await Promise.all([
+        // Ejecutamos todas las peticiones en paralelo para optimizar la latencia
+        const [componentes, armados, comunidad, userStats] = await Promise.all([
             getComponentes(),
-            getArmados()
+            getArmados(),
+            getComunidad(),
+            getStatsUsuarios()
         ]);
 
         setStats({
+            // endpoint: getComponentes y getArmados
             totalComponentes: componentes.length,
             totalArmados: armados.length,
+            // endpoint: getStatsUsuarios
+            // Usamos ?. y || para dar valores por defecto si el backend manda algo vacío
+            totalUsuarios: userStats?.total || 0,
+            usuariosActivos: userStats?.activos || 0,
+            topNombre: userStats?.topUsuario?.nombre || "Sin actividad",
+            topCantidad: userStats?.topUsuario?.cantidad || 0,
             // Usamos la propiedad real de tu captura: esPublicado
             enComunidad: armados.filter(a => a.esPublicado === true).length,
             valorInventario: componentes.reduce((sum, c) => sum + (c.precio || 0), 0),
@@ -103,13 +118,13 @@ const segmentarPresupuestos = (armados) => {
         {/* Encabezado - Ux: Navegación Clara */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-indigo-400 to-sky-400 bg-clip-text text-transparent">
+            <h1 className="text-3xl font-bold bg-linear-to-r from-indigo-400 to-sky-400 bg-clip-text text-transparent">
               Panel de Control Admin
             </h1>
             <p className="text-slate-400">Indicadores de Producto y Rendimiento</p>
           </div>
           <button 
-            onClick={() => navigate(-1)}
+            onClick={() => navigate("/dashboard-admin")}
             className="px-5 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition border border-slate-700 flex items-center gap-2"
           >
             ← Regresar
@@ -123,6 +138,36 @@ const segmentarPresupuestos = (armados) => {
           <StatCard title="En Comunidad" value={stats.enComunidad} color="text-emerald-400" />
           <StatCard title="Valor Activos" value={`$${stats.valorInventario.toLocaleString()}`} color="text-amber-400" />
         </div>
+
+        {/* Fila de KPIs de Usuarios */}
+<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+  {/* Card: Total de Usuarios (Dato real del backend) */}
+  <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 shadow-lg">
+    <p className="text-slate-500 text-sm font-medium mb-1 uppercase">Total Usuarios</p>
+    <h3 className="text-3xl font-bold text-indigo-400">{stats.totalUsuarios}</h3>
+  </div>
+
+  {/* Card: Engagement (Usuarios con proyectos) */}
+  <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 shadow-lg">
+    <p className="text-slate-500 text-sm font-medium mb-1 uppercase">Usuarios Activos</p>
+    <div className="flex items-center gap-2">
+      <h3 className="text-3xl font-bold text-emerald-400">{stats.usuariosActivos}</h3>
+      <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full animate-pulse">
+        LIVE
+      </span>
+    </div>
+  </div>
+
+  {/* Card: Power User (Top Contribuidor) */}
+  <div className="bg-slate-900/80 p-6 rounded-2xl border border-amber-500/20 shadow-lg flex items-center gap-4">
+    <div className="text-3xl">🏆</div>
+    <div className="overflow-hidden">
+      <p className="text-slate-500 text-xs font-medium uppercase">Top Contribuidor</p>
+      <h3 className="text-lg font-bold text-white truncate">{stats.topNombre}</h3>
+      <p className="text-amber-400 text-xs">{stats.topCantidad} PCs armadas</p>
+    </div>
+  </div>
+</div>
 
         {/* PARTE 2: Gráficos con Datos de la API */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
