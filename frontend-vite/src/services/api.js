@@ -341,3 +341,62 @@ export const confirmarPagoEnServidor = async (sessionId, uid, tokens) => {
 
   return await response.json();
 };
+
+// Función para sincronizar los datos de Firebase con nuestra DB de SQL
+export const sincronizarUsuario = async (userData) => {
+  try {
+    const response = await fetch(`${API_URL}/Usuarios/sincronizar`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        uid: userData.uid,
+        nombre: userData.nombre || "Usuario Nuevo",
+        correo: userData.correo,
+        fechaRegistro: userData.fechaRegistro || new Date().toISOString(),
+        tokensDisponibles: userData.tokensDisponibles || 3,
+        rol: userData.rol || "user"
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.mensaje || "Error al sincronizar usuario");
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error en sincronizarUsuario:", error);
+    throw error;
+  }
+};
+
+// Método para generar estadísticas de los usuarios
+export const getStatsUsuarios = async () => {
+  try {
+    const response = await fetch(`${API_URL}/Usuarios/dashboard-stats`); // Ajusta la URL según tu entorno
+    if (!response.ok) throw new Error("Error al obtener estadísticas de usuarios");
+    return await response.json();
+  } catch (error) {
+    console.error("Error en getStatsUsuarios:", error);
+    throw error;
+  }
+};
+
+/**
+ * Obtiene la lista detallada de usuarios con su conteo de armados 
+ * específicamente para la generación de reportes.
+ */
+export const getReporteDetallado = async () => {
+  try {
+    const response = await fetch(`${API_URL}/Usuarios/reporte-detallado`);
+    if (!response.ok) {
+      throw new Error("Error al obtener los datos del reporte");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error en getReporteDetallado:", error);
+    throw error;
+  }
+};

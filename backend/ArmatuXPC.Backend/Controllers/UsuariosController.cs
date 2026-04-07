@@ -3,6 +3,10 @@ using ArmatuXPC.Backend.DTOs;
 using Google.Cloud.Firestore;
 using Stripe;
 using Stripe.Checkout;
+using Microsoft.EntityFrameworkCore;
+using ArmatuXPC.Backend.Data;
+using ArmatuXPC.Backend.Models;
+
 
 namespace ArmatuXPC.Backend.Controllers
 {
@@ -11,10 +15,12 @@ namespace ArmatuXPC.Backend.Controllers
     public class UsuariosController : ControllerBase
     {
         private readonly FirestoreDb _firestoreDb;
+        private readonly AppDbContext _context;
 
-        public UsuariosController(FirestoreDb firestoreDb)
+        public UsuariosController(FirestoreDb firestoreDb, AppDbContext context)
         {
             _firestoreDb = firestoreDb;
+            _context = context;
         }
 
         // 1. Iniciar la sesión de pago
@@ -184,6 +190,112 @@ namespace ArmatuXPC.Backend.Controllers
                 Console.WriteLine($"🔍 STACKTRACE: {ex.StackTrace}");
                 return StatusCode(500);
             }
+        }
+
+        // Nuevo endpoint para sincronizar el método handleRegistro() y handleLogin() con la tabla Usuarios del backend
+        [HttpPost("sincronizar")]
+        public async Task<IActionResult> SincronizarUsuario([FromBody] Usuario usuarioDto)
+        {
+            try
+            {
+                // 1. Buscamos si el usuario ya existe en nuestra DB local
+                var usuarioExistente = await _context.Usuarios
+                    .FirstOrDefaultAsync(u => u.Uid == usuarioDto.Uid);
+
+                if (usuarioExistente == null)
+                {
+                    // 2. Si no existe, lo agregamos (Primer registro)
+                    _context.Usuarios.Add(usuarioDto);
+                }
+                else
+                {
+                    // 3. Si existe, actualizamos sus datos básicos por si cambiaron
+                    usuarioExistente.Nombre = usuarioDto.Nombre;
+                    usuarioExistente.Correo = usuarioDto.Correo;
+                    // No tocamos los tokens aquí para no sobrescribir el saldo actual
+                }
+
+                await _context.SaveChangesAsync();
+                return Ok(new { mensaje = "Usuario sincronizado con éxito" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error de sincronización: {ex.Message}");
+            }
+        }
+        
+        // NUEVO ENDPOINT para obtener estadísticas de los usuarios y saber cuáles son los más activos dentro de la plataforma
+        [HttpGet("dashboard-stats")]
+        public async Task<IActionResult> GetDashboardUserStats()
+        {
+            try 
+            {
+                // Conteo total de usuarios registrados
+                var totalUsuarios = await _context.Usuarios.CountAsync();
+
+                // Usuarios que han interactuado creando proyectos (Engagement)
+                var usuariosActivos = await _context.Armados
+                    .Select(a => a.UsuarioId)
+                    .Distinct()
+                    .CountAsync();
+
+                // Identificar al Power User (Top Contribuidor)
+                var topUserGroup = await _context.Armados
+                    .GroupBy(a => a.UsuarioId)
+                    .Select(g => new { 
+                        Id = g.Key, 
+                        Conteo = g.Count() 
+                    })
+                    .OrderByDescending(x => x.Conteo)
+                    .FirstOrDefaultAsync();
+
+                string nombreTop = "N/A";
+                int cantidadTop = 0;
+
+                if (topUserGroup != null)
+                {
+                    // Buscamos al usuario ignorando mayúsculas/minúsculas para asegurar el match
+                    var perfil = await _context.Usuarios
+                        .FirstOrDefaultAsync(u => u.Uid.ToLower() == topUserGroup.Id.ToLower());
+                    
+                    nombreTop = perfil?.Nombre ?? "Usuario Anónimo";
+                    cantidadTop = topUserGroup.Conteo;
+                }
+
+                return Ok(new {
+                    total = totalUsuarios,
+                    activos = usuariosActivos,
+                    topUsuario = new {
+                        nombre = nombreTop,
+                        cantidad = cantidadTop
+                    }
+                });
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error en dashboard-stats: {ex.Message}"); 
+                return StatusCode(500, "Error al generar indicadores de usuario");
+            }
+        }
+
+        // Nuevo ENDPOINT para generar reportes PDFs de los usuarios
+        [HttpGet("reporte-detallado")]
+        public async Task<IActionResult> GetReporteUsuarios()
+        {
+            // Obtenemos la lista completa de usuarios con su conteo de armados
+            var reporte = await _context.Usuarios
+                .Select(u => new {
+                    u.Nombre,
+                    u.Correo,
+                    u.Rol,
+                    Fecha = u.FechaRegistro,
+                    Tokens = u.TokensDisponibles,
+                    TotalArmados = _context.Armados.Count(a => a.UsuarioId == u.Uid)
+                })
+                .OrderByDescending(u => u.TotalArmados)
+                .ToListAsync();
+
+            return Ok(reporte);
         }
     }
 }

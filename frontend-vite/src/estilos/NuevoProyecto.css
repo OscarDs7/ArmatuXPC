@@ -745,8 +745,8 @@
 
 /* --- ARRIBA (Línea hacia abajo) --- */
 .globo-refrigeracion {
-  top: -15%;
-  left: 50%;
+  top: 0;
+  left: 60%;
   transform: translateX(-50%); /* Centrado horizontal */
   flex-direction: column-reverse; /* Imagen arriba */
 }
@@ -761,8 +761,8 @@
 
 /* --- ABAJO (Línea hacia arriba) --- */
 .globo-fuente-de-poder {
-  bottom: -15%;
-  left: 50%;
+  bottom: 5%;
+  left: 20%;
   transform: translateX(-50%);
   flex-direction: column; /* Imagen abajo */
 }
