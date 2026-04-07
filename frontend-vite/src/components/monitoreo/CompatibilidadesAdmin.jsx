@@ -92,13 +92,27 @@ export default function GestionCompatibilidades({ onBack }) {
     }
   };
 
-  if (loading) return <div className="p-10 text-white font-mono">Cargando información de compatibilidad...</div>;
+   // Diseño de loading() moderno con TailwindCSS
+   if (loading) {
+    return (
+      <div className="w-full max-w-6xl animate-pulse">
+        <div className="h-10 bg-slate-700 rounded w-1/4 mb-6"></div> {/* Botón regresar */}
+        <div className="h-12 bg-slate-700 rounded w-full mb-8"></div> {/* Título */}
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-16 bg-slate-800 rounded-lg w-full"></div>
+          ))}
+        </div>
+        <p className="text-center mt-4 text-slate-500 font-mono">Sincronizando con base de datos...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="p-8 bg-slate-900 min-h-screen text-white">
       <header className="mb-8 flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-black text-cyan-400 italic">ADMIN // COMPATIBILIDADES</h1>
+          <h1 className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-indigo-400 to-cyan-400 italic">ADMIN // COMPATIBILIDADES</h1>
           <p className="text-slate-400 text-sm">Configuración de reglas de validación cruzada</p>
         </div>
         <button onClick={onBack} className="bg-slate-800 px-4 py-2 rounded-lg hover:bg-slate-700 transition">Volver</button>

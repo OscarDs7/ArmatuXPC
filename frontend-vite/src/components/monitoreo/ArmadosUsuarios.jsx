@@ -59,7 +59,21 @@ export default function ArmadosUsuarios({ onBack }) {
     dineroTotal: armados.reduce((acc, a) => acc + a.componentes.reduce((sum, c) => sum + c.precio, 0), 0)
   };
 
-  if (loading) return <div className="p-10 text-white font-mono">Accediendo a la base de datos...</div>;
+   // Diseño de loading() moderno con TailwindCSS
+   if (loading) {
+    return (
+      <div className="w-full max-w-6xl animate-pulse">
+        <div className="h-10 bg-slate-700 rounded w-1/4 mb-6"></div> {/* Botón regresar */}
+        <div className="h-12 bg-slate-700 rounded w-full mb-8"></div> {/* Título */}
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-16 bg-slate-800 rounded-lg w-full"></div>
+          ))}
+        </div>
+        <p className="text-center mt-4 text-slate-500 font-mono">Sincronizando con base de datos...</p>
+      </div>
+    );
+  }
 
  return (
   <div className="p-8 bg-slate-900 min-h-screen text-white font-sans">
@@ -69,8 +83,8 @@ export default function ArmadosUsuarios({ onBack }) {
         <h1 className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-indigo-400 to-cyan-400 italic">
           ADMIN // PANEL DE CONTROL
         </h1>
-        <p className="text-slate-500 text-sm mt-1 tracking-wide uppercase">
-          Monitoreo y moderación de configuraciones
+        <p className="text-slate-400 text-sm mt-1 tracking-wide uppercase">
+          Monitoreo y moderación de configuraciones de armado
         </p>
       </div>
       <button 
@@ -152,7 +166,7 @@ export default function ArmadosUsuarios({ onBack }) {
               </div>
 
               <div className="mt-2 text-[10px] font-bold text-slate-500 flex justify-between items-center">
-                <span className="uppercase tracking-widest">{a.componentes.length} piezas detectadas</span>
+                <span className="uppercase tracking-widest">{a.componentes.length} componentes detectados</span>
                 <span className="text-indigo-400 text-sm italic">Subtotal: ${a.componentes.reduce((s,c) => s+c.precio,0).toLocaleString()}</span>
               </div>
             </div>

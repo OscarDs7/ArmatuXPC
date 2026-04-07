@@ -11,20 +11,25 @@ export default function ComponentesAdmin({ onBack }) {
   const [busqueda, setBusqueda] = useState("");
   const [guardando, setGuardando] = useState(false);
   const [filtroTipo, setFiltroTipo] = useState("todos");
+  const [loading, setLoading] = useState(true);
 
   // Función para cargar la lista de componentes desde el backend
   const cargarComponentes = async () => {
     try {
+      setLoading(true); // Iniciamos carga 
       const data = await getComponentes();
       setComponentes(data);
     } catch (error) {
       console.error("Error cargando componentes", error);
+      alert("Error al cargar los datos, revisa la consola.");
+    } finally {
+      setLoading(false); // Se apaga siempre, falle o funcione
     }
   };
 
-  // Cargar componentes al montar el componente
+  // Cargar componentes al montar la interfaz
   useEffect(() => {
-    cargarComponentes();
+       cargarComponentes();
   }, []);
 
   // Bloquear scroll cuando el modal está abierto
@@ -178,6 +183,22 @@ export default function ComponentesAdmin({ onBack }) {
       (c.tipo || "").toString().toLowerCase().trim() === filtroTipo.toLowerCase()
     );
 
+   // Diseño de loading() moderno con TailwindCSS
+   if (loading) {
+    return (
+      <div className="w-full max-w-6xl animate-pulse">
+        <div className="h-10 bg-slate-700 rounded w-1/4 mb-6"></div> {/* Botón regresar */}
+        <div className="h-12 bg-slate-700 rounded w-full mb-8"></div> {/* Título */}
+        <div className="space-y-4">
+          {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className="h-16 bg-slate-800 rounded-lg w-full"></div>
+          ))}
+        </div>
+        <p className="text-center mt-4 text-slate-500 font-mono">Sincronizando con base de datos...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-6xl">
 
@@ -185,9 +206,10 @@ export default function ComponentesAdmin({ onBack }) {
         Regresar
       </button>
 
-      <h2 className="text-xl font-semibold mb-6 bg-red text-slate-900 p-3 rounded text-center">
-        Administrar Componentes
-      </h2>
+      <h1 className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-indigo-400 to-cyan-400 italic text-center">
+        ADMIN // ADMINISTRAR COMPONENTES
+      </h1>
+      <br/>
 
       <div className="flex gap-2 mb-4">
       <input
