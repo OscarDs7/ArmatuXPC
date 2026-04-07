@@ -277,5 +277,25 @@ namespace ArmatuXPC.Backend.Controllers
                 return StatusCode(500, "Error al generar indicadores de usuario");
             }
         }
+
+        // Nuevo ENDPOINT para generar reportes PDFs de los usuarios
+        [HttpGet("reporte-detallado")]
+        public async Task<IActionResult> GetReporteUsuarios()
+        {
+            // Obtenemos la lista completa de usuarios con su conteo de armados
+            var reporte = await _context.Usuarios
+                .Select(u => new {
+                    u.Nombre,
+                    u.Correo,
+                    u.Rol,
+                    Fecha = u.FechaRegistro,
+                    Tokens = u.TokensDisponibles,
+                    TotalArmados = _context.Armados.Count(a => a.UsuarioId == u.Uid)
+                })
+                .OrderByDescending(u => u.TotalArmados)
+                .ToListAsync();
+
+            return Ok(reporte);
+        }
     }
 }
