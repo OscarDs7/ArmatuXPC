@@ -174,10 +174,10 @@ const segmentarPresupuestos = (armados) => {
         {/* Encabezado - Ux: Navegación Clara */}
         <div className="flex justify-between items-center mb-8">
           <div>
-            <h1 className="text-3xl font-bold bg-linear-to-r from-indigo-400 to-sky-400 bg-clip-text text-transparent">
-              Panel de Control Admin
+            <h1 className="text-4xl font-black text-transparent bg-clip-text bg-linear-to-r from-indigo-400 to-cyan-400 italic">
+              PANEL DE CONTROL ADMIN
             </h1>
-            <p className="text-slate-400">Indicadores de Producto y Rendimiento</p>
+            <p className="text-slate-400">Indicadores de Producto y Rendimiento del Sistema</p>
           </div>
 
           <div className="flex gap-3">
@@ -201,38 +201,38 @@ const segmentarPresupuestos = (armados) => {
           <StatCard title="Componentes" value={stats.totalComponentes} color="text-indigo-400" />
           <StatCard title="Proyectos Totales" value={stats.totalArmados} color="text-sky-400" />
           <StatCard title="En Comunidad" value={stats.enComunidad} color="text-emerald-400" />
-          <StatCard title="Valor Activos" value={`$${stats.valorInventario.toLocaleString()}`} color="text-amber-400" />
+          <StatCard title="Valor Activos (componentes)" value={`$${stats.valorInventario.toLocaleString()}`} color="text-amber-400" />
         </div>
 
         {/* Fila de KPIs de Usuarios */}
-<div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-  {/* Card: Total de Usuarios (Dato real del backend) */}
-  <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 shadow-lg">
-    <p className="text-slate-500 text-sm font-medium mb-1 uppercase">Total Usuarios</p>
-    <h3 className="text-3xl font-bold text-indigo-400">{stats.totalUsuarios}</h3>
-  </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+          {/* Card: Total de Usuarios (Dato real del backend) */}
+          <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 shadow-lg">
+            <p className="text-slate-500 text-sm font-medium mb-1 uppercase">Total Usuarios</p>
+            <h3 className="text-3xl font-bold text-indigo-400">{stats.totalUsuarios}</h3>
+          </div>
 
-  {/* Card: Engagement (Usuarios con proyectos) */}
-  <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 shadow-lg">
-    <p className="text-slate-500 text-sm font-medium mb-1 uppercase">Usuarios Activos</p>
-    <div className="flex items-center gap-2">
-      <h3 className="text-3xl font-bold text-emerald-400">{stats.usuariosActivos}</h3>
-      <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full animate-pulse">
-        LIVE
-      </span>
-    </div>
-  </div>
+          {/* Card: Engagement (Usuarios con proyectos) */}
+          <div className="bg-slate-900/80 p-6 rounded-2xl border border-slate-800 shadow-lg">
+            <p className="text-slate-500 text-sm font-medium mb-1 uppercase">Usuarios Activos</p>
+            <div className="flex items-center gap-2">
+              <h3 className="text-3xl font-bold text-emerald-400">{stats.usuariosActivos}</h3>
+              <span className="text-[10px] bg-emerald-500/10 text-emerald-400 px-2 py-1 rounded-full animate-pulse">
+                LIVE
+              </span>
+            </div>
+          </div>
 
-  {/* Card: Power User (Top Contribuidor) */}
-  <div className="bg-slate-900/80 p-6 rounded-2xl border border-amber-500/20 shadow-lg flex items-center gap-4">
-    <div className="text-3xl">🏆</div>
-    <div className="overflow-hidden">
-      <p className="text-slate-500 text-xs font-medium uppercase">Top Contribuidor</p>
-      <h3 className="text-lg font-bold text-white truncate">{stats.topNombre}</h3>
-      <p className="text-amber-400 text-xs">{stats.topCantidad} PCs armadas</p>
-    </div>
-  </div>
-</div>
+          {/* Card: Power User (Top Contribuidor) */}
+          <div className="bg-slate-900/80 p-6 rounded-2xl border border-amber-500/20 shadow-lg flex items-center gap-4">
+            <div className="text-3xl">🏆</div>
+            <div className="overflow-hidden">
+              <p className="text-slate-500 text-xs font-medium uppercase">Top Contribuidor</p>
+              <h3 className="text-lg font-bold text-white truncate">{stats.topNombre}</h3>
+              <p className="text-amber-400 text-xs">{stats.topCantidad} PCs armadas</p>
+            </div>
+          </div>
+        </div>
 
         {/* PARTE 2: Gráficos con Datos de la API */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
