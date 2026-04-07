@@ -5,7 +5,9 @@ import {
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 // Importamos tus servicios reales
-import { getComponentes, getArmados, getComunidad, getStatsUsuarios } from "../services/api"; 
+import { getComponentes, getArmados, getComunidad, getStatsUsuarios, getReporteDetallado } from "../services/api"; 
+import  {jsPDF}  from "jspdf";
+import autoTable from "jspdf-autotable"; // Importación directa del plugin
 
 export default function MetricasAdmin() {
   const navigate = useNavigate();
@@ -103,6 +105,7 @@ const segmentarPresupuestos = (armados) => {
     cargarEstadisticasReales();
     }, []);
 
+  
   const COLORS = ["#6366f1", "#0ea5e9", "#10b981", "#f59e0b", "#ec4899"];
 
   if (loading) return (
@@ -110,6 +113,59 @@ const segmentarPresupuestos = (armados) => {
       <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-indigo-500"></div>
     </div>
   );
+
+      // Función de Descarga del Reporte en formato PDF
+    const handleDescargarReporte = async () => {
+      try {
+        setLoading(true);
+
+        const datosReporte = await getReporteDetallado();
+
+        if (!datosReporte || datosReporte.length === 0) {
+          alert("No hay datos disponibles.");
+          return;
+        }
+
+        // 1. Crear la instancia (Asegúrate de importar { jsPDF } con llaves)
+        const doc = new jsPDF();
+        
+        // 2. Configuración del Título
+        doc.setFontSize(18);
+        doc.text("Reporte Administrativo de Usuarios - ArmatuXPC", 14, 20);
+        doc.setFontSize(11);
+        doc.setTextColor(100);
+        doc.text(`Total de Usuarios en Sistema: ${datosReporte.length}`, 14, 28);
+        doc.text(`Generado por: Administrador ArmatuXPC`, 14, 34);
+                
+        // 3. Mapeo de datos
+        const columnas = ["Nombre", "Correo", "Rol", "Tokens", "PCs Armadas"];
+        const filas = datosReporte.map(u => [
+          u.nombre ?? u.Nombre ?? "N/A",
+          u.correo ?? u.Correo ?? "N/A",
+          u.rol ?? u.Rol ?? "user",
+          u.tokens ?? u.TokensDisponibles ?? 0,
+          u.totalArmados ?? u.TotalArmados ?? 0
+        ]);
+
+        // 4. Llamada al plugin (Sintaxis externa segura)
+        autoTable(doc, {
+          startY: 30,
+          head: [columnas],
+          body: filas,
+          headStyles: { fillColor: [79, 70, 229] },
+          theme: 'grid'
+        });
+
+        // 5. Guardar
+        doc.save(`Reporte_ArmatuXPC_${new Date().getTime()}.pdf`);
+
+      } catch (error) {
+        console.error("ERROR DETALLADO PDF:", error);
+        alert("Error al generar el reporte: " + error.message);
+      } finally {
+        setLoading(false);
+      }
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-4 sm:p-8">
@@ -123,12 +179,21 @@ const segmentarPresupuestos = (armados) => {
             </h1>
             <p className="text-slate-400">Indicadores de Producto y Rendimiento</p>
           </div>
-          <button 
-            onClick={() => navigate("/dashboard-admin")}
-            className="px-5 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition border border-slate-700 flex items-center gap-2"
-          >
-            ← Regresar
-          </button>
+
+          <div className="flex gap-3">
+            <button 
+              onClick={handleDescargarReporte}
+              className="px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition flex items-center gap-2 shadow-lg"
+            >
+              📄 Generar Reporte
+            </button>
+            <button 
+              onClick={() => navigate("/dashboard-admin")}
+              className="px-5 py-2 bg-slate-800 hover:bg-slate-700 rounded-lg transition border border-slate-700 flex items-center gap-2"
+            >
+              ← Regresar
+            </button>
+          </div>
         </div>
 
         {/* PARTE 1: KPIs Reales */}
