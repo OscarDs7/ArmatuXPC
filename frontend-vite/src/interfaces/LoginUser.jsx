@@ -6,6 +6,8 @@ import {
 } from "firebase/firestore";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, sendPasswordResetEmail, updateProfile} from "firebase/auth";
 import { auth, db } from "../utilidades/firebase";
+import { onAuthStateChanged } from "firebase/auth";
+import { sincronizarUsuario } from "../services/api"; // método de api.js
 import fondoProyecto from "../assets/fondo1.jpg"; // imagen de fondo del proyecto
 import BackButton from "../utilidades/BackButton"; // Botón para regresar al menú de roles
 import { useNavigate } from "react-router-dom";
@@ -97,6 +99,21 @@ const isRegistroValido =
     //Validar rol según la ventana donde inicia sesión
     if (!usuario.Rol || usuario.Rol !== "user") {
       return setError("No tienes permisos para acceder aquí.");
+    }
+
+    // 🔄 SINCRONIZACIÓN CON EL BACKEND C#
+    // Esto asegura que el Dashboard Admin tenga los datos actualizados
+    try {
+      await sincronizarUsuario({
+        uid: uid,
+        nombre: usuario.Nombre,
+        correo: usuario.Correo,
+        rol: usuario.Rol,
+        tokensDisponibles: usuario.TokensDisponibles || 0
+      });
+    } catch (syncErr) {
+      console.error("Error silencioso de sincronización:", syncErr);
+      // No bloqueamos el login si la sincronización falla, pero lo logueamos
     }
 
     // Guardar datos en el navegador para luego enviarlo al backend de PostgreSQL
@@ -192,6 +209,20 @@ const isRegistroValido =
       Rol: "user",
       FechaRegistro: new Date(),
     }, { merge: false }); // merge: false para evitar sobreescribir datos si el UID ya existe
+
+    // 4 - SINCRONIZAR CON BACKEND C#
+    // Enviamos los datos al SQL para que el Dashboard Admin marque "1" en lugar de "0"
+    try {
+      await sincronizarUsuario({
+        uid: uid,
+        nombre: nombre,
+        correo: cleanEmail,
+        rol: "user",
+        tokensDisponibles: 3
+      });
+    } catch (syncErr) {
+      console.error("Error al sincronizar nuevo registro:", syncErr);
+    }
 
     // Guardar datos para uso inmediato en la lógica del backend de PostgreSQL
     localStorage.setItem("userUid", uid);
