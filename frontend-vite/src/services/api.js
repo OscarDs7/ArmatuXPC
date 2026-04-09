@@ -83,11 +83,25 @@ export const eliminarArmadoAdmin = async (id) => {
   return true;
 };
 
-
+// Método para consultar toda la tabla de compatibilidades de los componentes
 export const getCompatibilidades = async () => {
   const response = await fetch(`${API_URL}/Compatibilidades`);
   if (!response.ok) throw new Error("Error al obtener compatibilidades");
   return response.json();
+};
+
+// Método para obtener solo los componentes compatibles con uno específico
+export const getCompatiblesComponente = async (id) => {
+  try {
+    const response = await fetch(`${API_URL}/Compatibilidades/buscar/${id}`);
+    if (!response.ok) {
+      throw new Error("No se pudo obtener la lista de compatibilidad.");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error en getCompatiblesComponente:", error);
+    throw error;
+  }
 };
 
 // Añade esto a tu archivo api.js

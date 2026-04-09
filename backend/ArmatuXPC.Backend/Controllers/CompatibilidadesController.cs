@@ -106,9 +106,41 @@ namespace ArmatuXPC.Backend.Controllers
             return NoContent();
         }
 
-        private bool CompatibilidadExists(int id)
+        // Endpoint para filtrar la compatibilidad de un ID de un componente en comparativa de los demás (para el Chatbot / sistema)
+        [HttpGet("buscar/{id}")]
+        public async Task<IActionResult> GetCompatibles(int id)
         {
-            return _context.Compatibilidades.Any(e => e.CompatibilidadId == id);
+            try
+            {
+                // Buscamos en la tabla de compatibilidades donde el ID sea el A o el B
+                // Suponiendo que tu tabla tiene 'ComponenteAId' y 'ComponenteBId'
+                var compatiblesIds = await _context.Compatibilidades
+                    .Where(c => c.ComponenteAId == id || c.ComponenteBId == id)
+                    .Select(c => c.ComponenteAId == id ? c.ComponenteBId : c.ComponenteAId)
+                    .ToListAsync();
+
+                if (!compatiblesIds.Any()) return Ok(new List<object>());
+
+                // Obtenemos los detalles de esos componentes
+                var componentes = await _context.Componentes
+                    .Where(comp => compatiblesIds.Contains(comp.ComponenteId))
+                    .Select(comp => new {
+                        comp.ComponenteId,
+                        comp.Nombre,
+                        comp.Marca,
+                        comp.Tipo,
+                        comp.Precio
+                    })
+                    .ToListAsync();
+
+                return Ok(componentes);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error al obtener compatibles: {ex.Message}");
+            }
         }
+
+
     }
 }
