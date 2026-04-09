@@ -1,4 +1,6 @@
 import { Routes, Route } from "react-router-dom";
+import { useState } from "react";
+import Chatbot from "./components/Chatbot";
 
 import { MenuRoles } from "./interfaces/MenuRoles";
 import { Toaster } from 'react-hot-toast';
@@ -33,6 +35,7 @@ import Indice from "./interfaces/Indice";
 import Grafica from "./interfaces/Grafica";
 
 function App() {
+<<<<<<< HEAD
   return (
     <>
       <Toaster position="top-right" />
@@ -138,16 +141,57 @@ function App() {
         </AdminRoute>
        }
       />
+=======
 
-      {/* Rutas de prueba para backend */}
-      <Route path="/test-backend-basico" element={<TestBackendBasico />} />
-      <Route path="/test-backend-medio" element={<TestBackendMedio />} />
-      <Route path="/test-backend-completo" element={<TestBackendCompleto />}    
-      />
+  // 🔥 CONTROL GLOBAL DEL CHATBOT
+  const [chatAbierto, setChatAbierto] = useState(false);
 
-      {/* Ruta de prueba para Three.js */}
-      <Route path="/prueba-three" element={<PruebaThree />} />  
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<MenuRoles />} />
+        <Route path="/login-user" element={<LoginUsuario />} />
+        <Route path="/login-admin" element={<LoginAdmin />} />
 
+        {/* Rutas protegidas */}
+        <Route
+          path="/dashboard-user"
+          element={
+            <ProtectedRoute>
+              <DashBoardUser setChatAbierto={setChatAbierto} />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-admin"
+          element={
+            <AdminRoute>
+              <DashBoardAdmin setChatAbierto={setChatAbierto} />
+            </AdminRoute>
+          }
+        />
+>>>>>>> 90bf107 (avance local antes de actualizar)
+
+        <Route
+          path="/gestion-cuentas"
+          element={
+            <AdminRoute>
+              <GestionCuentasAdmin />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/crear-cuenta-admin"
+          element={
+            <AdminRoute>
+              <CrearCuentaAdmin />
+            </AdminRoute>
+          }
+        />
+
+<<<<<<< HEAD
       {/* Rutas de modelado 3D de los componentes (guía interactiva) */}
       <Route path="/Indice" element={<Indice/>} />
       <Route path="/Almacenamiento" element={<Memorias />} />
@@ -161,5 +205,60 @@ function App() {
     </>
   );  
 } 
+=======
+        <Route
+          path="/administrar-cuentas"
+          element={
+            <AdminRoute>
+              <AdministrarCuentas />
+            </AdminRoute>
+          }
+        />
+>>>>>>> 90bf107 (avance local antes de actualizar)
 
-export default App
+        <Route
+          path="/gestion-catalogo-admin"
+          element={
+            <AdminRoute>
+              <AgregarComponenteAdmin />
+            </AdminRoute>
+          }
+        />
+
+        <Route path="/nuevo-proyecto" element={<NuevoProyecto />} />
+
+        <Route
+          path="/monitoreo-logistica-admin"
+          element={
+            <AdminRoute>
+              <MonitoreoLogistica />
+            </AdminRoute>
+          }
+        />
+
+        {/* Tests */}
+        <Route path="/test-backend-basico" element={<TestBackendBasico />} />
+        <Route path="/test-backend-medio" element={<TestBackendMedio />} />
+        <Route path="/test-backend-completo" element={<TestBackendCompleto />} />
+
+        {/* Otros */}
+        <Route path="/prueba-three" element={<PruebaThree />} />
+
+        {/* Modelado */}
+        <Route path="/Indice" element={<Indice />} />
+        <Route path="/Almacenamiento" element={<Memorias />} />
+        <Route path="/Ram" element={<Rams />} />
+        <Route path="/CPU" element={<CPU />} />
+        <Route path="/Fuente" element={<Fuente />} />
+        <Route path="/Ventilador" element={<Ventilador />} />
+        <Route path="/Grafica" element={<Grafica />} />
+        <Route path="/Placa" element={<Placa />} />
+      </Routes>
+
+      {/* 🔥 CHATBOT GLOBAL CONTROLADO */}
+      <Chatbot abierto={chatAbierto} setAbierto={setChatAbierto} />
+    </>
+  );
+}
+
+export default App;

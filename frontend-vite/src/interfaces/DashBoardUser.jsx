@@ -5,7 +5,7 @@ import logoProyecto from "../assets/Logo.png";
 import { signOut } from "firebase/auth";
 import { auth } from "../utilidades/firebase";
 
-export default function DashBoardUser() {
+export default function DashBoardUser({ setChatAbierto }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
@@ -165,7 +165,12 @@ export default function DashBoardUser() {
       </main>
 
       {/* BOTÓN CHATBOT IA */}
-      <button className="dash-chatbot-btn">🤖</button>
+      <button 
+        className="dash-chatbot-btn"
+        onClick={() => setChatAbierto(true)}
+      >
+        🤖
+      </button>
     </div>
   );
 }
