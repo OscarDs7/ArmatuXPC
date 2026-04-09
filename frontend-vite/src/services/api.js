@@ -92,16 +92,9 @@ export const getCompatibilidades = async () => {
 
 // Método para obtener solo los componentes compatibles con uno específico
 export const getCompatiblesComponente = async (id) => {
-  try {
-    const response = await fetch(`${API_URL}/Compatibilidades/buscar/${id}`);
-    if (!response.ok) {
-      throw new Error("No se pudo obtener la lista de compatibilidad.");
-    }
-    return await response.json();
-  } catch (error) {
-    console.error("Error en getCompatiblesComponente:", error);
-    throw error;
-  }
+  const response = await fetch(`${API_URL}/Compatibilidades/buscar/${id}`);
+  if (!response.ok) throw new Error("Error al consultar compatibilidad");
+  return await response.json();
 };
 
 // Añade esto a tu archivo api.js
