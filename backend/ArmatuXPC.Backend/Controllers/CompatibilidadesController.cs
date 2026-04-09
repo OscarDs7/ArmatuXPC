@@ -106,41 +106,38 @@ namespace ArmatuXPC.Backend.Controllers
             return NoContent();
         }
 
-        // Endpoint para filtrar la compatibilidad de un ID de un componente en comparativa de los demás (para el Chatbot / sistema)
+        // Endpoint para filtrar la compatibilidad de un ID de un componente en comparativa de los demás (para el Chatbot)
         [HttpGet("buscar/{id}")]
         public async Task<IActionResult> GetCompatibles(int id)
         {
-            try
-            {
-                // Buscamos en la tabla de compatibilidades donde el ID sea el A o el B
-                // Suponiendo que tu tabla tiene 'ComponenteAId' y 'ComponenteBId'
-                var compatiblesIds = await _context.Compatibilidades
-                    .Where(c => c.ComponenteAId == id || c.ComponenteBId == id)
-                    .Select(c => c.ComponenteAId == id ? c.ComponenteBId : c.ComponenteAId)
-                    .ToListAsync();
+            // 1. Obtenemos todas las reglas (positivas y negativas) relacionadas al ID
+            var reglas = await _context.Compatibilidades
+                .Where(c => c.ComponenteAId == id || c.ComponenteBId == id)
+                .ToListAsync();
 
-                if (!compatiblesIds.Any()) return Ok(new List<object>());
+            // 2. Separamos los IDs que SÍ son compatibles
+            var idsCompatibles = reglas
+                .Where(r => r.EsCompatible)
+                .Select(r => r.ComponenteAId == id ? r.ComponenteBId : r.ComponenteAId)
+                .ToList();
 
-                // Obtenemos los detalles de esos componentes
-                var componentes = await _context.Componentes
-                    .Where(comp => compatiblesIds.Contains(comp.ComponenteId))
-                    .Select(comp => new {
-                        comp.ComponenteId,
-                        comp.Nombre,
-                        comp.Marca,
-                        comp.Tipo,
-                        comp.Precio
-                    })
-                    .ToListAsync();
+            // 3. Traemos los detalles de los componentes que SÍ son compatibles
+            var componentesInfo = await _context.Componentes
+                .Where(comp => idsCompatibles.Contains(comp.ComponenteId))
+                .ToListAsync();
 
-                return Ok(componentes);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error al obtener compatibles: {ex.Message}");
-            }
+            // 4. Construimos una respuesta enriquecida para la IA
+            var respuesta = new {
+                Soportados = componentesInfo.Select(c => new {
+                    c.ComponenteId,
+                    c.Nombre,
+                    Motivo = reglas.First(r => (r.ComponenteAId == c.ComponenteId || r.ComponenteBId == c.ComponenteId) && r.EsCompatible).Motivo
+                }),
+                IncompatiblesAvisos = reglas.Where(r => !r.EsCompatible).Select(r => r.Motivo)
+            };
+
+            return Ok(respuesta);
         }
-
 
     }
 }
