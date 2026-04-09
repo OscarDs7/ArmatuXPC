@@ -119,7 +119,7 @@ export default function DashBoardUser() {
           onClick={irAContinuarProyecto}
         >
           <h3 className="text-lg font-bold">📂 Continuar último borrador</h3>
-          <p>Retoma tu última configuración guardada automáticamente en este navegador</p>
+          <p>Retoma tu última configuración de armado guardado en este navegador</p>
         </div>
 
         {/* CARD: NUEVO PROYECTO */}
@@ -139,7 +139,7 @@ export default function DashBoardUser() {
                         hover:scale-[1.02] hover:shadow-2xl cursor-pointer"
              onClick={() => navigate("/mis-armados")}>
           <h3 className="text-lg font-bold">📚 Mis Armados Guardados</h3>
-          <p>Consulta y edita tus proyectos finalizados en la nube</p>
+          <p>Consulta, edita y comparte tus proyectos finalizados en la nube</p>
         </div>
 
         <div className="w-full max-w-3xl bg-linear-to-r from-blue-500 to-blue-600 
@@ -147,7 +147,7 @@ export default function DashBoardUser() {
                   hover:scale-[1.02] hover:shadow-2xl cursor-pointer"
                   onClick={() => navigate("/comprar-tokens")}>
           <h3 className="text-lg font-bold">🪙 Comprar tokens</h3>
-          <p>Desbloquea más proyectos</p>
+          <p>Desbloquea más espacios de armado para nuevos proyectos</p>
         </div>
       </main>
 

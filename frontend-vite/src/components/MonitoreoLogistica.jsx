@@ -27,7 +27,7 @@ export default function MonitoreoLogistica({ onBack }) {
           {/* COMPONENTES */}
           <div
             onClick={() => setVista("componentes")}
-            className={`${cardStyle} bg-gradient-to-br from-indigo-500 to-indigo-700`}
+            className={`${cardStyle} bg-linear-to-br from-indigo-500 to-indigo-700`}
           >
             <Cpu size={40} />
             <h2 className="text-xl font-semibold">Administrar Componentes</h2>
@@ -39,7 +39,7 @@ export default function MonitoreoLogistica({ onBack }) {
           {/* ARMADOS */}
           <div
             onClick={() => setVista("armados")}
-            className={`${cardStyle} bg-gradient-to-br from-blue-500 to-blue-700`}
+            className={`${cardStyle} bg-linear-to-br from-blue-500 to-blue-700`}
           >
             <Users size={40} />
             <h2 className="text-xl font-semibold">Armados de Usuarios</h2>
@@ -51,7 +51,7 @@ export default function MonitoreoLogistica({ onBack }) {
           {/* COMPATIBILIDADES */}
           <div
             onClick={() => setVista("compatibilidades")}
-            className={`${cardStyle} bg-gradient-to-br from-purple-500 to-purple-700`}
+            className={`${cardStyle} bg-linear-to-br from-purple-500 to-purple-700`}
           >
             <Link size={40} />
             <h2 className="text-xl font-semibold">Compatibilidades</h2>
