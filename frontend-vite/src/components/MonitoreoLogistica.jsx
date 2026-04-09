@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Cpu, Users, Link, ArrowLeft } from "lucide-react";
+
 import ComponentesAdmin from "./monitoreo/ComponentesAdmin";
 import ArmadosUsuarios from "./monitoreo/ArmadosUsuarios";
 import CompatibilidadesAdmin from "./monitoreo/CompatibilidadesAdmin";
@@ -9,47 +11,69 @@ export default function MonitoreoLogistica({ onBack }) {
   const [vista, setVista] = useState("menu");
   const navigate = useNavigate();
 
-  return (
-    <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center p-8">
+  const cardStyle =
+    "flex flex-col justify-center items-start gap-3 p-6 rounded-2xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl cursor-pointer";
 
-      <h1 className="text-2xl font-semibold mb-6">
-        Monitoreo y Logística
+  return (
+    <div className="min-h-screen bg-slate-900 text-white flex flex-col items-center p-10">
+
+      <h1 className="text-4xl font-bold mb-10 tracking-wide text-center">
+        🚀 Monitoreo y Logística
       </h1>
 
       {vista === "menu" && (
-        <div className="flex flex-col gap-4 w-72">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-5xl">
 
-          <button
+          {/* COMPONENTES */}
+          <div
             onClick={() => setVista("componentes")}
-            className="bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700"
+            className={`${cardStyle} bg-gradient-to-br from-indigo-500 to-indigo-700`}
           >
-            Administrar Componentes
-          </button>
+            <Cpu size={40} />
+            <h2 className="text-xl font-semibold">Administrar Componentes</h2>
+            <p className="text-sm opacity-80">
+              Gestiona, edita y controla los componentes disponibles
+            </p>
+          </div>
 
-          <button
+          {/* ARMADOS */}
+          <div
             onClick={() => setVista("armados")}
-            className="bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700"
+            className={`${cardStyle} bg-gradient-to-br from-blue-500 to-blue-700`}
           >
-            Ver Armados de Usuarios
-          </button>
+            <Users size={40} />
+            <h2 className="text-xl font-semibold">Armados de Usuarios</h2>
+            <p className="text-sm opacity-80">
+              Visualiza configuraciones creadas por los usuarios
+            </p>
+          </div>
 
-          <button
+          {/* COMPATIBILIDADES */}
+          <div
             onClick={() => setVista("compatibilidades")}
-            className="bg-indigo-600 p-3 rounded-lg hover:bg-indigo-700"
+            className={`${cardStyle} bg-gradient-to-br from-purple-500 to-purple-700`}
           >
-            Compatibilidades
-          </button>
+            <Link size={40} />
+            <h2 className="text-xl font-semibold">Compatibilidades</h2>
+            <p className="text-sm opacity-80">
+              Administra relaciones entre componentes
+            </p>
+          </div>
 
-          <button
-            onClick= {() => {
+          {/* REGRESAR */}
+          <div
+            onClick={() => {
               if (onBack) onBack();
               else navigate("/dashboard-admin");
             }}
-
-            className="bg-slate-700 p-3 rounded-lg hover:bg-slate-600"
+            className={`${cardStyle} bg-slate-700 hover:bg-slate-600`}
           >
-            Regresar
-          </button>
+            <ArrowLeft size={40} />
+            <h2 className="text-xl font-semibold">Regresar</h2>
+            <p className="text-sm opacity-80">
+              Volver al panel principal
+            </p>
+          </div>
 
         </div>
       )}
