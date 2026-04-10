@@ -58,6 +58,16 @@ export const getArmados = async () => {
   }
 };
 
+export const actualizarArmado = async (armadoId, datos) => {
+  const response = await fetch(`${API_URL}/Armados/${armadoId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(datos),
+  });
+  if (!response.ok) throw new Error("No se pudo actualizar el armado");
+  return true;
+};
+
 // Cambiar estado de publicación (público/privado)
 export const togglePublicado = async (id) => {
   const response = await fetch(`${API_URL}/Armados/${id}/toggle-public`, {
