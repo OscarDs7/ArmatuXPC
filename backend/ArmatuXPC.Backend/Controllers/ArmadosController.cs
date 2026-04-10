@@ -128,7 +128,9 @@ namespace ArmatuXPC.Backend.Controllers
                             Precio = ac.Componente.Precio,
                             Tipo = ac.Componente.Tipo.ToString(), // Lo enviamos como texto para React
                             Cantidad = ac.Cantidad,
-                            ImagenUrl = ac.Componente.ImagenUrl
+                            ImagenUrl = ac.Componente.ImagenUrl,
+                            ConsumoWatts = ac.Componente.ConsumoWatts,
+                            CapacidadWatts = ac.Componente.CapacidadWatts
                         })
                     })
                     .ToListAsync();
