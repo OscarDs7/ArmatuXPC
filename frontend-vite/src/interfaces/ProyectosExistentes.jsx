@@ -134,9 +134,25 @@ export default function ProyectosExistentes() {
     }
   };
 
-
   // Función para cerrar el modal
   const cerrarModal = () => setProyectoSeleccionado(null);
+
+  // Función para redirigir a la edición del armado
+  const handleEditarProyecto = (proyecto) => {
+    // 1. Limpiamos cualquier borrador previo para no mezclar datos
+    localStorage.removeItem("borrador_armado");
+
+    // 2. Navegamos a NuevoProyecto pasando el objeto completo en el state de React Router
+    // y también lo marcamos en localStorage por si el usuario refresca la página
+    localStorage.setItem("editando_armado_id", proyecto.armadoId);
+    
+    navigate("/nuevo-proyecto", { 
+      state: { 
+        proyectoParaEditar: proyecto,
+        esEdicion: true 
+      } 
+    });
+  };
 
 
   return (
@@ -218,6 +234,14 @@ export default function ProyectosExistentes() {
               {p.esPublicado ? "Quitar de Comunidad" : "Publicar en Comunidad"}
             </button>
 
+            {/* BOTÓN DE EDITAR EN LA CARD */}
+            <button 
+              className="btn-editar" 
+              onClick={() => handleEditarProyecto(p)}
+            >
+              Editar Armado ✏️
+            </button>
+
             <button className="btn-eliminar" onClick={() => eliminarArmadoYActualizar(p.armadoId)}>
               Eliminar
             </button>
@@ -290,7 +314,10 @@ export default function ProyectosExistentes() {
                       .toLocaleString('es-MX')} MXN
               </span>
           </div>
-          
+          <div className="modal-actions">
+            
+          </div>
+
           </div>
         </div>
       )}
