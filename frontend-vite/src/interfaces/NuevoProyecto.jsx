@@ -186,26 +186,7 @@ const finalizarTutorial = () => {
   setPasoTutorial(0); // Limpia el paso para futuras sesiones si decides reabrirlo
 };
 
-  // Función para resolver incompatibilidades: por simplicidad, vamos a quitar el componente que causa el conflicto (el segundo en la regla)
-  const resolverIncompatibilidad = () => {
-    if (incompatibilidades.length === 0) return;
-
-    const conflicto = incompatibilidades[0];
-
-    setPcActual(prev => {
-      const nuevo = { ...prev };
-
-      Object.keys(nuevo).forEach(key => {
-        if (nuevo[key]?.nombre === conflicto.componenteB) {
-          nuevo[key] = null;
-        }
-      });
-
-      return nuevo;
-    });
-  };
-
-  // Función para quitar el componente conflictivo de incompatibilidades
+  // Función para quitar el componente conflictivo de incompatibilidades si no encuentra una regla específica en Tabla Compatibilidades
   const quitarComponenteConflicto = (nombreComponente) => {
   // Buscamos en pcActual cuál categoría tiene ese nombre para ponerla en null
   const categoriaEncontrada = Object.keys(pcActual).find(
@@ -222,7 +203,7 @@ const finalizarTutorial = () => {
   }
 };
 
-  // Método para validar si un componente está en error por incompatibilidad: lo usamos para marcar en rojo los componentes que tienen conflictos
+  // Función para validar si un componente está en error por incompatibilidad: lo usamos para marcar en rojo los componentes que tienen conflictos
   const esComponenteIncompatible = (componente) => {
     return incompatibilidades.some(inc =>
       inc.componenteA === componente?.nombre ||
@@ -622,22 +603,26 @@ const reemplazarPieza = (sug) => {
 };
 
 
-// Función PRO que unifica a las otras dos funciones de brindar sugerencias de componentes compatibles
+  // Función PRO que unifica a las otras dos funciones de brindar sugerencias de componentes compatibles de manera automática
   const handleSugerenciasPro = async (index, idBase, tipoBuscado = null) => {
-    let piezas = [];
-    
-    if (tipoBuscado) {
-      // Si el usuario eligió un botón específico (ej: "Ver Coolers")
-      piezas = await obtenerSugerenciasPorTipo(idBase, tipoBuscado);
-    } else {
-      // Si es el botón genérico de compatibilidades
-      piezas = await obtenerSugerenciasParaError(idBase);
-    }
+    try {
+      // 1. Decidimos qué servicio usar de forma limpia
+      const servicio = tipoBuscado 
+        ? obtenerSugerenciasPorTipo(idBase, tipoBuscado) 
+        : obtenerSugerenciasParaError(idBase);
 
-    setSugerencias(prev => ({ 
-      ...prev, 
-      [index]: piezas 
-    }));
+      const piezas = await servicio;
+
+      // 2. Actualizamos el estado asegurando que siempre sea un array
+      setSugerencias(prev => ({ 
+        ...prev, 
+        [index]: piezas || [] 
+      }));
+    } catch (error) {
+      console.error("Error al obtener sugerencias optimizadas:", error);
+      // Opcional: limpiar el estado en caso de error para no mostrar datos viejos
+      setSugerencias(prev => ({ ...prev, [index]: [] }));
+    }
   };
 
   // Renderizamos el componente //
@@ -940,16 +925,31 @@ const reemplazarPieza = (sug) => {
                                 
                                 {/* BOTÓN: Ahora usa 'inc' que es la variable del map y está dentro del bucle */}
                                 {/* Dentro de tu .map de incompatibilidades */}
-                                  <div className="solucion-automatica">
+                                  <div className="acciones-inteligentes">
                                     <p className="texto-ayuda">
                                       Parece que hay un problema con la categoría: <strong>{inc.tipoComponenteB}</strong>
                                     </p>
                                     
+                                    {/* OPCIÓN A: Cambiar el primer componente por otro del mismo tipo */}
+                                    <button 
+                                      onClick={() => handleSugerenciasPro(index, inc.componenteBId, inc.tipoComponenteA)}
+                                      className="btn-accion-rapida"
+                                    >
+                                      <span className="icon">🔍</span>
+                                      <div>
+                                        Buscar otro <span className="categoria-resaltada">{inc.tipoComponenteA}</span> que sirva con {inc.componenteB}
+                                      </div>
+                                    </button>
+
+                                    {/* OPCIÓN B: Cambiar el segundo componente por otro del mismo tipo */}
                                     <button 
                                       onClick={() => handleSugerenciasPro(index, inc.componenteAId, inc.tipoComponenteB)}
-                                      className="btn-accion-urgente"
+                                      className="btn-accion-rapida"
                                     >
-                                      🔍 Ver otros {inc.tipoComponenteB} compatibles con {inc.componenteA}
+                                      <span className="icon">❄️</span>
+                                      <div>
+                                       Buscar otro <span className="categoria-resaltada">{inc.tipoComponenteB}</span> que sirva con {inc.componenteA}
+                                      </div>
                                     </button>
                                   </div>
 
@@ -960,7 +960,9 @@ const reemplazarPieza = (sug) => {
                               {/* RENDERIZADO DE SUGERENCIAS */}
                               {sugerencias[index] && (
                                 <div className="drawer-sugerencias animate-in">
-                                  <h4>Opciones compatibles detectadas:</h4>
+                                  <p style={{fontSize: '0.75rem', fontWeight: 'bold', color: '#64748b', padding: '5px'}}>
+                                    OPCIONES COMPATIBLES DETECTADAS:
+                                  </p>
                                   <ul>
                                     {sugerencias[index].length > 0 ? (
                                       // Si hay sugerencias, las listamos
