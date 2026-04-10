@@ -353,7 +353,9 @@ namespace ArmatuXPC.Backend.Controllers
             var resultado = reglas.Select(r => new
             {
                 componenteA = r.ComponenteA!.Nombre,
+                componenteAId = r.ComponenteAId, 
                 componenteB = r.ComponenteB!.Nombre,
+                componenteBId = r.ComponenteBId, 
                 motivo = r.Motivo
             });
 
