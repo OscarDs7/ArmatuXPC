@@ -167,6 +167,7 @@
 
 /* --- PANEL DERECHO (Con Scroll) --- */
 .component-details {
+  max-height: 90vh; /* Evita que crezca más que la pantalla */
   background: white;
   padding: 20px;
   border-radius: 12px;
@@ -466,14 +467,15 @@
   transform: translateX(24px);
 }
 
-/* Mensaje de error por incompatibilidades */
-  /* Contenedor principal de alertas */
+/* Contenedor principal de alertas por errores de incompatibilidad */
 .alerta-error {
   background: #fffafa; /* Rojo muy tenue */
   border: 1px solid #fee2e2;
   border-left: 5px solid #ef4444; /* Acento fuerte a la izquierda */
   border-radius: 12px;
-  padding: 20px;
+  padding: 10px;
+  max-height: auto; /* Altura máxima para las piezas reemplazables */
+  overflow-y: auto;
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
 }
 
@@ -1220,4 +1222,71 @@
 
 .titulo-resumen{
   color: black;
+}
+
+/* Estilos de botones de lista de opciones de componentes compatibles y mensaje de ayuda */
+.acciones-inteligentes {
+  background-color: #f8fafc; /* Azul grisáceo muy claro */
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 10px 0;
+  margin-top: 15px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+/* Texto de ayuda superior */
+.texto-ayuda {
+  font-size: 0.9rem;
+  color: #475569;
+  margin-bottom: 4px;
+  line-height: 1.4;
+}
+
+.texto-ayuda strong {
+  color: #ef4444; /* Rojo para resaltar la categoría del problema */
+  background: #fee2e2;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+/* Estilo base para los botones de acción rápida */
+.btn-accion-rapida {
+background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 15px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  text-align: left;
+}
+
+/* Efectos Hover */
+.btn-accion-rapida:hover {
+  border-color: #3b82f6; /* Azul al pasar el mouse */
+  background-color: #eff6ff;
+  color: #1d4ed8;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+}
+
+/* Resaltado de la categoría dentro del botón */
+.btn-accion-rapida b, 
+.btn-accion-rapida strong {
+  color: #3b82f6;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* El texto que resalta la categoría (CPU, PlacaBase, etc) */
+.categoria-resaltada {
+  color: #3b82f6;
+  font-weight: 700;
+  font-size: 1.1rem;
+  margin: 0 5px;
 }
