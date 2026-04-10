@@ -359,8 +359,8 @@ namespace ArmatuXPC.Backend.Controllers
                 componenteAId = r.ComponenteAId, 
                 componenteBId = r.ComponenteBId, 
                 // Tipo de componente compatible o incompatible
-                tipoComponenteA = r.ComponenteA.Tipo.ToString(), // <-- Vital
-                tipoComponenteB = r.ComponenteB.Tipo.ToString(), // <-- Vital
+                tipoComponenteA = r.ComponenteA.Tipo.ToString() ?? "Desconocido", 
+                tipoComponenteB = r.ComponenteB.Tipo.ToString() ?? "Desconocido", 
                 // Motivo de compatibilidad o incompatibilidad
                 motivo = r.Motivo
             });
