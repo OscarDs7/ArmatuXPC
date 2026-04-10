@@ -351,10 +351,12 @@ namespace ArmatuXPC.Backend.Controllers
                 .ToListAsync();
 
             var resultado = reglas.Select(r => new
-            {
+            {   
+                // Usuario
                 componenteA = r.ComponenteA!.Nombre,
-                componenteAId = r.ComponenteAId, 
                 componenteB = r.ComponenteB!.Nombre,
+                // Lógica del sistema
+                componenteAId = r.ComponenteAId, 
                 componenteBId = r.ComponenteBId, 
                 motivo = r.Motivo
             });
