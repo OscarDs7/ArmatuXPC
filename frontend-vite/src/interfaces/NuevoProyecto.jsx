@@ -3,7 +3,8 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../utilidades/firebase";
 import gabinete from "../assets/gabinete.png"; 
-import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal, actualizarArmado } from "../services/api"; 
+import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal, 
+         actualizarArmado, obtenerSugerenciasParaError, obtenerSugerenciasPorTipo } from "../services/api"; 
 import "../estilos/NuevoProyecto.css";
 
 export default function NuevoProyecto() {
@@ -22,6 +23,7 @@ export default function NuevoProyecto() {
   const [cargandoDatos, setCargandoDatos] = useState(true);
   const [tokens, setTokens] = useState(0); // ✨ Nuevo estado para tokens
   const [armadoIdEdicion, setArmadoIdEdicion] = useState(null);
+  const [sugerencias, setSugerencias] = useState({}); // { idError: [componentes] }
 
   // Estados para la persistencia del proyecto en localStorage: UID de sesión, nombre del usuario y clave de almacenamiento específica para este proyecto
   const uidSession = localStorage.getItem("userUid");
@@ -203,6 +205,23 @@ const finalizarTutorial = () => {
     });
   };
 
+  // Función para quitar el componente conflictivo de incompatibilidades
+  const quitarComponenteConflicto = (nombreComponente) => {
+  // Buscamos en pcActual cuál categoría tiene ese nombre para ponerla en null
+  const categoriaEncontrada = Object.keys(pcActual).find(
+    key => pcActual[key]?.nombre === nombreComponente
+  );
+
+  if (categoriaEncontrada) {
+    setPcActual(prev => ({
+      ...prev,
+      [categoriaEncontrada]: null
+    }));
+    // Limpiamos sugerencias abiertas
+    setSugerencias({});
+  }
+};
+
   // Método para validar si un componente está en error por incompatibilidad: lo usamos para marcar en rojo los componentes que tienen conflictos
   const esComponenteIncompatible = (componente) => {
     return incompatibilidades.some(inc =>
@@ -218,10 +237,22 @@ useEffect(() => {
   const inicializar = async () => {
     const proyectoParaEditar = location.state?.proyectoParaEditar;
     const esEdicionDeseada = location.state?.esEdicion;
+    const esPlantilla = location.state?.esPlantilla; // Nuevo: para plantillas de comunidad
+
+    // 1. LIMPIEZA PREVENTIVA: Si NO venimos expresamente a editar,
+    // pero el localStorage dice que estábamos editando algo, limpiamos si la ruta es "nuevo"
+    if (modo === "nuevo" && !esEdicionDeseada && !esPlantilla) {
+      localStorage.removeItem(`editando_id_${uidSession}`);
+      localStorage.removeItem(STORAGE_KEY);
+      setArmadoIdEdicion(null);
+      setPcActual({}); // O tu estado inicial vacío
+      setNombreProyecto("");
+    }
 
     // ESCENARIO A: Si venimos de "Mis Armados" para EDITAR
-    if (esEdicionDeseada && proyectoParaEditar) {
-      setArmadoIdEdicion(proyectoParaEditar.armadoId);
+    if ((esEdicionDeseada || esPlantilla) && proyectoParaEditar) {
+      // Si es plantilla, el ID de edición debe ser NULL para que sea un guardado nuevo
+      setArmadoIdEdicion(esPlantilla ? null : proyectoParaEditar.armadoId);
       setNombreProyecto(proyectoParaEditar.nombreArmado);
       
       const configMapeada = { ...pcActual };
@@ -246,20 +277,29 @@ useEffect(() => {
       setMostrarTutorial(false);
       
       // Guardamos el ID en storage por si se refresca la página
-      localStorage.setItem(`editando_id_${uidSession}`, proyectoParaEditar.armadoId);
+      if (esEdicionDeseada) {
+        localStorage.setItem(`editando_id_${uidSession}`, proyectoParaEditar.armadoId);
+      }
+
     } 
-    // ESCENARIO B: Si el modo es "continuar" o hubo un corte de luz (Recuperación)
+    // ESCENARIO B: Recuperación (Refrescar página o volver del panel)
     else if (modo === "continuar" || localStorage.getItem(STORAGE_KEY)) {
-      const guardado = localStorage.getItem(STORAGE_KEY);
-      if (guardado) {
-        setPcActual(JSON.parse(guardado));
+      const guardadoRaw = localStorage.getItem(STORAGE_KEY);
+      if (guardadoRaw) {
+        const data = JSON.parse(guardadoRaw);
+        
+        // Verificamos si los datos vienen en el nuevo formato de objeto o el antiguo (solo piezas)
+        const piezasARestaurar = data.piezas ? data.piezas : data;
+        const nombreARestaurar = data.nombre ? data.nombre : "";
+
+        setPcActual(piezasARestaurar);
+        setNombreProyecto(nombreARestaurar); // <--- AQUÍ RECUPERAMOS EL NOMBRE
         setMostrarTutorial(false);
         
-        // Recuperamos el ID de edición si existía antes del corte
         const idRecuperado = localStorage.getItem(`editando_id_${uidSession}`);
         if (idRecuperado) setArmadoIdEdicion(parseInt(idRecuperado));
       }
-    } 
+    }
     // ESCENARIO C: Proyecto totalmente nuevo
     else if (modo === "nuevo") {
       localStorage.removeItem(STORAGE_KEY);
@@ -272,28 +312,52 @@ useEffect(() => {
   inicializar();
 }, [modo, uidSession, location.state]);
 
-// 2. Efecto de Auto-guardado (Protección contra cortes de luz)
+// 2. Efecto de Auto-guardado (Protección contra cortes de luz o desconexión de Internet)
 useEffect(() => {
   if (cargandoDatos || !uidSession || !autoGuardado) return;
 
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(pcActual));
+  const backup = {
+    piezas: pcActual,
+    nombre: nombreProyecto 
+  };
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(backup));
   
   // Si estamos editando, guardamos el ID para no perder la referencia tras un apagón
   if (armadoIdEdicion) {
     localStorage.setItem(`editando_id_${uidSession}`, armadoIdEdicion);
   }
   
-  console.log("Progreso blindado contra cortes de luz ⚡");
 }, [pcActual, cargandoDatos, uidSession, autoGuardado, armadoIdEdicion]);
 
 // --- FIN DE LA LÓGICA DE PERSISTENCIA ---
 
-// -- Función de guardado manual -- //
+// -- Función de guardado manual mediante botón -- //
 const guardarProgresoManual = () => {
   if (!uidSession) return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(pcActual));
   alert("💾 Progreso guardado manualmente en este navegador.");
 };
+
+  // Función de reset por si el usuario quiere borrar todos los datos de su edición y empezar un nuevo proyecto
+  const resetearProyecto = () => {
+    if (window.confirm("¿Seguro que quieres abandonar la edición? Los cambios no guardados se perderán.")) {
+      // 1. Limpiar LocalStorage
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(`editando_id_${uidSession}`);
+
+      // 2. Limpiar Estados de React
+      setPcActual({}); // O tu objeto inicial con categorías vacías
+      setArmadoIdEdicion(null);
+      setNombreProyecto("");
+      
+      // 3. Limpiar el estado de la navegación (opcional pero recomendado)
+      // Esto evita que si el usuario refresca, el location.state vuelva a disparar la edición
+      navigate("/nuevo-proyecto", { replace: true, state: {} });
+      
+      alert("Iniciando nuevo proyecto...");
+    }
+  };
 
   // ESCUCHA DE TOKENS EN TIEMPO REAL
   useEffect(() => {
@@ -514,6 +578,68 @@ const estaDesbloqueado = (comp) => {
   // FIN de la lógica de carga automática desde la comunidad (esto permite que al hacer click en "Usar esta plantilla" en la comunidad, se abra el configurador con esa plantilla ya cargada y lista para editar)
 
   
+  // Función para reemplazar una pieza de componente por uno que si sea compatible
+const reemplazarPieza = (sug) => {
+  // 1. Traductor de categorías (Normalización Robusta)
+  const mapeoCategorias = {
+    "PlacaBase": "Motherboard",
+    "CPU": "CPU",
+    "GPU": "GPU",
+    "Refrigeracion": "Refrigeracion",
+    "MemoriaRAM": "RAM",
+    "FuentePoder": "Fuente de poder",
+    "Gabinete": "Gabinete",
+    "Almacenamiento": "Almacenamiento"
+  };
+
+  const categoriaOriginal = sug.tipo || sug.Tipo;
+  const categoriaDestino = mapeoCategorias[categoriaOriginal] || categoriaOriginal;
+
+  // 2. Actualización de PC y Limpieza de Estados
+  setPcActual(prev => ({
+    ...prev,
+    [categoriaDestino]: {
+      ...sug,
+      nombre: sug.nombre || sug.Nombre, // Soporte para PascalCase del Backend
+      precio: sug.precio || sug.Precio,
+      imagenUrl: sug.imagenUrl || sug.ImagenUrl,
+      tipo: categoriaDestino
+    }
+  }));
+
+  // 3. IMPORTANTE: Limpiar sugerencias y errores específicos
+  setSugerencias({}); 
+
+  // Scroll suave hacia el resumen para mostrar que la pieza cambió
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // Notificación opcional
+  toast.success("Componente actualizado correctamente");
+  
+  // Si tienes un estado de 'incompatibilidades', podrías forzar una limpieza
+  // o dejar que el useEffect de validación haga su trabajo.
+  console.log(`✅ Éxito: ${sug.nombre} ahora ocupa el lugar de ${categoriaDestino}`);
+};
+
+
+// Función PRO que unifica a las otras dos funciones de brindar sugerencias de componentes compatibles
+  const handleSugerenciasPro = async (index, idBase, tipoBuscado = null) => {
+    let piezas = [];
+    
+    if (tipoBuscado) {
+      // Si el usuario eligió un botón específico (ej: "Ver Coolers")
+      piezas = await obtenerSugerenciasPorTipo(idBase, tipoBuscado);
+    } else {
+      // Si es el botón genérico de compatibilidades
+      piezas = await obtenerSugerenciasParaError(idBase);
+    }
+
+    setSugerencias(prev => ({ 
+      ...prev, 
+      [index]: piezas 
+    }));
+  };
+
   // Renderizamos el componente //
   return (
     <div className="nuevo-proyecto-container">
@@ -705,13 +831,22 @@ const estaDesbloqueado = (comp) => {
 
                     {/* RESUMEN DEL ARMADO Y BOTÓN DE GUARDAR */}   
                     <div className="pc-resumen resumen-pc">
-                      <h2>Resumen del armado</h2>
-                        {modo === "continuar" && (
-                          <p style={{ color: "#3b82f6", fontSize: "0.8rem", marginBottom: "10px" }}>
-                            ℹ️ Estas viendo tu progreso guardado localmente.
-                          </p>
-                        )}
-                      <ul>
+                        <h2 className="titulo-resumen">Resumen del armado</h2>
+                        <div className="status-messages">
+                            {armadoIdEdicion ? (
+                              <div className="aviso-edicion">
+                                <span>✏️ Estás editando: <strong>{nombreProyecto}</strong></span>
+                                <button onClick={resetearProyecto} className="btn-cancelar-edicion">
+                                  Abandonar edición y crear nueva PC
+                                </button>
+                              </div>
+                            ) : modo === "continuar" ? (
+                              <p style={{ color: "#3b82f6", fontSize: "0.8rem", marginBottom: "10px" }}>
+                                ℹ️ Estás viendo tu progreso guardado localmente.
+                              </p>
+                            ) : null}
+                          </div>
+                        <ul>
                         {Object.entries(pcActual).map(([key, modelo]) => (
                           <li key={key} 
                           className={`resumen-item ${esComponenteIncompatible(modelo) ? "incompatible" : ""}`}>
@@ -789,26 +924,97 @@ const estaDesbloqueado = (comp) => {
 
                     {/* INCOMPATIBILIDADES EN TIEMPO REAL */}
                     {incompatibilidades.length > 0 && (
-                    <div className="alerta-error">
-                      <h3>⚠️ Incompatibilidades detectadas:</h3>
-                      
-                      <div className="conflict-list">
-                        {incompatibilidades.map((inc, index) => (
-                          <div key={index} className="conflict-card">
-                            <div className="conflict-header">
-                              <span className="comp-name">{inc.componenteA}</span>
-                              <span className="vs-icon">❌</span>
-                              <span className="comp-name">{inc.componenteB}</span>
+                      <div className="alerta-error">
+                        <h3>⚠️ Incompatibilidades detectadas:</h3>
+                        
+                        <div className="conflict-list">
+                          {incompatibilidades.map((inc, index) => (
+                            <div key={index} className="conflict-item-container">
+                              <div className="conflict-card">
+                                <div className="conflict-header">
+                                  <span className="comp-name">{inc.componenteA}</span>
+                                  <span className="vs-icon">❌</span>
+                                  <span className="comp-name">{inc.componenteB}</span>
+                                </div>
+                                <p className="conflict-reason">{inc.motivo}</p>
+                                
+                                {/* BOTÓN: Ahora usa 'inc' que es la variable del map y está dentro del bucle */}
+                                <button 
+                                  onClick={() => handleSugerenciasPro(index, inc.componenteAId)}
+                                  className="btn-sugerencia"
+                                >
+                                  <span role="img" aria-label="light">💡</span>
+                                  Ver piezas compatibles con {inc.componenteA}
+                                </button>
+                              </div>
+
+                              <div className="acciones-resolucion-urgente">
+                                {/* Opción 1: Buscar CPUs compatibles con el Cooler */}
+                                <button 
+                                  onClick={() => handleSugerenciasPro(index, inc.componenteBId, "CPU")}
+                                  className="btn-accion-rapida"
+                                >
+                                  🔍 Ver CPUs compatibles con este Cooler
+                                </button>
+
+                                {/* Opción 2: Buscar Coolers compatibles con el CPU */}
+                                <button 
+                                  onClick={() => handleSugerenciasPro(index, inc.componenteAId, "Refrigeracion")}
+                                  className="btn-accion-rapida"
+                                >
+                                  ❄️ Ver Coolers para este CPU
+                                </button>
+
+                                {/* Ejemplo extra: Si el error fuera de Placa Base */}
+                                {/* handleVerSugerenciasTipo(index, id, "PlacaBase") */}
+                              </div>
+
+                              {/* RENDERIZADO DE SUGERENCIAS */}
+                              {sugerencias[index] && (
+                                <div className="drawer-sugerencias animate-in">
+                                  <h4>Opciones compatibles detectadas:</h4>
+                                  <ul>
+                                    {sugerencias[index].length > 0 ? (
+                                      // Si hay sugerencias, las listamos
+                                      sugerencias[index].map(sug => (
+                                        <li key={sug.componenteId} className="sug-item">
+                                          <div className="sug-info">
+                                            <strong>{sug.nombre}</strong>
+                                            <span className="motivo-sug">{sug.motivo}</span>
+                                          </div>
+                                          <button className="btn-seleccionar-sug" onClick={() => reemplazarPieza(sug)}>
+                                            Reemplazar
+                                          </button>
+                                        </li>
+                                      ))
+                                    ) : (
+                                      // SI NO HAY SUGERENCIAS: Mostramos la "Salida de Emergencia"
+                                      <li className="no-sug-container">
+                                        <p className="no-sug">No tenemos sugerencias automáticas para esta combinación.</p>
+                                        <div className="acciones-conflicto">
+                                          <button 
+                                            onClick={() => quitarComponenteConflicto(inc.componenteB)}
+                                            className="btn-quitar-conflicto"
+                                          >
+                                            🗑️ Quitar {inc.componenteB}
+                                          </button>
+                                          <button 
+                                            onClick={() => quitarComponenteConflicto(inc.componenteA)}
+                                            className="btn-quitar-secundario"
+                                          >
+                                            Quitar {inc.componenteA}
+                                          </button>
+                                        </div>
+                                      </li>
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
                             </div>
-                            <p className="conflict-reason">{inc.motivo}</p>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                      <button onClick={resolverIncompatibilidad} className="btn-corregir">
-                        ✨ Corregir incompatibilidades
-                      </button>
-                    </div>
-                  )}
+                    )}
                         
                   {/* PANEL DERECHO: CATÁLOGO */}
                   <div className="component-details catalogo-componentes">
