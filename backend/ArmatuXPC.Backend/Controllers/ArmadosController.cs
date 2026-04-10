@@ -358,6 +358,10 @@ namespace ArmatuXPC.Backend.Controllers
                 // Lógica del sistema
                 componenteAId = r.ComponenteAId, 
                 componenteBId = r.ComponenteBId, 
+                // Tipo de componente compatible o incompatible
+                tipoComponenteA = r.ComponenteA.Tipo.ToString(), // <-- Vital
+                tipoComponenteB = r.ComponenteB.Tipo.ToString(), // <-- Vital
+                // Motivo de compatibilidad o incompatibilidad
                 motivo = r.Motivo
             });
 
