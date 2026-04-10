@@ -939,31 +939,19 @@ const reemplazarPieza = (sug) => {
                                 <p className="conflict-reason">{inc.motivo}</p>
                                 
                                 {/* BOTÓN: Ahora usa 'inc' que es la variable del map y está dentro del bucle */}
-                                <button 
-                                  onClick={() => handleSugerenciasPro(index, inc.componenteAId)}
-                                  className="btn-sugerencia"
-                                >
-                                  <span role="img" aria-label="light">💡</span>
-                                  Ver piezas compatibles con {inc.componenteA}
-                                </button>
-                              </div>
-
-                              <div className="acciones-resolucion-urgente">
-                                {/* Opción 1: Buscar CPUs compatibles con el Cooler */}
-                                <button 
-                                  onClick={() => handleSugerenciasPro(index, inc.componenteBId, "CPU")}
-                                  className="btn-accion-rapida"
-                                >
-                                  🔍 Ver CPUs compatibles con este Cooler
-                                </button>
-
-                                {/* Opción 2: Buscar Coolers compatibles con el CPU */}
-                                <button 
-                                  onClick={() => handleSugerenciasPro(index, inc.componenteAId, "Refrigeracion")}
-                                  className="btn-accion-rapida"
-                                >
-                                  ❄️ Ver Coolers para este CPU
-                                </button>
+                                {/* Dentro de tu .map de incompatibilidades */}
+                                  <div className="solucion-automatica">
+                                    <p className="texto-ayuda">
+                                      Parece que hay un problema con la categoría: <strong>{inc.tipoComponenteB}</strong>
+                                    </p>
+                                    
+                                    <button 
+                                      onClick={() => handleSugerenciasPro(index, inc.componenteAId, inc.tipoComponenteB)}
+                                      className="btn-accion-urgente"
+                                    >
+                                      🔍 Ver otros {inc.tipoComponenteB} compatibles con {inc.componenteA}
+                                    </button>
+                                  </div>
 
                                 {/* Ejemplo extra: Si el error fuera de Placa Base */}
                                 {/* handleVerSugerenciasTipo(index, id, "PlacaBase") */}
