@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../utilidades/firebase";
 import gabinete from "../assets/gabinete.png"; 
-import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal } from "../services/api"; 
+import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal, actualizarArmado } from "../services/api"; 
 import "../estilos/NuevoProyecto.css";
 
 export default function NuevoProyecto() {
@@ -21,6 +21,7 @@ export default function NuevoProyecto() {
   const [mostrarTutorial, setMostrarTutorial] = useState(true);
   const [cargandoDatos, setCargandoDatos] = useState(true);
   const [tokens, setTokens] = useState(0); // ✨ Nuevo estado para tokens
+  const [armadoIdEdicion, setArmadoIdEdicion] = useState(null);
 
   // Estados para la persistencia del proyecto en localStorage: UID de sesión, nombre del usuario y clave de almacenamiento específica para este proyecto
   const uidSession = localStorage.getItem("userUid");
@@ -210,35 +211,80 @@ const finalizarTutorial = () => {
     );
   };
 
-  // --- LÓGICA DE PERSISTENCIA ---
+// --- LÓGICA DE PERSISTENCIA ---
 
-  // 1. Efecto de Carga Inicial
-  useEffect(() => {
-    if (modo === "continuar") {
+// 1. Efecto de Carga Inicial (Prioriza Edición > Continuar Borrador > Nuevo)
+useEffect(() => {
+  const inicializar = async () => {
+    const proyectoParaEditar = location.state?.proyectoParaEditar;
+    const esEdicionDeseada = location.state?.esEdicion;
+
+    // ESCENARIO A: Si venimos de "Mis Armados" para EDITAR
+    if (esEdicionDeseada && proyectoParaEditar) {
+      setArmadoIdEdicion(proyectoParaEditar.armadoId);
+      setNombreProyecto(proyectoParaEditar.nombreArmado);
+      
+      const configMapeada = { ...pcActual };
+      console.log(proyectoParaEditar.componentes)
+        proyectoParaEditar.componentes.forEach(comp => {
+        const categoriaEnPC = Object.keys(mapTipo).find(key => mapTipo[key] === comp.tipo);
+        
+        if (categoriaEnPC) {
+          configMapeada[categoriaEnPC] = {
+            ...comp, // Mantiene todo lo que venga del API
+            componenteId: comp.componenteId || comp.id || comp.ComponenteId,
+            // NORMALIZACIÓN AGRESIVA: 
+            // Buscamos todas las variantes posibles de nombre que devuelva C#
+            consumoWatts: comp.consumoWatts || comp.ConsumoWatts || comp.consumo || 0,
+            capacidadWatts: comp.capacidadWatts || comp.CapacidadWatts || comp.capacidad || 0,
+            precio: comp.precio || comp.Precio || 0
+          };
+        }
+      });
+      setPcActual(configMapeada);
+      setModoGuia(false);
+      setMostrarTutorial(false);
+      
+      // Guardamos el ID en storage por si se refresca la página
+      localStorage.setItem(`editando_id_${uidSession}`, proyectoParaEditar.armadoId);
+    } 
+    // ESCENARIO B: Si el modo es "continuar" o hubo un corte de luz (Recuperación)
+    else if (modo === "continuar" || localStorage.getItem(STORAGE_KEY)) {
       const guardado = localStorage.getItem(STORAGE_KEY);
       if (guardado) {
-        setPcActual(JSON.parse(guardado)); // Cargamos el progreso guardado
-        // Opcional: Desactivar tutorial si está continuando
+        setPcActual(JSON.parse(guardado));
         setMostrarTutorial(false);
+        
+        // Recuperamos el ID de edición si existía antes del corte
+        const idRecuperado = localStorage.getItem(`editando_id_${uidSession}`);
+        if (idRecuperado) setArmadoIdEdicion(parseInt(idRecuperado));
       }
-    } else if (modo === "nuevo") {
-      // Si el modo es "nuevo", podrías querer limpiar el storage anterior
-      // o simplemente dejar el estado inicial vacío.
-      localStorage.removeItem(STORAGE_KEY); // Limpiamos cualquier progreso anterior al iniciar un nuevo proyecto
+    } 
+    // ESCENARIO C: Proyecto totalmente nuevo
+    else if (modo === "nuevo") {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(`editando_id_${uidSession}`);
+      setArmadoIdEdicion(null);
     }
-    setCargandoDatos(false); // Ya no estamos cargando después de intentar cargar el proyecto
+    setCargandoDatos(false);
+  };
 
-  }, [modo, uidSession]); // Re-ejecuta si cambia el modo o el usuario (por seguridad)
+  inicializar();
+}, [modo, uidSession, location.state]);
 
-  // 2. Efecto de Auto-guardado (Siempre activo)
-  useEffect(() => {
-    // Si todavía estamos cargando los datos iniciales, no guardamos nada (evita sobrescribir el progreso al cargar)
-    if (cargandoDatos || !uidSession || !autoGuardado) return;
+// 2. Efecto de Auto-guardado (Protección contra cortes de luz)
+useEffect(() => {
+  if (cargandoDatos || !uidSession || !autoGuardado) return;
 
-    // Si ya terminamos de cargar, entonces sí guardamos cada cambio automáticamente
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(pcActual));
-    console.log("Progreso guardado automáticamente:", pcActual);
-  }, [pcActual, cargandoDatos, uidSession, autoGuardado]);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pcActual));
+  
+  // Si estamos editando, guardamos el ID para no perder la referencia tras un apagón
+  if (armadoIdEdicion) {
+    localStorage.setItem(`editando_id_${uidSession}`, armadoIdEdicion);
+  }
+  
+  console.log("Progreso blindado contra cortes de luz ⚡");
+}, [pcActual, cargandoDatos, uidSession, autoGuardado, armadoIdEdicion]);
 
 // --- FIN DE LA LÓGICA DE PERSISTENCIA ---
 
@@ -324,8 +370,13 @@ const estaDesbloqueado = (comp) => {
   };
 
   // Cálculos de precio total y consumo energético total del armado
-  const total = Object.values(pcActual).filter(Boolean).reduce((acc, comp) => acc + (comp.precio || 0), 0);
-  const watts = Object.values(pcActual).filter(Boolean).reduce((acc, comp) => acc + (comp.consumoWatts || 0), 0);
+  const total = Object.values(pcActual)
+    .filter(Boolean)
+    .reduce((acc, comp) => acc + (Number(comp.precio) || 0), 0);
+
+  const watts = Object.values(pcActual)
+    .filter(Boolean)
+    .reduce((acc, comp) => acc + (Number(comp.consumoWatts) || 0), 0);
 
   // Definimos el margen de seguridad de consumo de los componentes (1.2 = +20%)
   const margen_seguridad = 1.2;
@@ -334,92 +385,88 @@ const estaDesbloqueado = (comp) => {
   const fuente = pcActual["Fuente de poder"];
   const wattsConMargen = watts * margen_seguridad
 
-  // Validamos comparación
-  const energiaValida = fuente
+  // Validamos la energía con un fallback para evitar el rojo por defecto
+  const energiaValida = (fuente && fuente.capacidadWatts > 0)
     ? fuente.capacidadWatts >= wattsConMargen
-    : true; // Si no hay fuente seleccionada aún, es true para no asustar al usuario
+    : true; // Si no hay fuente o está cargando, asumimos true para no mostrar error falso
 
 
-  // --- FUNCIÓN PARA GUARDAR UN ARMADO NUEVO --- //
+  // --- FUNCIÓN PARA GUARDAR UN ARMADO NUEVO O ACTUALIZAR UN ARMADO EXISTENTE --- //
   const handleGuardarArmado = async () => {
-    // 1. Verificación de Seguridad (Doble validación: compatibilidad y energía, para evitar que el usuario intente guardar algo que sabemos que no funcionará)
-    if (incompatibilidades.length > 0) {
-      alert("No puedes guardar: Existen piezas incompatibles en tu configuración.");
-      return;
-    }
+  // 1. Verificación de Seguridad (Compatibilidad y Energía)
+  if (incompatibilidades.length > 0) {
+    alert("No puedes guardar: Existen piezas incompatibles.");
+    return;
+  }
+  if (!energiaValida) {
+    alert("No puedes guardar: Exceso de consumo energético.");
+    return;
+  }
 
-    if (!energiaValida) {
-      alert("No puedes guardar: El consumo energético es demasiado alto para la fuente seleccionada.");
-      return;
-    }
+  // 2. Validación de sesión
+  if (!uidSession) {
+    alert("No se detectó sesión activa.");
+    return;
+  }
 
-    // 2. Validación de sesión activa (necesitamos el UID para asociar el armado al usuario)
-    if (!uidSession) {
-      alert("No se detectó sesión activa.");
-      return;
-    }
+  // 3. Validación de tokens (SOLO si es un proyecto NUEVO)
+  // Si estamos editando (armadoIdEdicion !== null), no debería gastar tokens extra
+  if (!armadoIdEdicion && tokens === 0) {
+    alert("No tienes tokens disponibles para un nuevo proyecto.");
+    return;
+  }
 
-    // 3. Validación de tokens disponibles (si el usuario no tiene tokens, no puede guardar un nuevo proyecto)
-    if (tokens === 0) {
-      alert("No tienes tokens disponibles para guardar un nuevo proyecto. Elimina uno de tus proyectos existentes para liberar espacio o adquiere más tokens. ¡Gracias por ser parte de ArmatuXPC! 🚀");
-      return;
-    }
+  // 4. Componentes esenciales
+  const esenciales = ["CPU", "Motherboard", "RAM", "Fuente de poder", "Gabinete"];
+  const faltantes = esenciales.filter(tipo => !pcActual[tipo]);
+  if (faltantes.length > 0) {
+    alert(`Te falta seleccionar: ${faltantes.join(", ")}`);
+    return;
+  }
 
-    // --- VALIDACIÓN DE COMPONENTES ESENCIALES ---
-    const esenciales = ["CPU", "Motherboard", "RAM", "Fuente de poder", "Gabinete"];
-    const faltantes = esenciales.filter(tipo => !pcActual[tipo]);
+  const nombrePrompt = window.prompt("Nombre del armado:", nombreProyecto || "Mi PC Nueva");
+  if (!nombrePrompt) return;
 
-    if (faltantes.length > 0) {
-      alert(`Para un armado funcional, aún te falta seleccionar: ${faltantes.join(", ")}`);
-      return;
-    }
+  const componentesPayload = Object.entries(pcActual)
+    .filter(([key, value]) => value !== null)
+    .map(([key, comp]) => ({
+      componenteId: parseInt(comp.componenteId),
+      cantidad: 1
+    }));
 
-    // --- SOLICITUD DE NOMBRE ---
-    const nombrePrompt = window.prompt("Dale un nombre a tu creación:", nombreProyecto || "Mi PC Nueva");
-    if (!nombrePrompt) return;
-
-    // --- ESTRUCTURA PARA EL DTO DE C# ---
-    // Obtenemos todos los componentes seleccionados (ignoramos los nulos)
-    const componentesPayload = Object.entries(pcActual)
-      .filter(([key, value]) => value !== null)
-      .map(([key, comp]) => {
-        // Si esto imprime 0 o undefined, el error persistirá
-        console.log(`Verificando ID para ${key}:`, comp.componenteId);
-        return {
-          componenteId: parseInt(comp.componenteId),
-          cantidad: 1
-        };
-      });
-
-    // Si algún ID es NaN o 0, detenemos el proceso
-    if (componentesPayload.some(c => !c.componenteId)) {
-      alert("Error: Uno de los componentes de la plantilla no tiene un ID válido.");
-      return;
-    }
-
-    // Construimos el objeto que espera el backend para guardar el armado
-    const nuevoArmado = {
-      usuarioId: uidSession,
-      nombreArmado: nombrePrompt,
-      nombreUsuario: nombreUsuario,
-      componentes: componentesPayload
-    };
-
-    // 3. Enviamos la solicitud al backend para guardar el armado
-    try {
-      setLoading(true);
-      await guardarArmado(nuevoArmado);
-      alert("🚀 ¡Proyecto guardado exitosamente!");
-      localStorage.removeItem(`pc_borrador_${uidSession}`); // Limpiamos el borrador específico del usuario
-      navigate("/mis-armados"); // Redirige a la lista de proyectos del usuario
-    } catch (error) {
-      // Si el backend lanza el BadRequest que vimos en tu C# (Error energético)
-      console.error("Error del servidor:", error);
-      alert(`Error al guardar: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
+  const datosArmado = {
+    usuarioId: uidSession,
+    nombreArmado: nombrePrompt,
+    nombreUsuario: nombreUsuario,
+    componentes: componentesPayload
   };
+
+  try {
+    setLoading(true);
+
+    if (armadoIdEdicion) {
+      // --- LÓGICA DE ACTUALIZACIÓN (PUT) ---
+      // Aquí asumo que tienes o crearás actualizarArmado en api.js
+      await actualizarArmado(armadoIdEdicion, datosArmado); 
+      alert("✅ ¡Armado actualizado exitosamente!");
+    } else {
+      // --- LÓGICA DE GUARDADO NUEVO (POST) ---
+      await guardarArmado(datosArmado);
+      alert("🚀 ¡Proyecto nuevo guardado exitosamente!");
+    }
+
+    // Limpieza post-guardado
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(`editando_id_${uidSession}`);
+    navigate("/mis-armados");
+
+  } catch (error) {
+    console.error("Error del servidor:", error);
+    alert(`Error: ${error.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // El armado es inválido si: 
   // 1. Hay incompatibilidades en el array
@@ -689,8 +736,12 @@ const estaDesbloqueado = (comp) => {
                           <div 
                             className="energy-progress-fill"
                             style={{ 
-                              width: `${Math.min((wattsConMargen / (fuente?.capacidadWatts || 1)) * 100, 100)}%`,
-                              backgroundColor: energiaValida ? '#10b981' : '#ef4444'
+                              // Si no hay fuente, el ancho es 0. Si hay fuente, calculamos el %
+                              width: `${fuente?.capacidadWatts > 0 
+                                ? Math.min((wattsConMargen / fuente.capacidadWatts) * 100, 100) 
+                                : 0}%`,
+                              backgroundColor: energiaValida ? '#10b981' : '#ef4444',
+                              transition: 'width 0.5s ease-in-out' // Para que se vea fluido al cargar
                             }}
                           ></div>
                         </div>
