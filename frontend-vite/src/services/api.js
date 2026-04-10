@@ -107,6 +107,7 @@ export const getCompatiblesComponente = async (id) => {
   return await response.json();
 };
 
+
 // Añade esto a tu archivo api.js
 export const guardarCompatibilidad = async (compatibilidad) => {
   const response = await fetch(`${API_URL}/Compatibilidades`, {
@@ -145,6 +146,43 @@ export const actualizarCompatibilidad = async (id, compatibilidad) => {
   // El controlador devuelve NoContent (204), así que no intentamos parsear JSON
   return true; 
 };
+
+// Método para obtener sugerencias de componentes compatibles con el componente que tuvo incompatibilidad con otro
+export const obtenerSugerenciasParaError = async (id) => {
+  console.log("ID enviado al API:", id); // Si sale undefined aquí, el problema es el paso anterior
+  try {
+    // Usamos el endpoint que ya creamos en el controlador de Compatibilidades
+    const response = await fetch(`${API_URL}/Compatibilidades/buscar/${id}`);
+    if (!response.ok) throw new Error("No se pudieron obtener sugerencias");
+    
+    const data = await response.json();
+    console.log("Datos recibidos del API:", data); // Mira la consola para ver si es 'Soportados' o 'soportados'
+    // 'data.Soportados' contiene los componentes que sí son compatibles según mi BD
+    return data.soportados || data.Soportados || [];
+  } catch (error) {
+    console.error("Error al traer sugerencias:", error);
+    return [];
+  }
+};
+
+// Método para obtener sugerencias de componentes compatibles con el componente que tuvo incompatibilidad con otro (especificamente la clase correspondiente)
+export const obtenerSugerenciasPorTipo = async (idBase, tipoBuscado) => {
+  try {
+    // Asegúrate de que la URL coincida con tu backend (usa API_URL si la tienes definida)
+    const url = `${API_URL}/Compatibilidades/buscar-tipo/${idBase}?tipoDestino=${tipoBuscado}`;
+    const response = await fetch(url);
+    
+    if (!response.ok) throw new Error("Error en la respuesta del servidor");
+    
+    const data = await response.json();
+    // Normalizamos la respuesta (Soportados o soportados)
+    return data.soportados || data.Soportados || [];
+  } catch (error) {
+    console.error("Error al traer soluciones:", error);
+    return [];
+  }
+};
+
 
 // Agregar un nuevo componente
 export const agregarComponente = async (componente) => {
