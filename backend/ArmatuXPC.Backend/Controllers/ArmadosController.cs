@@ -128,7 +128,9 @@ namespace ArmatuXPC.Backend.Controllers
                             Precio = ac.Componente.Precio,
                             Tipo = ac.Componente.Tipo.ToString(), // Lo enviamos como texto para React
                             Cantidad = ac.Cantidad,
-                            ImagenUrl = ac.Componente.ImagenUrl
+                            ImagenUrl = ac.Componente.ImagenUrl,
+                            ConsumoWatts = ac.Componente.ConsumoWatts,
+                            CapacidadWatts = ac.Componente.CapacidadWatts
                         })
                     })
                     .ToListAsync();
@@ -349,9 +351,17 @@ namespace ArmatuXPC.Backend.Controllers
                 .ToListAsync();
 
             var resultado = reglas.Select(r => new
-            {
+            {   
+                // Usuario
                 componenteA = r.ComponenteA!.Nombre,
                 componenteB = r.ComponenteB!.Nombre,
+                // Lógica del sistema
+                componenteAId = r.ComponenteAId, 
+                componenteBId = r.ComponenteBId, 
+                // Tipo de componente compatible o incompatible
+                tipoComponenteA = r.ComponenteA.Tipo.ToString() ?? "Desconocido", 
+                tipoComponenteB = r.ComponenteB.Tipo.ToString() ?? "Desconocido", 
+                // Motivo de compatibilidad o incompatibilidad
                 motivo = r.Motivo
             });
 

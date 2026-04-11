@@ -106,7 +106,7 @@ namespace ArmatuXPC.Backend.Controllers
             return NoContent();
         }
 
-        // Endpoint para filtrar la compatibilidad de un ID de un componente en comparativa de los demás (para el Chatbot)
+        // Endpoint para filtrar la compatibilidad de un ID de un componente en comparativa de los demás (Chatbot / Sistema)
         [HttpGet("buscar/{id}")]
         public async Task<IActionResult> GetCompatibles(int id)
         {
@@ -131,6 +131,9 @@ namespace ArmatuXPC.Backend.Controllers
                 Soportados = componentesInfo.Select(c => new {
                     c.ComponenteId,
                     c.Nombre,
+                    c.Precio,
+                    Tipo = c.Tipo.ToString(), // Vital para el reemplazo correcto
+                    c.ImagenUrl,
                     Motivo = reglas.First(r => (r.ComponenteAId == c.ComponenteId || r.ComponenteBId == c.ComponenteId) && r.EsCompatible).Motivo
                 }),
                 IncompatiblesAvisos = reglas.Where(r => !r.EsCompatible).Select(r => r.Motivo)
@@ -139,5 +142,59 @@ namespace ArmatuXPC.Backend.Controllers
             return Ok(respuesta);
         }
 
+        // Endpoint para filtrar la compatibilidad de un ID de un componente en comparativa de los demás (clase especifica del error)
+        [HttpGet("buscar-tipo/{id}")]
+public async Task<IActionResult> GetCompatibles(int id, [FromQuery] string? tipoDestino = null)
+{
+    try 
+    {
+        // 1. Buscamos reglas positivas relacionadas al componente actual
+        var reglas = await _context.Compatibilidades
+            .Where(r => (r.ComponenteAId == id || r.ComponenteBId == id) && r.EsCompatible)
+            .ToListAsync();
+
+        if (!reglas.Any()) return Ok(new { soportados = new List<object>() });
+
+        var idsCompatibles = reglas
+            .Select(r => r.ComponenteAId == id ? r.ComponenteBId : r.ComponenteAId)
+            .ToList();
+
+        // 2. Traemos los componentes. 
+        // Filtramos en memoria (.AsEnumerable) para que la comparación de Enums sea infalible
+        var componentesQuery = await _context.Componentes
+            .Where(c => idsCompatibles.Contains(c.ComponenteId))
+            .ToListAsync();
+
+        var componentesFiltrados = componentesQuery.AsEnumerable();
+
+        if (!string.IsNullOrEmpty(tipoDestino))
+        {
+            // Comparamos ignorando mayúsculas/minúsculas
+            componentesFiltrados = componentesFiltrados.Where(c => 
+                c.Tipo.ToString().Equals(tipoDestino, StringComparison.OrdinalIgnoreCase));
+        }
+
+        // 3. Mapeo final
+        var resultado = componentesFiltrados.Select(c => {
+            var r = reglas.FirstOrDefault(reg => reg.ComponenteAId == c.ComponenteId || reg.ComponenteBId == c.ComponenteId);
+            return new {
+                c.ComponenteId,
+                c.Nombre,
+                c.Precio,
+                Tipo = c.Tipo.ToString(),
+                c.ImagenUrl,
+                Motivo = r?.Motivo ?? "Compatible"
+            };
+        }).ToList();
+
+        return Ok(new { soportados = resultado });
+    }
+    catch (Exception ex)
+    {
+        // Esto aparecerá en tu consola de Visual Studio (Output)
+        System.Diagnostics.Debug.WriteLine($"Fallo en buscar-tipo: {ex.Message}");
+        return StatusCode(500, new { mensaje = "Error interno", detalle = ex.Message });
+    }
+}
     }
 }

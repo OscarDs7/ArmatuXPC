@@ -144,6 +144,20 @@
     background: #c0392b;
 }
 
+.btn-editar {
+    background: #06b02b;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-editar:hover {
+    background: #066519;
+}
+
 .btn-volver {
   margin-right: 20px;
   padding: 8px 14px;

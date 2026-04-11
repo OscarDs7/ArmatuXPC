@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 
 import { MenuRoles } from "./interfaces/MenuRoles";
+import { Toaster } from 'react-hot-toast';
 import LoginUsuario from "./interfaces/LoginUser";
 import LoginAdmin from "./interfaces/LoginAdmin";
 import DashBoardAdmin from "./interfaces/DashBoardAdmin";
@@ -33,7 +34,9 @@ import Grafica from "./interfaces/Grafica";
 
 function App() {
   return (
-    <Routes>
+    <>
+      <Toaster position="top-right" />
+      <Routes>
       <Route path="/" element={<MenuRoles />} />
       <Route path="/login-user" element={<LoginUsuario />} />
       <Route path="/login-admin" element={<LoginAdmin />} />
@@ -155,6 +158,7 @@ function App() {
       <Route path="/Grafica" element={<Grafica/>} />
       <Route path="/Placa" element={<Placa />} />
     </Routes>
+    </>
   );  
 } 
 

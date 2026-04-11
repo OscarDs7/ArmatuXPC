@@ -2,8 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../utilidades/firebase";
+import { toast } from 'react-hot-toast';
 import gabinete from "../assets/gabinete.png"; 
-import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal } from "../services/api"; 
+import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal, 
+         actualizarArmado, obtenerSugerenciasParaError, obtenerSugerenciasPorTipo } from "../services/api"; 
 import "../estilos/NuevoProyecto.css";
 
 export default function NuevoProyecto() {
@@ -21,6 +23,8 @@ export default function NuevoProyecto() {
   const [mostrarTutorial, setMostrarTutorial] = useState(true);
   const [cargandoDatos, setCargandoDatos] = useState(true);
   const [tokens, setTokens] = useState(0); // ✨ Nuevo estado para tokens
+  const [armadoIdEdicion, setArmadoIdEdicion] = useState(null);
+  const [sugerencias, setSugerencias] = useState({}); // { idError: [componentes] }
 
   // Estados para la persistencia del proyecto en localStorage: UID de sesión, nombre del usuario y clave de almacenamiento específica para este proyecto
   const uidSession = localStorage.getItem("userUid");
@@ -183,26 +187,24 @@ const finalizarTutorial = () => {
   setPasoTutorial(0); // Limpia el paso para futuras sesiones si decides reabrirlo
 };
 
-  // Función para resolver incompatibilidades: por simplicidad, vamos a quitar el componente que causa el conflicto (el segundo en la regla)
-  const resolverIncompatibilidad = () => {
-    if (incompatibilidades.length === 0) return;
+  // Función para quitar el componente conflictivo de incompatibilidades si no encuentra una regla específica en Tabla Compatibilidades
+  const quitarComponenteConflicto = (nombreComponente) => {
+  // Buscamos en pcActual cuál categoría tiene ese nombre para ponerla en null
+  const categoriaEncontrada = Object.keys(pcActual).find(
+    key => pcActual[key]?.nombre === nombreComponente
+  );
 
-    const conflicto = incompatibilidades[0];
+  if (categoriaEncontrada) {
+    setPcActual(prev => ({
+      ...prev,
+      [categoriaEncontrada]: null
+    }));
+    // Limpiamos sugerencias abiertas
+    setSugerencias({});
+  }
+};
 
-    setPcActual(prev => {
-      const nuevo = { ...prev };
-
-      Object.keys(nuevo).forEach(key => {
-        if (nuevo[key]?.nombre === conflicto.componenteB) {
-          nuevo[key] = null;
-        }
-      });
-
-      return nuevo;
-    });
-  };
-
-  // Método para validar si un componente está en error por incompatibilidad: lo usamos para marcar en rojo los componentes que tienen conflictos
+  // Función para validar si un componente está en error por incompatibilidad: lo usamos para marcar en rojo los componentes que tienen conflictos
   const esComponenteIncompatible = (componente) => {
     return incompatibilidades.some(inc =>
       inc.componenteA === componente?.nombre ||
@@ -210,44 +212,134 @@ const finalizarTutorial = () => {
     );
   };
 
-  // --- LÓGICA DE PERSISTENCIA ---
+// --- LÓGICA DE PERSISTENCIA ---
 
-  // 1. Efecto de Carga Inicial
-  useEffect(() => {
-    if (modo === "continuar") {
-      const guardado = localStorage.getItem(STORAGE_KEY);
-      if (guardado) {
-        setPcActual(JSON.parse(guardado)); // Cargamos el progreso guardado
-        // Opcional: Desactivar tutorial si está continuando
-        setMostrarTutorial(false);
-      }
-    } else if (modo === "nuevo") {
-      // Si el modo es "nuevo", podrías querer limpiar el storage anterior
-      // o simplemente dejar el estado inicial vacío.
-      localStorage.removeItem(STORAGE_KEY); // Limpiamos cualquier progreso anterior al iniciar un nuevo proyecto
+// 1. Efecto de Carga Inicial (Prioriza Edición > Continuar Borrador > Nuevo)
+useEffect(() => {
+  const inicializar = async () => {
+    const proyectoParaEditar = location.state?.proyectoParaEditar;
+    const esEdicionDeseada = location.state?.esEdicion;
+    const esPlantilla = location.state?.esPlantilla; // Nuevo: para plantillas de comunidad
+
+    // 1. LIMPIEZA PREVENTIVA: Si NO venimos expresamente a editar,
+    // pero el localStorage dice que estábamos editando algo, limpiamos si la ruta es "nuevo"
+    if (modo === "nuevo" && !esEdicionDeseada && !esPlantilla) {
+      localStorage.removeItem(`editando_id_${uidSession}`);
+      localStorage.removeItem(STORAGE_KEY);
+      setArmadoIdEdicion(null);
+      //setPcActual({}); // O tu estado inicial vacío
+      setNombreProyecto("");
     }
-    setCargandoDatos(false); // Ya no estamos cargando después de intentar cargar el proyecto
 
-  }, [modo, uidSession]); // Re-ejecuta si cambia el modo o el usuario (por seguridad)
+    // ESCENARIO A: Si venimos de "Mis Armados" para EDITAR
+    if ((esEdicionDeseada || esPlantilla) && proyectoParaEditar) {
+      // Si es plantilla, el ID de edición debe ser NULL para que sea un guardado nuevo
+      setArmadoIdEdicion(esPlantilla ? null : proyectoParaEditar.armadoId);
+      setNombreProyecto(proyectoParaEditar.nombreArmado);
+      
+      const configMapeada = { ...pcActual };
+      console.log(proyectoParaEditar.componentes)
+        proyectoParaEditar.componentes.forEach(comp => {
+        const categoriaEnPC = Object.keys(mapTipo).find(key => mapTipo[key] === comp.tipo);
+        
+        if (categoriaEnPC) {
+          configMapeada[categoriaEnPC] = {
+            ...comp, // Mantiene todo lo que venga del API
+            componenteId: comp.componenteId || comp.id || comp.ComponenteId,
+            // NORMALIZACIÓN AGRESIVA: 
+            // Buscamos todas las variantes posibles de nombre que devuelva C#
+            consumoWatts: comp.consumoWatts || comp.ConsumoWatts || comp.consumo || 0,
+            capacidadWatts: comp.capacidadWatts || comp.CapacidadWatts || comp.capacidad || 0,
+            precio: comp.precio || comp.Precio || 0
+          };
+        }
+      });
+      setPcActual(configMapeada);
+      setModoGuia(false);
+      setMostrarTutorial(false);
+      
+      // Guardamos el ID en storage por si se refresca la página
+      if (esEdicionDeseada) {
+        localStorage.setItem(`editando_id_${uidSession}`, proyectoParaEditar.armadoId);
+      }
 
-  // 2. Efecto de Auto-guardado (Siempre activo)
-  useEffect(() => {
-    // Si todavía estamos cargando los datos iniciales, no guardamos nada (evita sobrescribir el progreso al cargar)
-    if (cargandoDatos || !uidSession || !autoGuardado) return;
+    } 
+    // ESCENARIO B: Recuperación (Refrescar página o volver del panel)
+    else if (modo === "continuar" || localStorage.getItem(STORAGE_KEY)) {
+      const guardadoRaw = localStorage.getItem(STORAGE_KEY);
+      if (guardadoRaw) {
+        const data = JSON.parse(guardadoRaw);
+        
+        // Verificamos si los datos vienen en el nuevo formato de objeto o el antiguo (solo piezas)
+        const piezasARestaurar = data.piezas ? data.piezas : data;
+        const nombreARestaurar = data.nombre ? data.nombre : "";
 
-    // Si ya terminamos de cargar, entonces sí guardamos cada cambio automáticamente
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(pcActual));
-    console.log("Progreso guardado automáticamente:", pcActual);
-  }, [pcActual, cargandoDatos, uidSession, autoGuardado]);
+        setPcActual(piezasARestaurar);
+        setNombreProyecto(nombreARestaurar); // <--- AQUÍ RECUPERAMOS EL NOMBRE
+        setMostrarTutorial(false);
+        
+        const idRecuperado = localStorage.getItem(`editando_id_${uidSession}`);
+        if (idRecuperado) setArmadoIdEdicion(parseInt(idRecuperado));
+      }
+    }
+    // ESCENARIO C: Proyecto totalmente nuevo
+    else if (modo === "nuevo") {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(`editando_id_${uidSession}`);
+      setArmadoIdEdicion(null);
+    }
+    setCargandoDatos(false);
+  };
+
+  inicializar();
+}, [modo, uidSession, location.state]);
+
+// 2. Efecto de Auto-guardado (Protección contra cortes de luz o desconexión de Internet)
+useEffect(() => {
+  if (cargandoDatos || !uidSession || !autoGuardado) return;
+
+  const backup = {
+    piezas: pcActual,
+    nombre: nombreProyecto 
+  };
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(backup));
+  
+  // Si estamos editando, guardamos el ID para no perder la referencia tras un apagón
+  if (armadoIdEdicion) {
+    localStorage.setItem(`editando_id_${uidSession}`, armadoIdEdicion);
+  }
+  
+}, [pcActual, cargandoDatos, uidSession, autoGuardado, armadoIdEdicion]);
 
 // --- FIN DE LA LÓGICA DE PERSISTENCIA ---
 
-// -- Función de guardado manual -- //
+// -- Función de guardado manual mediante botón -- //
 const guardarProgresoManual = () => {
   if (!uidSession) return;
   localStorage.setItem(STORAGE_KEY, JSON.stringify(pcActual));
   alert("💾 Progreso guardado manualmente en este navegador.");
 };
+
+  // Función de reset por si el usuario quiere borrar todos los datos de su edición y empezar un nuevo proyecto
+  const resetearProyecto = () => {
+    if (window.confirm("¿Seguro que quieres abandonar la edición? Los cambios no guardados se perderán.")) {
+      // 1. Limpiar LocalStorage
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(`editando_id_${uidSession}`);
+
+      // 2. Limpiar Estados de React
+      setPcActual({}); // O tu objeto inicial con categorías vacías
+      setArmadoIdEdicion(null);
+      setNombreProyecto("");
+      
+      // 3. Limpiar el estado de la navegación (opcional pero recomendado)
+      // Esto evita que si el usuario refresca, el location.state vuelva a disparar la edición
+      navigate("/nuevo-proyecto", { replace: true, state: {} });
+      
+      alert("Iniciando nuevo proyecto...");
+    }
+  };
 
   // ESCUCHA DE TOKENS EN TIEMPO REAL
   useEffect(() => {
@@ -324,8 +416,13 @@ const estaDesbloqueado = (comp) => {
   };
 
   // Cálculos de precio total y consumo energético total del armado
-  const total = Object.values(pcActual).filter(Boolean).reduce((acc, comp) => acc + (comp.precio || 0), 0);
-  const watts = Object.values(pcActual).filter(Boolean).reduce((acc, comp) => acc + (comp.consumoWatts || 0), 0);
+  const total = Object.values(pcActual)
+    .filter(Boolean)
+    .reduce((acc, comp) => acc + (Number(comp.precio) || 0), 0);
+
+  const watts = Object.values(pcActual)
+    .filter(Boolean)
+    .reduce((acc, comp) => acc + (Number(comp.consumoWatts) || 0), 0);
 
   // Definimos el margen de seguridad de consumo de los componentes (1.2 = +20%)
   const margen_seguridad = 1.2;
@@ -334,92 +431,90 @@ const estaDesbloqueado = (comp) => {
   const fuente = pcActual["Fuente de poder"];
   const wattsConMargen = watts * margen_seguridad
 
-  // Validamos comparación
-  const energiaValida = fuente
+  // Validamos la energía con un fallback para evitar el rojo por defecto
+  const energiaValida = (fuente && fuente.capacidadWatts > 0)
     ? fuente.capacidadWatts >= wattsConMargen
-    : true; // Si no hay fuente seleccionada aún, es true para no asustar al usuario
+    : true; // Si no hay fuente o está cargando, asumimos true para no mostrar error falso
 
 
-  // --- FUNCIÓN PARA GUARDAR UN ARMADO NUEVO --- //
+  // --- FUNCIÓN PARA GUARDAR UN ARMADO NUEVO O ACTUALIZAR UN ARMADO EXISTENTE --- //
   const handleGuardarArmado = async () => {
-    // 1. Verificación de Seguridad (Doble validación: compatibilidad y energía, para evitar que el usuario intente guardar algo que sabemos que no funcionará)
-    if (incompatibilidades.length > 0) {
-      alert("No puedes guardar: Existen piezas incompatibles en tu configuración.");
-      return;
-    }
+  // 1. Verificación de Seguridad (Compatibilidad y Energía)
+  if (incompatibilidades.length > 0) {
+    alert("No puedes guardar: Existen piezas incompatibles.");
+    return;
+  }
+  if (!energiaValida) {
+    alert("No puedes guardar: Exceso de consumo energético.");
+    return;
+  }
 
-    if (!energiaValida) {
-      alert("No puedes guardar: El consumo energético es demasiado alto para la fuente seleccionada.");
-      return;
-    }
+  // 2. Validación de sesión
+  if (!uidSession) {
+    alert("No se detectó sesión activa.");
+    return;
+  }
 
-    // 2. Validación de sesión activa (necesitamos el UID para asociar el armado al usuario)
-    if (!uidSession) {
-      alert("No se detectó sesión activa.");
-      return;
-    }
+  // 3. Validación de tokens (SOLO si es un proyecto NUEVO)
+  // Si estamos editando (armadoIdEdicion !== null), no debería gastar tokens extra
+  if (!armadoIdEdicion && tokens === 0) {
+    alert("No tienes tokens disponibles para un nuevo proyecto.");
+    return;
+  }
 
-    // 3. Validación de tokens disponibles (si el usuario no tiene tokens, no puede guardar un nuevo proyecto)
-    if (tokens === 0) {
-      alert("No tienes tokens disponibles para guardar un nuevo proyecto. Elimina uno de tus proyectos existentes para liberar espacio o adquiere más tokens. ¡Gracias por ser parte de ArmatuXPC! 🚀");
-      return;
-    }
+  // 4. Componentes esenciales
+  const esenciales = ["CPU", "Motherboard", "RAM", "Fuente de poder", "Gabinete"];
+  const faltantes = esenciales.filter(tipo => !pcActual[tipo]);
+  if (faltantes.length > 0) {
+    alert(`Te falta seleccionar: ${faltantes.join(", ")}`);
+    return;
+  }
 
-    // --- VALIDACIÓN DE COMPONENTES ESENCIALES ---
-    const esenciales = ["CPU", "Motherboard", "RAM", "Fuente de poder", "Gabinete"];
-    const faltantes = esenciales.filter(tipo => !pcActual[tipo]);
+  const nombrePrompt = window.prompt("Nombre del armado:", nombreProyecto || "Mi PC Nueva");
+  if (!nombrePrompt) return;
 
-    if (faltantes.length > 0) {
-      alert(`Para un armado funcional, aún te falta seleccionar: ${faltantes.join(", ")}`);
-      return;
-    }
+  const componentesPayload = Object.entries(pcActual)
+    .filter(([key, value]) => value !== null)
+    .map(([key, comp]) => ({
+      componenteId: parseInt(comp.componenteId),
+      cantidad: 1
+    }));
 
-    // --- SOLICITUD DE NOMBRE ---
-    const nombrePrompt = window.prompt("Dale un nombre a tu creación:", nombreProyecto || "Mi PC Nueva");
-    if (!nombrePrompt) return;
-
-    // --- ESTRUCTURA PARA EL DTO DE C# ---
-    // Obtenemos todos los componentes seleccionados (ignoramos los nulos)
-    const componentesPayload = Object.entries(pcActual)
-      .filter(([key, value]) => value !== null)
-      .map(([key, comp]) => {
-        // Si esto imprime 0 o undefined, el error persistirá
-        console.log(`Verificando ID para ${key}:`, comp.componenteId);
-        return {
-          componenteId: parseInt(comp.componenteId),
-          cantidad: 1
-        };
-      });
-
-    // Si algún ID es NaN o 0, detenemos el proceso
-    if (componentesPayload.some(c => !c.componenteId)) {
-      alert("Error: Uno de los componentes de la plantilla no tiene un ID válido.");
-      return;
-    }
-
-    // Construimos el objeto que espera el backend para guardar el armado
-    const nuevoArmado = {
-      usuarioId: uidSession,
-      nombreArmado: nombrePrompt,
-      nombreUsuario: nombreUsuario,
-      componentes: componentesPayload
-    };
-
-    // 3. Enviamos la solicitud al backend para guardar el armado
-    try {
-      setLoading(true);
-      await guardarArmado(nuevoArmado);
-      alert("🚀 ¡Proyecto guardado exitosamente!");
-      localStorage.removeItem(`pc_borrador_${uidSession}`); // Limpiamos el borrador específico del usuario
-      navigate("/mis-armados"); // Redirige a la lista de proyectos del usuario
-    } catch (error) {
-      // Si el backend lanza el BadRequest que vimos en tu C# (Error energético)
-      console.error("Error del servidor:", error);
-      alert(`Error al guardar: ${error.message}`);
-    } finally {
-      setLoading(false);
-    }
+  const datosArmado = {
+    usuarioId: uidSession,
+    nombreArmado: nombrePrompt,
+    nombreUsuario: nombreUsuario,
+    componentes: componentesPayload
   };
+
+  try {
+    setLoading(true);
+
+    if (armadoIdEdicion) {
+      // --- LÓGICA DE ACTUALIZACIÓN (PUT) ---
+      // Aquí asumo que tienes o crearás actualizarArmado en api.js
+      await actualizarArmado(armadoIdEdicion, datosArmado); 
+      //alert("✅ ¡Armado actualizado exitosamente!");
+      toast.success(`Armado actualizado exitosamente!`)
+    } else {
+      // --- LÓGICA DE GUARDADO NUEVO (POST) ---
+      await guardarArmado(datosArmado);
+      toast.success("¡Proyecto nuevo guardado exitosamente!")
+
+    }
+
+    // Limpieza post-guardado
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(`editando_id_${uidSession}`);
+    navigate("/mis-armados");
+
+  } catch (error) {
+    console.error("Error del servidor:", error);
+    alert(`Error: ${error.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
   // El armado es inválido si: 
   // 1. Hay incompatibilidades en el array
@@ -467,6 +562,72 @@ const estaDesbloqueado = (comp) => {
   // FIN de la lógica de carga automática desde la comunidad (esto permite que al hacer click en "Usar esta plantilla" en la comunidad, se abra el configurador con esa plantilla ya cargada y lista para editar)
 
   
+  // Función para reemplazar una pieza de componente por uno que si sea compatible
+const reemplazarPieza = (sug) => {
+  // 1. Traductor de categorías (Normalización Robusta)
+  const mapeoCategorias = {
+    "PlacaBase": "Motherboard",
+    "CPU": "CPU",
+    "GPU": "GPU",
+    "Refrigeracion": "Refrigeracion",
+    "MemoriaRAM": "RAM",
+    "FuentePoder": "Fuente de poder",
+    "Gabinete": "Gabinete",
+    "Almacenamiento": "Almacenamiento"
+  };
+
+  const categoriaOriginal = sug.tipo || sug.Tipo;
+  const categoriaDestino = mapeoCategorias[categoriaOriginal] || categoriaOriginal;
+
+  // 2. Actualización de PC y Limpieza de Estados
+  setPcActual(prev => ({
+    ...prev,
+    [categoriaDestino]: {
+      ...sug,
+      nombre: sug.nombre || sug.Nombre, // Soporte para PascalCase del Backend
+      precio: sug.precio || sug.Precio,
+      imagenUrl: sug.imagenUrl || sug.ImagenUrl,
+      tipo: categoriaDestino
+    }
+  }));
+
+  // 3. IMPORTANTE: Limpiar sugerencias y errores específicos
+  setSugerencias({}); 
+
+  // Scroll suave hacia el resumen para mostrar que la pieza cambió
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // Notificación de éxito en el reemplazo del componente
+  toast.success(`¡${sug.nombre} añadido con éxito!`);
+  
+  // Si tienes un estado de 'incompatibilidades', podrías forzar una limpieza
+  // o dejar que el useEffect de validación haga su trabajo.
+  console.log(`✅ Éxito: ${sug.nombre} ahora ocupa el lugar de ${categoriaDestino}`);
+};
+
+
+  // Función PRO que unifica a las otras dos funciones de brindar sugerencias de componentes compatibles de manera automática
+  const handleSugerenciasPro = async (index, idBase, tipoBuscado = null) => {
+    try {
+      // 1. Decidimos qué servicio usar de forma limpia
+      const servicio = tipoBuscado 
+        ? obtenerSugerenciasPorTipo(idBase, tipoBuscado) 
+        : obtenerSugerenciasParaError(idBase);
+
+      const piezas = await servicio;
+
+      // 2. Actualizamos el estado asegurando que siempre sea un array
+      setSugerencias(prev => ({ 
+        ...prev, 
+        [index]: piezas || [] 
+      }));
+    } catch (error) {
+      console.error("Error al obtener sugerencias optimizadas:", error);
+      // Opcional: limpiar el estado en caso de error para no mostrar datos viejos
+      setSugerencias(prev => ({ ...prev, [index]: [] }));
+    }
+  };
+
   // Renderizamos el componente //
   return (
     <div className="nuevo-proyecto-container">
@@ -658,13 +819,22 @@ const estaDesbloqueado = (comp) => {
 
                     {/* RESUMEN DEL ARMADO Y BOTÓN DE GUARDAR */}   
                     <div className="pc-resumen resumen-pc">
-                      <h2>Resumen del armado</h2>
-                        {modo === "continuar" && (
-                          <p style={{ color: "#3b82f6", fontSize: "0.8rem", marginBottom: "10px" }}>
-                            ℹ️ Estas viendo tu progreso guardado localmente.
-                          </p>
-                        )}
-                      <ul>
+                        <h2 className="titulo-resumen">Resumen del armado</h2>
+                        <div className="status-messages">
+                            {armadoIdEdicion ? (
+                              <div className="aviso-edicion">
+                                <span>✏️ Estás editando: <strong>{nombreProyecto}</strong></span>
+                                <button onClick={resetearProyecto} className="btn-cancelar-edicion">
+                                  Abandonar edición y crear nueva PC
+                                </button>
+                              </div>
+                            ) : modo === "continuar" ? (
+                              <p style={{ color: "#3b82f6", fontSize: "0.8rem", marginBottom: "10px" }}>
+                                ℹ️ Estás viendo tu progreso guardado localmente.
+                              </p>
+                            ) : null}
+                          </div>
+                        <ul>
                         {Object.entries(pcActual).map(([key, modelo]) => (
                           <li key={key} 
                           className={`resumen-item ${esComponenteIncompatible(modelo) ? "incompatible" : ""}`}>
@@ -689,8 +859,12 @@ const estaDesbloqueado = (comp) => {
                           <div 
                             className="energy-progress-fill"
                             style={{ 
-                              width: `${Math.min((wattsConMargen / (fuente?.capacidadWatts || 1)) * 100, 100)}%`,
-                              backgroundColor: energiaValida ? '#10b981' : '#ef4444'
+                              // Si no hay fuente, el ancho es 0. Si hay fuente, calculamos el %
+                              width: `${fuente?.capacidadWatts > 0 
+                                ? Math.min((wattsConMargen / fuente.capacidadWatts) * 100, 100) 
+                                : 0}%`,
+                              backgroundColor: energiaValida ? '#10b981' : '#ef4444',
+                              transition: 'width 0.5s ease-in-out' // Para que se vea fluido al cargar
                             }}
                           ></div>
                         </div>
@@ -738,26 +912,102 @@ const estaDesbloqueado = (comp) => {
 
                     {/* INCOMPATIBILIDADES EN TIEMPO REAL */}
                     {incompatibilidades.length > 0 && (
-                    <div className="alerta-error">
-                      <h3>⚠️ Incompatibilidades detectadas:</h3>
-                      
-                      <div className="conflict-list">
-                        {incompatibilidades.map((inc, index) => (
-                          <div key={index} className="conflict-card">
-                            <div className="conflict-header">
-                              <span className="comp-name">{inc.componenteA}</span>
-                              <span className="vs-icon">❌</span>
-                              <span className="comp-name">{inc.componenteB}</span>
+                      <div className="alerta-error">
+                        <h3>⚠️ Incompatibilidades detectadas:</h3>
+                        
+                        <div className="conflict-list">
+                          {incompatibilidades.map((inc, index) => (
+                            <div key={index} className="conflict-item-container">
+                              <div className="conflict-card">
+                                <div className="conflict-header">
+                                  <span className="comp-name">{inc.componenteA}</span>
+                                  <span className="vs-icon">❌</span>
+                                  <span className="comp-name">{inc.componenteB}</span>
+                                </div>
+                                <p className="conflict-reason">{inc.motivo}</p>
+                                
+                                {/* BOTÓN: Ahora usa 'inc' que es la variable del map y está dentro del bucle */}
+                                {/* Dentro de tu .map de incompatibilidades */}
+                                  <div className="acciones-inteligentes">
+                                    <p className="texto-ayuda">
+                                      Parece que hay un problema con la categoría: <strong>{inc.tipoComponenteB}</strong>
+                                    </p>
+                                    
+                                    {/* OPCIÓN A: Cambiar el primer componente por otro del mismo tipo */}
+                                    <button 
+                                      onClick={() => handleSugerenciasPro(index, inc.componenteBId, inc.tipoComponenteA)}
+                                      className="btn-accion-rapida"
+                                    >
+                                      <span className="icon">🔍</span>
+                                      <div>
+                                        Buscar otro <span className="categoria-resaltada">{inc.tipoComponenteA}</span> que sirva con {inc.componenteB}
+                                      </div>
+                                    </button>
+
+                                    {/* OPCIÓN B: Cambiar el segundo componente por otro del mismo tipo */}
+                                    <button 
+                                      onClick={() => handleSugerenciasPro(index, inc.componenteAId, inc.tipoComponenteB)}
+                                      className="btn-accion-rapida"
+                                    >
+                                      <span className="icon">❄️</span>
+                                      <div>
+                                       Buscar otro <span className="categoria-resaltada">{inc.tipoComponenteB}</span> que sirva con {inc.componenteA}
+                                      </div>
+                                    </button>
+                                  </div>
+
+                                {/* Ejemplo extra: Si el error fuera de Placa Base */}
+                                {/* handleVerSugerenciasTipo(index, id, "PlacaBase") */}
+                              </div>
+
+                              {/* RENDERIZADO DE SUGERENCIAS */}
+                              {sugerencias[index] && (
+                                <div className="drawer-sugerencias animate-in">
+                                  <p style={{fontSize: '0.75rem', fontWeight: 'bold', color: '#64748b', padding: '5px'}}>
+                                    OPCIONES COMPATIBLES DETECTADAS:
+                                  </p>
+                                  <ul>
+                                    {sugerencias[index].length > 0 ? (
+                                      // Si hay sugerencias, las listamos
+                                      sugerencias[index].map(sug => (
+                                        <li key={sug.componenteId} className="sug-item">
+                                          <div className="sug-info">
+                                            <strong>{sug.nombre}</strong>
+                                            <span className="motivo-sug">{sug.motivo}</span>
+                                          </div>
+                                          <button className="btn-seleccionar-sug" onClick={() => reemplazarPieza(sug)}>
+                                            Reemplazar
+                                          </button>
+                                        </li>
+                                      ))
+                                    ) : (
+                                      // SI NO HAY SUGERENCIAS: Mostramos la "Salida de Emergencia"
+                                      <li className="no-sug-container">
+                                        <p className="no-sug">No tenemos sugerencias automáticas para esta combinación.</p>
+                                        <div className="acciones-conflicto">
+                                          <button 
+                                            onClick={() => quitarComponenteConflicto(inc.componenteB)}
+                                            className="btn-quitar-conflicto"
+                                          >
+                                            🗑️ Quitar {inc.componenteB}
+                                          </button>
+                                          <button 
+                                            onClick={() => quitarComponenteConflicto(inc.componenteA)}
+                                            className="btn-quitar-secundario"
+                                          >
+                                            Quitar {inc.componenteA}
+                                          </button>
+                                        </div>
+                                      </li>
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
                             </div>
-                            <p className="conflict-reason">{inc.motivo}</p>
-                          </div>
-                        ))}
+                          ))}
+                        </div>
                       </div>
-                      <button onClick={resolverIncompatibilidad} className="btn-corregir">
-                        ✨ Corregir incompatibilidades
-                      </button>
-                    </div>
-                  )}
+                    )}
                         
                   {/* PANEL DERECHO: CATÁLOGO */}
                   <div className="component-details catalogo-componentes">
@@ -830,7 +1080,9 @@ const estaDesbloqueado = (comp) => {
                 {mostrarTutorial && (
                 <div className="tutorial-overlay">
                   <div className="tutorial-box">
-                    <p> <h3> <strong> Tutorial introductorio del uso de esta ventana de Armado </strong></h3></p>
+                    <div>
+                      <h3> <strong> Tutorial introductorio del uso de esta ventana de Armado </strong></h3>
+                    </div>
                     <p>{pasos[pasoTutorial].texto}</p>
 
                     <div className="tutorial-buttons">
