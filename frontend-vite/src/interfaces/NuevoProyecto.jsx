@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../utilidades/firebase";
+import { toast } from 'react-hot-toast';
 import gabinete from "../assets/gabinete.png"; 
 import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal, 
          actualizarArmado, obtenerSugerenciasParaError, obtenerSugerenciasPorTipo } from "../services/api"; 
@@ -226,7 +227,7 @@ useEffect(() => {
       localStorage.removeItem(`editando_id_${uidSession}`);
       localStorage.removeItem(STORAGE_KEY);
       setArmadoIdEdicion(null);
-      setPcActual({}); // O tu estado inicial vacío
+      //setPcActual({}); // O tu estado inicial vacío
       setNombreProyecto("");
     }
 
@@ -493,11 +494,13 @@ const estaDesbloqueado = (comp) => {
       // --- LÓGICA DE ACTUALIZACIÓN (PUT) ---
       // Aquí asumo que tienes o crearás actualizarArmado en api.js
       await actualizarArmado(armadoIdEdicion, datosArmado); 
-      alert("✅ ¡Armado actualizado exitosamente!");
+      //alert("✅ ¡Armado actualizado exitosamente!");
+      toast.success(`Armado actualizado exitosamente!`)
     } else {
       // --- LÓGICA DE GUARDADO NUEVO (POST) ---
       await guardarArmado(datosArmado);
-      alert("🚀 ¡Proyecto nuevo guardado exitosamente!");
+      toast.success("¡Proyecto nuevo guardado exitosamente!")
+
     }
 
     // Limpieza post-guardado
@@ -594,8 +597,8 @@ const reemplazarPieza = (sug) => {
   // Scroll suave hacia el resumen para mostrar que la pieza cambió
   window.scrollTo({ top: 0, behavior: 'smooth' });
   
-  // Notificación opcional
-  toast.success("Componente actualizado correctamente");
+  // Notificación de éxito en el reemplazo del componente
+  toast.success(`¡${sug.nombre} añadido con éxito!`);
   
   // Si tienes un estado de 'incompatibilidades', podrías forzar una limpieza
   // o dejar que el useEffect de validación haga su trabajo.
@@ -1077,7 +1080,9 @@ const reemplazarPieza = (sug) => {
                 {mostrarTutorial && (
                 <div className="tutorial-overlay">
                   <div className="tutorial-box">
-                    <p> <h3> <strong> Tutorial introductorio del uso de esta ventana de Armado </strong></h3></p>
+                    <div>
+                      <h3> <strong> Tutorial introductorio del uso de esta ventana de Armado </strong></h3>
+                    </div>
                     <p>{pasos[pasoTutorial].texto}</p>
 
                     <div className="tutorial-buttons">
