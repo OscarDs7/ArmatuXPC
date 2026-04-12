@@ -6,17 +6,17 @@ Plataforma web interactiva para el armado de computadoras personalizadas, con me
 
 Desarrollar una plataforma que permita a los usuarios:
 
-🖥️ Simular el armado de una PC
-🤖 Recibir asesoramiento inteligente (IA)
-🔧 Validar compatibilidad de componentes
-📊 Aprender de forma interactiva
-✨ Features
-🔍 Validación de compatibilidad de hardware en tiempo real
-🧠 Mentor digital con IA (NLP + reglas)
-🎮 Visualización 3D con Three.js
-🔐 Autenticación con Firebase
-📦 Gestión de catálogo de componentes
-☁️ Persistencia en PostgreSQL + Firestore
+- 🖥️ Simular el armado de una PC
+- 🤖 Recibir asesoramiento inteligente (IA)
+- 🔧 Validar compatibilidad de componentes
+- 📊 Aprender de forma interactiva
+- ✨ Features
+- 🔍 Validación de compatibilidad de hardware en tiempo real
+- 🧠 Mentor digital con IA (NLP + reglas)
+- 🎮 Visualización 3D con Three.js
+- 🔐 Autenticación con Firebase
+- 📦 Gestión de catálogo de componentes
+- ☁️ Persistencia en PostgreSQL + Firestore
 
 **🏗️ Arquitectura**
 Frontend (React + Vite + Three.js)
@@ -68,14 +68,22 @@ T- ailwind CSS
   - docker compose -f docker-compose-development.yml up --build (crear pila de contenedores)
     
 **📂 Estructura del proyecto**
+
 ArmatuXPC/
 │
+
 ├── frontend-vite/
+
 ├── backend/
+
 │   └── ArmatuXPC.Backend/
+
 ├── IA/
+
 ├── docker-compose-development.yml
+
 ├── docker-compose-production.yml
+
 └── README.md
 
 **🚨 Problemas comunes**
