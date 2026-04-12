@@ -1,4 +1,4 @@
-# Nombre de Proyecto:** ArmatuXPC
+# Nombre de Proyecto: ArmatuXPC
 
 ## Tabla de Contenidos
 1. Objetivo
