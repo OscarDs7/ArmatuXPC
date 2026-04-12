@@ -21,12 +21,16 @@ Desarrollar una plataforma que permita a los usuarios:
 **🏗️ Arquitectura**
 Frontend (React + Vite + Three.js)
         ↓
+        
 Backend API (ASP.NET Core)
         ↓
+        
 PostgreSQL (datos principales)
         ↓
+        
 Firebase (Auth + Storage + Functions)
         ↓
+        
 IA Service (Ollama - NLP + lógica de reglas de compatibilidad)
 
 **🛠️ Tecnologías**
@@ -99,9 +103,9 @@ ArmatuXPC/
 
 **🌐 Puertos**
 [Locales (de momento)]
-Backend: http://localhost:5031/api
-Frontend: http://localhost:5173
-Docker: http://localhost:5000/api
+- Backend: http://localhost:5031/api
+- Frontend: http://localhost:5173
+- Docker: http://localhost:5000/api
 
 **🚀 Despliegue**
 Frontend: Vercel
