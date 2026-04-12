@@ -109,13 +109,13 @@ cd nombre-del-proyecto
 **3. Instalar Dependencias**
 
 **Instalar dependencias frontend**
-cd frontend-vite
-npm install
-npm run dev
+1. cd frontend-vite
+2. npm install
+3. npm run dev
 
 **Backend**
-cd ../backend/ArmatuXPC.Backend
-dotnet run
+1. cd ../backend/ArmatuXPC.Backend
+2. dotnet run
 
 **4. Configurar el Archivo de Entorno (Opcional)**
 
