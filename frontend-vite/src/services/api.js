@@ -402,24 +402,26 @@ export const sincronizarUsuario = async (userData) => {
   try {
     const response = await fetch(`${API_URL}/Usuarios/sincronizar`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        uid: userData.uid,
-        nombre: userData.nombre || "Usuario Nuevo",
-        correo: userData.correo,
-        fechaRegistro: userData.fechaRegistro || new Date().toISOString(),
-        tokensDisponibles: userData.tokensDisponibles || 3,
-        rol: userData.rol || "user"
+        // Usamos PascalCase para que coincida con el modelo Usuario de C#
+        Uid: userData.uid,
+        Nombre: userData.nombre || "Usuario Nuevo",
+        Correo: userData.correo,
+        FechaRegistro: userData.fechaRegistro || new Date().toISOString(),
+        TokensDisponibles: userData.tokensDisponibles || 3,
+        Rol: userData.rol || "user"
       }),
     });
 
+    // 1. Verificamos si la respuesta fue exitosa
     if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.mensaje || "Error al sincronizar usuario");
+      // Si falló (404, 500, etc), leemos como texto para evitar el error de JSON
+      const errorTexto = await response.text();
+      throw new Error(`Error ${response.status}: ${errorTexto}`);
     }
 
+    // 2. Solo si es OK intentamos parsear el JSON
     return await response.json();
   } catch (error) {
     console.error("Error en sincronizarUsuario:", error);
