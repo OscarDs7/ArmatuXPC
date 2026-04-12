@@ -1,4 +1,4 @@
-**Nombre de Proyecto:** ArmatuXPC
+# Nombre de Proyecto:** ArmatuXPC
 
 ## Tabla de Contenidos
 1. Objetivo
@@ -14,7 +14,7 @@
 
 Desarrollar una plataforma web interactiva que integre un mentor digital con inteligencia artificial y visualización 3D en tiempo real con el fin de orientar y capacitar a los usuarios en el armado, personalización y mantenimiento de computadoras de escritorio, fortaleciendo su confianza, conocimiento técnico y autonomía en el proceso.
 
-** 2.- Integrantes**
+**2.- Integrantes**
 
 Romero Escamilla Oscar Eduardo — #22110112
 
