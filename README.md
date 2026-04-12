@@ -10,11 +10,11 @@
 7. Problemas comúnes
 8. Puertos
 
-# 1.- Objetivo del proyecto**
+**1.- Objetivo del proyecto**
 
 Desarrollar una plataforma web interactiva que integre un mentor digital con inteligencia artificial y visualización 3D en tiempo real con el fin de orientar y capacitar a los usuarios en el armado, personalización y mantenimiento de computadoras de escritorio, fortaleciendo su confianza, conocimiento técnico y autonomía en el proceso.
 
-# 2.- Integrantes**
+** 2.- Integrantes**
 
 Romero Escamilla Oscar Eduardo — #22110112
 
@@ -24,7 +24,7 @@ Soto Rodríguez Bryan Nicolás — #22310373
 
 Corona Gómez Diego Jahir — #22310358
 
-# 3.- Tecnologias usadas
+**3.- Tecnologias usadas**
 
 **Lenguaje(s) de programación seleccionados**
 
@@ -83,7 +83,7 @@ Corona Gómez Diego Jahir — #22310358
 **Node.js:** Es un entorno de ejecución de JavaScript de código abierto y multiplataforma que permite ejecutar código JavaScript fuera del navegador, lo que lo hace ideal para desarrollar aplicaciones del servidor y backend. Asimismo, cuenta con librerías, dependencias y gestores de paquetes como “npm” que sirven para la creación, instalación y ejecución de proyectos con frameworks como React.js
 
 
-# 4.- Instrucciones para Clonar y Ejecutar el Proyecto
+**4.- Instrucciones para Clonar y Ejecutar el Proyecto**
 
 **1. Requisitos Previos**
 
