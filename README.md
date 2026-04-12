@@ -20,28 +20,32 @@ Desarrollar una plataforma que permita a los usuarios:
 
 **🏗️ Arquitectura**
 
-- Frontend (React + Vite + Three.js)
+  Frontend (React + Vite + Three.js)
         ↓
-- Backend API (ASP.NET Core)
+  Backend API (ASP.NET Core)
         ↓
-- PostgreSQL (datos principales)
+  PostgreSQL (datos principales)
         ↓
-- Firebase (Auth + Storage + Functions)
+  Firebase (Auth + Storage + Functions)
         ↓   
-- IA Service (Ollama - NLP + lógica de reglas de compatibilidad)
+  IA Service (Ollama - NLP + lógica de reglas de compatibilidad)
 
 **🛠️ Tecnologías**
+
 **Frontend**
 - React
 - Tailwind CSS
 - Three.js
+  
 **Backend:**:
 - ASP.NET Core (C#)
 - Tokens de nuevos armados / Monitoreo y logística
 - JavaScript + API REST (NLP, reglas de compatibilidad)
+  
 **Base de datos:**
 - PostgreSQL
 - Firebase (Auth, Firestore, Storage)
+  
 **DevOps:**
 - Docker
 - GitHub Actions
