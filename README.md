@@ -7,8 +7,8 @@
 4. Instalación
 5. Uso
 6. Arquitectura
-7. Contribución
-8. Licencia
+7. Problemas comúnes
+8. Puertos
 
 # 1.- Objetivo del proyecto**
 
@@ -177,19 +177,19 @@ Abre en el navegador:
 
 http://localhost/nombre-del-proyecto
 
-**7. Estructura del Proyecto**
+**6. Estructura del Proyecto**
 
-- ArmatuXPC-Platform/ -> ruta raíz del proyecto
-- backend/ArmatuXPC.Backend -> ruta de todo lo relacionado con la base de datos de PostgreSQL.
-- frontend-vite/ -> ruta con todas la interfaces UI del proyecto.
-- IA/ -> archivos del modelo de IA para el chatbot.
-- ArmatuXPC-Platform.sln -> Archivo de ejecución del proyecto.
-- docker-compose-development.yml -> configuraciones de contenedores de servicios del proyecto, entre ellos la base de datos de manera local.
-- docker-compose-production.yml -> configuraciones de contenedores de servicios del proyecto preparados para el despliegue.
-- firebase.json -> configuración de servicio "functions" de firebase.
-- README.md -> archivo de explicación del proyecto.
+- **ArmatuXPC-Platform/:**  ruta raíz del proyecto
+- **backend/ArmatuXPC.Backend:** ruta de todo lo relacionado con la base de datos de PostgreSQL.
+- **frontend-vite/:** ruta con todas la interfaces UI del proyecto.
+- **IA/:** archivos del modelo de IA para el chatbot.
+- **ArmatuXPC-Platform.sln** Archivo de ejecución del proyecto.
+- **docker-compose-development.yml:** configuraciones de contenedores de servicios del proyecto, entre ellos la base de datos de manera local.
+- **docker-compose-production.yml:** configuraciones de contenedores de servicios del proyecto preparados para el despliegue.
+- **firebase.json** configuración de servicio "functions" de firebase.
+- **README.md:** archivo de explicación del proyecto.
 
-**8. Problemas Comunes**
+**7. Problemas Comunes**
 
 **"Permission denied"**
 
@@ -208,7 +208,7 @@ Revisa el archivo .env
 
 Revisa la configuración de la base de datos
 
-## Puertos
+##8. Puertos
 
 - Local (sin Docker): http://localhost:5031/api
 - Docker / ZeroTier: http://<IP-LÍDER-DE-EQUIPO>:5000/api
