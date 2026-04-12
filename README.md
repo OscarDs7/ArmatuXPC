@@ -41,10 +41,10 @@ Corona Gómez Diego Jahir — #22310358
 **Cloud Firestore (Firebase):** Servicio en la nube para el almacenamiento de usuarios normales y para su control de tokens de armado.
 
 **Firebase Authentication:** Servicio de autenticación gestionado para manejar el login con correo/contraseña y cuentas de Google.
+**Firebase Functions:** Servicio para mayor seguridad en las operaciones del rol administrador de la plataforma web. 
+**Firebase Storage:** El servicio de almacenamiento en la nube para alojar los archivos estáticos grandes, específicamente las imagenes de cada tipo de componente de la plataforma.
 
-**Firebase Storage:** El servicio de almacenamiento en la nube para alojar los archivos estáticos grandes, específicamente los modelos 3D.
-
-**PostgreSQL:** La base de datos relacional elegida para almacenar el catálogo de hardware y los perfiles de usuario.
+**PostgreSQL:** La base de datos relacional elegida para almacenar el catálogo de hardware y toda la lógica del negocio.
 
 **Blender:** El software de diseño y modelado 3D esencial para crear los assets de los componentes de PC.
 
@@ -108,22 +108,14 @@ cd nombre-del-proyecto
 
 **3. Instalar Dependencias**
 
-Si el proyecto es Node.js:
-
+# Instalar dependencias frontend
+cd frontend-vite
 npm install
+npm run dev
 
-Si es Python:
-
-pip install -r requirements.txt
-
-Si es Java (Maven):
-
-mvn install
-
-Si es PHP:
-No requiere instalación; solo coloca la carpeta en el directorio del servidor (htdocs en XAMPP).
-
-Cambia esta sección a lo que tu proyecto use.
+# Backend
+cd ../backend/ArmatuXPC.Backend
+dotnet run
 
 **4. Configurar el Archivo de Entorno (Opcional)**
 
@@ -204,8 +196,8 @@ Revisa la configuración de la base de datos
 
 ## Puertos
 
-- Local (sin Docker): http://localhost:5031/Swagger
-- Docker / ZeroTier: http://<IP-LÍDER-DE-EQUIPO>:5000/swagger
+- Local (sin Docker): http://localhost:5031/api
+- Docker / ZeroTier: http://<IP-LÍDER-DE-EQUIPO>:5000/api
 
 
 
