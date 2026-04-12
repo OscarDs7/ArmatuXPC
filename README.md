@@ -1,10 +1,20 @@
 **Nombre de Proyecto:** ArmatuXPC
 
-**1.- Objetivo del proyecto**
+## Tabla de Contenidos
+1. Objetivo
+2. Miembros del equipo
+3. Tecnologías
+4. Instalación
+5. Uso
+6. Arquitectura
+7. Contribución
+8. Licencia
+
+# 1.- Objetivo del proyecto**
 
 Desarrollar una plataforma web interactiva que integre un mentor digital con inteligencia artificial y visualización 3D en tiempo real con el fin de orientar y capacitar a los usuarios en el armado, personalización y mantenimiento de computadoras de escritorio, fortaleciendo su confianza, conocimiento técnico y autonomía en el proceso.
 
-**2.- Integrantes**
+# 2.- Integrantes**
 
 Romero Escamilla Oscar Eduardo — #22110112
 
@@ -14,7 +24,7 @@ Soto Rodríguez Bryan Nicolás — #22310373
 
 Corona Gómez Diego Jahir — #22310358
 
-**3.- Tecnologias usadas**
+# 3.- Tecnologias usadas
 
 **Lenguaje(s) de programación seleccionados**
 
@@ -73,7 +83,7 @@ Corona Gómez Diego Jahir — #22310358
 **Node.js:** Es un entorno de ejecución de JavaScript de código abierto y multiplataforma que permite ejecutar código JavaScript fuera del navegador, lo que lo hace ideal para desarrollar aplicaciones del servidor y backend. Asimismo, cuenta con librerías, dependencias y gestores de paquetes como “npm” que sirven para la creación, instalación y ejecución de proyectos con frameworks como React.js
 
 
-**4.- Instrucciones para Clonar y Ejecutar el Proyecto**
+# 4.- Instrucciones para Clonar y Ejecutar el Proyecto
 
 **1. Requisitos Previos**
 
@@ -167,13 +177,17 @@ Abre en el navegador:
 
 http://localhost/nombre-del-proyecto
 
-**7. Estructura del Proyecto (Opcional en tu README)**
-/src
-/database
-/public
-/README.md
+**7. Estructura del Proyecto**
 
-Explica brevemente para qué sirve cada carpeta.
+- ArmatuXPC-Platform/ -> ruta raíz del proyecto
+- backend/ArmatuXPC.Backend -> ruta de todo lo relacionado con la base de datos de PostgreSQL.
+- frontend-vite/ -> ruta con todas la interfaces UI del proyecto.
+- IA/ -> archivos del modelo de IA para el chatbot.
+- ArmatuXPC-Platform.sln -> Archivo de ejecución del proyecto.
+- docker-compose-development.yml -> configuraciones de contenedores de servicios del proyecto, entre ellos la base de datos de manera local.
+- docker-compose-production.yml -> configuraciones de contenedores de servicios del proyecto preparados para el despliegue.
+- firebase.json -> configuración de servicio "functions" de firebase.
+- README.md -> archivo de explicación del proyecto.
 
 **8. Problemas Comunes**
 
