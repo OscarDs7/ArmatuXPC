@@ -19,24 +19,21 @@ Desarrollar una plataforma que permita a los usuarios:
 - ☁️ Persistencia en PostgreSQL + Firestore
 
 **🏗️ Arquitectura**
-Frontend (React + Vite + Three.js)
+
+- Frontend (React + Vite + Three.js)
         ↓
-        
-Backend API (ASP.NET Core)
+- Backend API (ASP.NET Core)
         ↓
-        
-PostgreSQL (datos principales)
+- PostgreSQL (datos principales)
         ↓
-        
-Firebase (Auth + Storage + Functions)
-        ↓
-        
-IA Service (Ollama - NLP + lógica de reglas de compatibilidad)
+- Firebase (Auth + Storage + Functions)
+        ↓   
+- IA Service (Ollama - NLP + lógica de reglas de compatibilidad)
 
 **🛠️ Tecnologías**
 **Frontend**
 - React
-T- ailwind CSS
+- Tailwind CSS
 - Three.js
 **Backend:**:
 - ASP.NET Core (C#)
@@ -108,5 +105,5 @@ ArmatuXPC/
 - Docker: http://localhost:5000/api
 
 **🚀 Despliegue**
-Frontend: Vercel
-Backend: Render
+- Frontend: Vercel
+- Backend: Render
