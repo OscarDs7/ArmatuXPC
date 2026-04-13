@@ -4,6 +4,7 @@ import "../estilos/DashBoardUser.css";
 import logoProyecto from "../assets/Logo.png"; // imagen del logo del proyecto
 import { signOut } from "firebase/auth";
 import { auth } from "../utilidades/firebase"; // Importa la autenticación de Firebase para cerrar sesión
+import heroImage from "../assets/hero-pc.jpg";
 
 export default function DashBoardUser() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -76,6 +77,13 @@ export default function DashBoardUser() {
           }}>
             Guía Interactiva
           </button>
+
+          <button onClick={() => {
+            setMenuOpen(false);
+            navigate("/quienes-somos");
+          }}>
+            Quiénes somos
+          </button>
         </div>
 
         <button
@@ -101,9 +109,49 @@ export default function DashBoardUser() {
 
       {/* CONTENIDO */}
       <main className="flex flex-col items-center gap-6 mt-8">
+        <img 
+          src={heroImage} 
+          alt="Armado de PC" 
+          className="hero-image"
+        />
+
         <h2 className="text-4xl font-semibold text-white">
           Bienvenido, {nombre} 👋
         </h2>
+        
+        <div className="info-section">
+          <h3 className="info-title">¿Qué es ArmatuXPC?</h3>
+
+          <p className="info-text">
+            ArmatuXPC es una plataforma educativa diseñada para enseñar a los usuarios 
+            a armar computadoras de escritorio paso a paso, permitiendo explorar componentes, 
+            entender su función y crear configuraciones personalizadas de manera interactiva.
+          </p>
+        </div>
+
+        <div className="features-section">
+
+          <div className="feature-card">
+            <h4>Constructor de PCs</h4>
+            <p>Crea tu computadora personalizada seleccionando cada componente.</p>
+          </div>
+
+          <div className="feature-card">
+            <h4>Guía interactiva</h4>
+            <p>Aprende paso a paso el proceso correcto de ensamblaje.</p>
+          </div>
+
+          <div className="feature-card">
+            <h4>Comunidad</h4>
+            <p>Comparte tus configuraciones y aprende de otros usuarios.</p>
+          </div>
+
+          <div className="feature-card">
+            <h4>Asistente digital</h4>
+            <p>Recibe recomendaciones mediante el uso de nuestro Chatbot.</p>
+          </div>
+
+        </div>
 
         <div className="w-full max-w-3xl bg-linear-to-r from-blue-500 to-blue-600 
                   text-white rounded-xl p-6 shadow-lg transition 

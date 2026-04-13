@@ -26,6 +26,7 @@ import Fuente from "./interfaces/Fuente";
 import Ventilador from "./interfaces/Ventilador";
 import Indice from "./interfaces/Indice";
 import Grafica from "./interfaces/Grafica";
+import QuienesSomos from "./interfaces/QuienesSomos";
 
 function App() {
   return (
@@ -43,6 +44,7 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route path="/quienes-somos" element={<QuienesSomos />} />
       
       {/* Rutas protegidas para administradores */}
       <Route
