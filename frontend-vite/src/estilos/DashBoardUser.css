@@ -55,24 +55,30 @@
   width: 40px;
 }
 
-/* MENU LATERAL */
+/* MENU LATERAL ACTUALIZADO */
 .dash-side-menu {
   position: fixed;
   top: 0;
   left: 0;
-  width: 260px;
-  min-height: 100vh;        /* 👈 mejor que height */
-  background: linear-gradient(180deg,  #1c1c85b8, #3fb4c4);
-  padding: 90px 20px 20px;
+  width: 280px;
+  min-height: 100vh;
+  /* Fondo oscuro semi-transparente para que se vea el degradado de atrás */
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(10px);
+  padding: 100px 20px 30px; /* Ajuste para que el header no tape los botones */
   display: flex;
   flex-direction: column;
   gap: 15px;
+  border-right: 1px solid rgba(59, 130, 246, 0.3); /* Borde sutil azul */
+  box-shadow: 10px 0 30px rgba(0, 0, 0, 0.5);
+  
+  /* Animación */
   transform: translateX(-100%);
   opacity: 0;
   pointer-events: none;
-  transition: transform 0.3s ease, opacity 0.2s ease;
+  transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
   z-index: 1000;
-  overflow-y: auto;         /* 🔥 CLAVE */
+  overflow-y: auto;
 }
 
 .dash-side-menu.open {
@@ -81,25 +87,45 @@
   pointer-events: auto;
 }
 
+/* BOTONES DEL MENÚ */
 .dash-side-menu button {
-  padding: 14px;
-  background: #1e90ff;
-  border: none;
-  color: white;
+  padding: 14px 20px;
+  /* Fondo oscuro con un toque de azul */
+  background: rgba(29, 60, 113, 0.7); 
+  border: 1px solid rgba(4, 32, 79, 0.2);
+  color: #cbd5e1; /* Gris claro */
   font-size: 15px;
-  border-radius: 10px;
+  font-weight: 500;
+  border-radius: 12px;
   cursor: pointer;
-  transition: all 0.2s ease;
+  text-align: center;
+  transition: all 0.3s ease;
 }
 
 .dash-side-menu button:hover {
-  transform: translateX(5px);
-  opacity: 0.9;
+  background: rgba(59, 130, 246, 0.2); /* Brillo azul al pasar el mouse */
+  border-color: #1f71f6;
+  color: #ffffff;
+  transform: translateX(8px); /* Desplazamiento sutil */
+  box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
 }
 
+/* BOTÓN CERRAR SESIÓN (LOGOUT) */
 .dash-side-menu .logout {
-  justify-content: space-between;
-  background: #e63946;
+  margin-top: auto; /* Lo empuja hacia abajo */
+  background: rgba(239, 68, 68, 0.1); /* Rojo muy sutil */
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: #f87171;
+  text-align: center;
+}
+
+/* OVERLAY (CAPA OSCURA DE ATRÁS) */
+.dash-menu-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px); /* Desenfoca el fondo cuando el menú abre */
+  z-index: 900;
 }
 
 /* CARDS */
