@@ -1,7 +1,8 @@
 .comunidad-container {
   padding: 20px;
-  max-width: 1200px;
+  max-width: auto;
   margin: 0 auto;
+  background: linear-gradient(#0f172a, #1e3a8a, #0f172a);
 }
 
 .comunidad-header {
@@ -10,13 +11,29 @@
 }
 
 .comunidad-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-  gap: 25px;
+    /* CONFIGURACIÓN DE COLUMNAS */
+    display: grid;
+    /* Creamos 3 columnas de igual tamaño (1fr) */
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 25px; /* Espacio entre las tarjetas */
+    margin-top: 20px;
+}
+
+/* RESPONSIVE: Para que en tablets sean 2 columnas y en celular 1 */
+@media (max-width: 1024px) {
+    .comunidad-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .comunidad-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 .card-publicacion {
-  background: #ffffff;
+  background: linear-gradient(#0f172a, #1e3a8a, #0f172a);
   border-radius: 12px;
   box-shadow: 0 4px 15px rgba(0,0,0,0.1);
   padding: 20px;
@@ -24,25 +41,34 @@
   flex-direction: column;
   transition: transform 0.2s;
   border: 1px solid #eee;
+  color: white;
 }
 
 .card-publicacion:hover {
-  transform: translateY(-5px);
+    transform: translateY(-10px);
+    border-color: #3b82f6;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4), 0 0 20px rgba(59, 130, 246, 0.2);
 }
 
 .autor-tag {
-  background: #e3f2fd;
-  color: #1976d2;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.85rem;
-  font-weight: bold;
+ background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    padding: 6px 14px;
+    border-radius: 99px;
+    font-size: 0.75rem;
+    font-weight: 800;
+    border: 1px solid rgba(59, 130, 246, 0.3);
 }
-
+.proyecto-nombre {
+    font-size: 1.4rem;
+    font-weight: 700;
+    margin: 15px 0;
+    color: #fff;
+}
 .mini-tag {
   font-size: 0.8rem;
   margin-bottom: 5px;
-  color: #555;
+  color: white;
 }
 
 .precio-total {
@@ -52,7 +78,7 @@
 }
 
 .precio-total span {
-  color: #2e7d32;
+  color: #4ade80
 }
 
 .btn-usar-plantilla {
@@ -67,6 +93,11 @@
   font-weight: bold;
 }
 
+.btn-usar-plantilla:hover {
+  filter: brightness(1.2);
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.4);
+}
+
 .btn-volver {
   margin-right: 20px;
   padding: 8px 14px;
@@ -79,9 +110,34 @@
 }
 
 .comunidad-title {
-  font-size: 2rem;
-  color: #333;
-  margin-top: 10px;
-    text-shadow: 1px 1px 3px rgba(0,0,0,0.1);
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -1px;
+    margin-top: 20px;
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
 }
 
+.slogan, .no-data{
+  color: white;
+}
+
+.resumen-grid{
+  display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.tipo-label {
+    font-size: 0.8rem;
+    font-weight: 900;
+    text-transform: uppercase;
+    color: #64748b;
+    margin-right: 8px;
+}
+
+.nombre-val {
+    font-size: 0.85rem;
+    color: #cbd5e1;
+}

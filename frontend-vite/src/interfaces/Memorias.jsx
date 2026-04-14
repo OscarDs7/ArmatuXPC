@@ -74,14 +74,14 @@ export default function Vision() {
 
   return (
 
-    <div className="min-h-screen bg-gradient-to-br from-sky-200 via-blue-300 to-blue-400 flex flex-col p-6">
+    <div className="min-h-screen bg-linear-to-b from-[#0f172a] via-[#1e3a8a] to-[#0f172a] text-white flex flex-col p-6">
       {/* 🔹 BOTONES SUPERIORES */}
       <div className="relative flex items-center justify-between mb-6">
 
         {/* IZQUIERDA → RAM */}
         <button
           onClick={() => navigate("/Ram")}
-          className="px-6 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-emerald-500/30"
+          className="px-6 py-2 bg-linear-to-r from-emerald-500 to-teal-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-emerald-500/30"
         >
           🧩 RAM
         </button>
@@ -89,7 +89,7 @@ export default function Vision() {
         {/* CENTRO → ÍNDICE */}
         <button
           onClick={() => navigate("/Indice")}
-          className="absolute left-1/2 transform -translate-x-1/2 px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-purple-500/30"
+          className="absolute left-1/2 transform -translate-x-1/2 px-6 py-2 bg-linear-to-r from-purple-500 to-indigo-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-purple-500/30"
         >
           📑 Índice
         </button>
@@ -97,7 +97,7 @@ export default function Vision() {
         {/* DERECHA → FUENTE DE PODER */}
         <button
           onClick={() => navigate("/fuente")}
-          className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-orange-500/30"
+          className="px-6 py-2 bg-linear-to-r from-orange-500 to-red-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-orange-500/30"
         >
           🔌 Fuente de Poder
         </button>
@@ -109,7 +109,7 @@ export default function Vision() {
         {/* PANEL IZQUIERDO */}
         <div className="bg-slate-900/60 backdrop-blur-2xl p-8 rounded-3xl border border-slate-700/50 shadow-[0_0_40px_rgba(0,255,255,0.05)]">
 
-          <h2 className="text-3xl font-extrabold mb-6 !text-white">
+          <h2 className="text-3xl font-extrabold mb-6 text-white">
             Disco Duro (HDD / SSD)
           </h2>
 
@@ -123,7 +123,7 @@ export default function Vision() {
               onClick={() => setModo("instalar")}
               className={`px-5 py-2 rounded-xl font-semibold transition-all duration-300 ${
                 modo === "instalar"
-                  ? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30 scale-105"
+                  ? "bg-linear-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30 scale-105"
                   : "bg-slate-800 text-slate-300 hover:bg-slate-700"
               }`}
             >
@@ -134,7 +134,7 @@ export default function Vision() {
               onClick={() => setModo("desinstalar")}
               className={`px-5 py-2 rounded-xl font-semibold transition-all duration-300 ${
                 modo === "desinstalar"
-                  ? "bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-lg shadow-red-500/30 scale-105"
+                  ? "bg-linear-to-r from-red-500 to-pink-600 text-white shadow-lg shadow-red-500/30 scale-105"
                   : "bg-slate-800 text-slate-300 hover:bg-slate-700"
               }`}
             >
@@ -166,20 +166,20 @@ export default function Vision() {
 
           <div className="flex justify-between items-center mb-6">
 
-            <h2 className="text-3xl font-extrabold !text-white">
+            <h2 className="text-3xl font-extrabold text-white">
               Visor 3D
             </h2>
 
             <button
               onClick={() => setTrigger(prev => prev + 1)}
-              className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-cyan-500/30"
+              className="px-6 py-2 bg-linear-to-r from-cyan-500 to-blue-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-cyan-500/30"
             >
               ▶ Reproducir Animación
             </button>
 
           </div>
 
-          <div className="w-full h-[500px] rounded-2xl overflow-hidden border border-slate-700/50 shadow-inner">
+          <div className="w-full h-125 rounded-2xl overflow-hidden border border-slate-700/50 shadow-inner">
 
             <Canvas camera={{ position: [-4, 2, -10], fov: 60 }}>
 

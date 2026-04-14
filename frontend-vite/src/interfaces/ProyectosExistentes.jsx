@@ -157,7 +157,7 @@ export default function ProyectosExistentes() {
 
   return (
     <div className="proyectos-container">
-      <button className="btn-volver" onClick={() => navigate("/dashboard-user")}>← Volver</button>
+      <button className="btn-volver-neon" onClick={() => navigate("/dashboard-user")}>← Volver</button>
 
       <h2 className="title">Mis PCs Armadas 🖥️</h2>
 
@@ -208,7 +208,7 @@ export default function ProyectosExistentes() {
             </div>
 
             <div className="proyecto-body">
-              <strong>Componentes principales:</strong>
+              <strong className="componentes">Componentes principales:</strong>
               <div style={{ marginTop: '8px' }}>
                 {p.componentes.slice(0, 3).map((c, index) => (
                   <span key={index} className="componente-tag">

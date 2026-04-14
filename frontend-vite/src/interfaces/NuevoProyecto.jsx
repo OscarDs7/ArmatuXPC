@@ -631,17 +631,22 @@ const reemplazarPieza = (sug) => {
   // Renderizamos el componente //
   return (
     <div className="nuevo-proyecto-container">
-      <header className="nuevo-header">
-        <button className="btn-volver" onClick={() => navigate("/dashboard-user")}>← Volver</button>
-        {/* El título cambia según el modo */}
-        <h1>{modo === "continuar" ? "Continuar Proyecto" : "Crear Nuevo Proyecto"}</h1>
+      <header className="nuevo-header flex items-center justify-between bg-blue-950/60 backdrop-blur-md p-5 border-b border-blue-500/30">
+        <button className="btn-volver-neon" onClick={() => navigate("/dashboard-user")}>
+            <span className="mr-2">←</span> Volver al Dashboard
+        </button>
+          {/* El título cambia según el modo */}
+        <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-cyan-300">
+          {modo === "continuar" ? "Continuar Proyecto" : "Crear Nuevo Proyecto"}</h1>
+
+          <div className="w-32 hidden md:block"></div> {/* Espaciador para centrar el título */}
       </header>
 
-      {/* Diseño UI de Autoguardado y botón de Guardado manual */ }
-      <div className="project-controls-bar">
-        <div className="status-group">
+      {/* BARRA DE CONTROLES (AUTOGUARDADO) / GUARDADO MANUAL */}
+      <div className="project-controls-bar flex flex-wrap items-center justify-between p-4 bg-slate-900/50 border-b border-white/5">
+        <div className="status-group flex items-center gap-6">
           {/* Switch de Autoguardado */}
-          <div className="flex items-center gap-2 mr-4">
+          <div className="flex items-center gap-3">
             <label className="relative inline-flex items-center cursor-pointer">
               <input 
                 type="checkbox" 
@@ -649,17 +654,18 @@ const reemplazarPieza = (sug) => {
                 checked={autoGuardado}
                 onChange={() => setAutoGuardado(!autoGuardado)}
               />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+              <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]"></div>
             </label>
             <span className="text-sm font-medium text-gray-700">
-              Autoguardado {autoGuardado ? "ON" : "OFF"}
+              <span className={`w-2 h-2 rounded-full mr-2 ${autoGuardado ? "bg-green-400 animate-pulse" : "bg-slate-500"}`}></span>
+              Autoguardado {autoGuardado ? "Activado" : "Manual"}
             </span>
           </div>
 
           {/* Indicador de Estado */}
           <div className="status-indicator">
             {autoGuardado ? (
-              <span className="flex items-center text-green-600 text-sm">
+              <span className={`flex items-center text-sm font-bold ${autoGuardado ? "text-green-400" : "text-slate-400"}`}>
                 <span className="dot-green mr-2">●</span> Cambios guardados
               </span>
             ) : (
@@ -682,23 +688,25 @@ const reemplazarPieza = (sug) => {
         </div>
       </div>
       
-      <div className="nuevo-main">
-        {/* SIDEBAR IZQUIERDO */}
+      <div className="nuevo-main flex p-4 gap-6">
+      {/* SIDEBAR IZQUIERDO: SECCIÓN DE COMPONENTES */}
         <div className="componentes-menu bg-amber-200 p-4 rounded-lg">
-          <div className="bg-blue-200 p-3 rounded-lg mt-3 modo-panel">
+          {/* PANEL DE MODO: MEJORADO */}
+          <div className={`modo-panel-neon p-4 rounded-xl border-2 transition-all ${modoGuia ? "border-blue-500/50 bg-blue-500/10" : "border-purple-500/50 bg-purple-500/10"}`}>
             <span>
               {modoGuia ? "🧭 Modo guía" : "🎮 Modo libre"}
-              <p style={{ fontSize: "0.9rem", marginTop: "5px" }}>
+              <p style={{ fontSize: "0.9rem", marginTop: "5px", color: "black" }}>
               {modoGuia 
-                ? "Modo guía activado: sigue el orden recomendado"
-                : "Modo libre: puedes elegir cualquier componente"}
+                ? "Te guiaremos por el orden recomendado para el armado de una PC."
+                : "Puedes elegir cualquier componente en el orden que prefieras."}
             </p>
             </span>
           </div>
         <div className="modo-switch">
-          <span className={`${modoGuia ? "text-green-400 font-bold" : "text-gray-400"}`}>
-            🧭 Guía
+          <span className={`${modoGuia ? "text-blue-400 font-bold" : "text-gray-400"}`}>
+             🧭 Guía
           </span>
+          {/* SWITCH MODO */}
           <label className="switch">
             <input 
               type="checkbox" 
@@ -707,7 +715,7 @@ const reemplazarPieza = (sug) => {
             />
             <span className="slider"></span>
           </label>
-          <span className={`${!modoGuia ? "text-green-400 font-bold" : "text-gray-400"}`}>
+          <span className={`${!modoGuia ? "text-purple-400 font-bold" : "text-gray-400"}`}>
             🎮 Libre
           </span>
         </div>
@@ -734,7 +742,7 @@ const reemplazarPieza = (sug) => {
         })}
           </div>
         </div>
-
+        
         {/* VISTA CENTRAL */}
         <div className="central-view">
            {/* Mostrar mensaje cuando ya no quedan tokens */}

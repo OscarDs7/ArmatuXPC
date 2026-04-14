@@ -14,21 +14,34 @@
   align-items: center;
   padding: 15px 30px;
   /* Aplicamos el mismo degradado de tus botones activos */
-  background: linear-gradient(135deg, #00c6ff, #0072ff);
+    background: linear-gradient(#0f172a, #1e3a8a, #0f172a);
+
   color: white;
   box-shadow: 0 2px 10px rgba(0,0,0,0.1);
   z-index: 10;
 }
 
-.btn-volver {
-  margin-right: 20px;
-  padding: 8px 14px;
-  border: none;
-  background: white;
-  color: #0072ff; /* Color acorde al degradado */
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 600;
+/* Botón Volver con efecto neón */
+.btn-volver-neon {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  font-weight: bold;
+  transition: 0.3s;
+}
+
+/* Panel de Modo dinámico */
+.modo-panel-neon {
+  box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.2);
+}
+
+.btn-volver-neon:hover {
+  background: #ef4444; /* Rojo para indicar salida */
+  border-color: #f87171;
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
 }
 
 /* --- Layout Principal --- */
@@ -439,7 +452,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: #ccc;
+  background-color: #3b82f6; /* Azul para Guía */;
   transition: 0.4s;
   border-radius: 34px;
 }
@@ -874,9 +887,9 @@
   justify-content: space-between;
   align-items: center;
   background: rgba(255, 255, 255, 0.9);
-  padding: 5px 25px;
+  padding: 10px 25px;
   border-radius: 12px;
-  margin-bottom: 20px;
+  margin-bottom: 15px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(5px);
 }
