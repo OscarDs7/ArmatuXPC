@@ -32,6 +32,21 @@
   z-index: 900;
 }
 
+.dash-user-header {
+  /* Aseguramos que el grid distribuya el espacio correctamente */
+  display: grid !important;
+  /* 80px a los lados para los iconos y el resto para el centro */
+  grid-template-columns: 80px 1fr 80px; 
+  align-items: center; /* Alineación vertical perfecta */
+  justify-items: center; /* Alineación horizontal de los bloques */
+  padding: 15px 30px;
+  min-height: 100px; /* Altura fija para que no varíe */
+  background: rgba(15, 23, 42, 0.7);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(59, 130, 246, 0.2);
+  min-height: 100px;
+}
+
 /* Centro */
 .dash-header-center {
   display: flex;
@@ -55,6 +70,37 @@
   width: 40px;
 }
 
+/* En pantallas pequeñas, reducimos el espacio de los lados */
+@media (max-width: 640px) {
+  .dash-user-header {
+    grid-template-columns: 60px 1fr 60px;
+    padding: 10px;
+    min-height: 80px;
+  }
+}
+
+/* Laptop / Desktop pequeño */
+@media (min-width: 1024px) {
+  .dash-user-header {
+    grid-template-columns: 120px 1fr 120px;
+    min-height: 140px;
+    padding: 25px 40px;
+  }
+}
+
+/* Pantallas Extra Grandes (Monitores) */
+@media (min-width: 1280px) {
+  .dash-user-header {
+    grid-template-columns: 150px 1fr 150px;
+    min-height: 180px;
+  }
+}
+
+/* Forzar que el logo y el botón de menú pesen lo mismo visualmente */
+.dash-menu-btn, .dash-user-header img {
+  aspect-ratio: 1 / 1;
+}
+
 /* MENU LATERAL ACTUALIZADO */
 .dash-side-menu {
   position: fixed;
@@ -63,7 +109,7 @@
   width: 280px;
   min-height: 100vh;
   /* Fondo oscuro semi-transparente para que se vea el degradado de atrás */
-  background: rgba(15, 23, 42, 0.95);
+  background: linear-gradient(#0f172a, #1e3a8a, #0f172a);
   backdrop-filter: blur(10px);
   padding: 100px 20px 30px; /* Ajuste para que el header no tape los botones */
   display: flex;
@@ -91,7 +137,7 @@
 .dash-side-menu button {
   padding: 14px 20px;
   /* Fondo oscuro con un toque de azul */
-  background: rgba(29, 60, 113, 0.7); 
+  background: rgba(9, 20, 38, 0.7); 
   border: 1px solid rgba(4, 32, 79, 0.2);
   color: #cbd5e1; /* Gris claro */
   font-size: 15px;
