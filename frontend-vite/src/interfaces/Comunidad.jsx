@@ -34,13 +34,13 @@ export default function Comunidad() {
   if (cargando) return <div className="loader">Cargando comunidad... 🚀</div>;
 
   return (
-    <div className="comunidad-container">
-      <header className="comunidad-header">
-        <button className="btn-volver" onClick={() => navigate("/dashboard-user")}>
+    <div className="comunidad-container min-h-screen">
+        <button className="btn-volver-neon" onClick={() => navigate("/dashboard-user")}>
           ← Volver
         </button>
+      <header className="comunidad-header">
         <h1 className="comunidad-title">Explora la Comunidad 🌐</h1>
-        <p>Inspírate con los armados de otros usuarios y crea tu PC ideal.</p>
+        <p className="slogan">Inspírate con los armados de otros usuarios y crea tu PC ideal.</p>
       </header>
 
       <div className="comunidad-grid">
@@ -55,11 +55,12 @@ export default function Comunidad() {
               </div>
               
               <div className="card-body">
-                <h3>{p.nombreArmado}</h3>
-                <div className="resumen-componentes">
+                <h3 className="proyecto-nombre">{p.nombreArmado}</h3>
+                <div className="resumen-grid">
                   {p.componentes.slice(0, 4).map((c, i) => (
-                    <div key={i} className="mini-tag">
-                      <strong>{c.tipo}:</strong> {c.nombre}
+                    <div key={i} className="componente-row">
+                      <span className="tipo-label">{c.tipo}:</span> 
+                      <span className="nombre-val">{c.nombre}</span>
                     </div>
                   ))}
                   {p.componentes.length > 4 && (

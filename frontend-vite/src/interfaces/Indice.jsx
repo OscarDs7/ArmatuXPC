@@ -18,7 +18,7 @@ export default function MenuInstructivos() {
 
   return (
 
-   <div className="min-h-screen bg-linear-to-br from-blue-300 via-blue-400 to-blue-500 flex flex-col p-6">
+   <div className="min-h-screen bg-linear-to-b from-[#0f172a] via-[#1e3a8a] to-[#0f172a] text-white flex flex-col p-6">
 
 
       <div className="max-w-6xl mx-auto">

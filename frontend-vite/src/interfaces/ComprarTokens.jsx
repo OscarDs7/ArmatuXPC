@@ -48,30 +48,52 @@ export default function ComprarTokens() {
   };
 
   return (
-    <div className="compra-container">
-      <button className="btn-volver" onClick={() => navigate("/dashboard-user")} disabled={cargando}>
-        ← Volver
-      </button>
-      
-      <h2 className="title">Aumenta tu capacidad de Armado 🚀</h2>
-      
-      {cargando && <p className="mensaje-carga">Conectando con Stripe segura... 🔒</p>}
+    <div className="compra-full-screen">
+      <div className="compra-container">
+        <header className="compra-header">
+          <button className="btn-volver-neon" onClick={() => navigate("/dashboard-user")} disabled={cargando}>
+            ← Volver
+          </button>
+          <h2 className="title-glow">Aumenta tu capacidad de Armado 🚀</h2>
+          <p className="subtitle">Desbloquea más espacios en la nube para tus proyectos personalizados</p>
+        </header>
 
-      <div className={`paquetes-grid ${cargando ? "desactivado" : ""}`}>
-        {paquetes.map((p) => (
-          <div key={p.id} className="paquete-card" style={{ borderTop: `6px solid ${p.color}` }}>
-            <h3>{p.nombre}</h3>
-            <div className="token-circle">+{p.tokens}</div>
-            <p className="precio">{p.precioTexto}</p>
-            <button 
-              className="btn-comprar" 
-              onClick={() => handleCompra(p)}
-              disabled={cargando}
-            >
-              {cargando ? "Procesando..." : "Seleccionar"}
-            </button>
+        {cargando && (
+          <div className="loading-overlay">
+            <div className="spinner"></div>
+            <p>Conectando con Stripe segura... 🔒</p>
           </div>
-        ))}
+        )}
+
+        <div className={`paquetes-grid ${cargando ? "desactivado" : ""}`}>
+          {paquetes.map((p) => (
+            <div key={p.id} className="paquete-card-tech" style={{ '--glow-color': p.color }}>
+              <div className="card-glass-header" style={{ backgroundColor: `${p.color}22` }}>
+                <h3>{p.nombre}</h3>
+              </div>
+              
+              <div className="card-body">
+                <div className="token-circle-neon" style={{ borderColor: p.color, color: p.color }}>
+                  <span className="plus">+</span>{p.tokens}
+                  <small>Proyectos</small>
+                </div>
+                
+                <div className="precio-tag">
+                  <span className="monto">{p.precioTexto}</span>
+                </div>
+              </div>
+
+              <button 
+                className="btn-comprar-tech" 
+                onClick={() => handleCompra(p)}
+                disabled={cargando}
+                style={{ backgroundColor: p.color }}
+              >
+                {cargando ? "PROCESANDO..." : "SELECCIONAR"}
+              </button>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

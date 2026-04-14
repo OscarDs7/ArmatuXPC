@@ -695,7 +695,7 @@ const reemplazarPieza = (sug) => {
           <div className={`modo-panel-neon p-4 rounded-xl border-2 transition-all ${modoGuia ? "border-blue-500/50 bg-blue-500/10" : "border-purple-500/50 bg-purple-500/10"}`}>
             <span>
               {modoGuia ? "🧭 Modo guía" : "🎮 Modo libre"}
-              <p style={{ fontSize: "0.9rem", marginTop: "5px" }}>
+              <p style={{ fontSize: "0.9rem", marginTop: "5px", color: "black" }}>
               {modoGuia 
                 ? "Te guiaremos por el orden recomendado para el armado de una PC."
                 : "Puedes elegir cualquier componente en el orden que prefieras."}

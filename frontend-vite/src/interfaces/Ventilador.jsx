@@ -74,7 +74,7 @@ const pasos = modo === "instalar" ? pasosInstalar : pasosDesinstalar;
 
 return (
 
-<div className="min-h-screen bg-gradient-to-br from-blue-300 via-blue-400 to-blue-500 flex flex-col p-6">
+<div className="min-h-screen bg-linear-to-b from-[#0f172a] via-[#1e3a8a] to-[#0f172a] text-white flex flex-col p-6">
 
 {/* 🔹 BOTONES SUPERIORES */}
 <div className="relative flex items-center justify-between mb-6">
@@ -82,7 +82,7 @@ return (
 {/* IZQUIERDA → PLACA MADRE */}
 <button
 onClick={() => navigate("/Placa")}
-className="px-6 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-emerald-500/30"
+className="px-6 py-2 bg-linear-to-r from-emerald-500 to-teal-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-emerald-500/30"
 >
 🖥️ Placa Madre
 </button>
@@ -90,7 +90,7 @@ className="px-6 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl te
 {/* CENTRO → ÍNDICE */}
 <button
 onClick={() => navigate("/Indice")}
-className="absolute left-1/2 transform -translate-x-1/2 px-6 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-purple-500/30"
+className="absolute left-1/2 transform -translate-x-1/2 px-6 py-2 bg-linear-to-r from-purple-500 to-indigo-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-purple-500/30"
 >
 📑 Índice
 </button>
@@ -98,7 +98,7 @@ className="absolute left-1/2 transform -translate-x-1/2 px-6 py-2 bg-gradient-to
 {/* DERECHA → CPU */}
 <button
 onClick={() => navigate("/cpu")}
-className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-orange-500/30"
+className="px-6 py-2 bg-linear-to-r from-orange-500 to-red-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-orange-500/30"
 >
 🧠 CPU
 </button>
@@ -110,7 +110,7 @@ className="px-6 py-2 bg-gradient-to-r from-orange-500 to-red-600 rounded-xl text
 {/* PANEL IZQUIERDO */}
 <div className="bg-slate-900/60 backdrop-blur-2xl p-8 rounded-3xl border border-slate-700/50 shadow-[0_0_40px_rgba(0,255,255,0.05)]">
 
-<h2 className="text-3xl font-extrabold mb-6 !text-white">
+<h2 className="text-3xl font-extrabold mb-6 text-white">
 Disipador del CPU
 </h2>
 
@@ -124,7 +124,7 @@ Disipador del CPU
 onClick={() => setModo("instalar")}
 className={`px-5 py-2 rounded-xl font-semibold transition-all duration-300 ${
 modo === "instalar"
-? "bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30 scale-105"
+? "bg-linear-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/30 scale-105"
 : "bg-slate-800 text-slate-300 hover:bg-slate-700"
 }`}
 >
@@ -135,7 +135,7 @@ Instalar
 onClick={() => setModo("desinstalar")}
 className={`px-5 py-2 rounded-xl font-semibold transition-all duration-300 ${
 modo === "desinstalar"
-? "bg-gradient-to-r from-red-500 to-pink-600 text-white shadow-lg shadow-red-500/30 scale-105"
+? "bg-linear-to-r from-red-500 to-pink-600 text-white shadow-lg shadow-red-500/30 scale-105"
 : "bg-slate-800 text-slate-300 hover:bg-slate-700"
 }`}
 >
@@ -167,20 +167,20 @@ Paso {index + 1}:
 
 <div className="flex justify-between items-center mb-6">
 
-<h2 className="text-3xl font-extrabold !text-white">
+<h2 className="text-3xl font-extrabold text-white">
 Visor 3D
 </h2>
 
 <button
 onClick={() => setTrigger(prev => prev + 1)}
-className="px-6 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-cyan-500/30"
+className="px-6 py-2 bg-linear-to-r from-cyan-500 to-blue-600 rounded-xl text-white font-semibold hover:scale-105 transition-all duration-300 shadow-lg shadow-cyan-500/30"
 >
 ▶ Reproducir Animación
 </button>
 
 </div>
 
-<div className="w-full h-[500px] rounded-2xl overflow-hidden border border-slate-700/50 shadow-inner">
+<div className="w-full h-125 rounded-2xl overflow-hidden border border-slate-700/50 shadow-inner">
 
 <Canvas camera={{ position: [1,1,5], fov: 50 }}>
 
