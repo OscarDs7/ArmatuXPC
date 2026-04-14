@@ -38,32 +38,56 @@ export default function DashBoardUser() {
 
   return (
     <div className="min-h-screen bg-linear-to-b from-[#0f172a] via-[#1e3a8a] to-[#0f172a] text-white flex flex-col p-6">
-      {/* HEADER */}
-      <header className="flex items-center justify-between bg-blue-950 backdrop-blur-md p-5 rounded-2xl border border-white/20 shadow-xl">
-        <div className="relative bg-blue-800 rounded-2xl">
+      {/* HEADER PRINCIPAL RESPONSIVE */}
+      <header className="dash-user-header grid grid-cols-[80px_1fr_80px] lg:grid-cols-[120px_1fr_120px] xl:grid-cols-[150px_1fr_150px] items-center gap-4 bg-blue-950/80 backdrop-blur-md p-4 lg:p-8 rounded-2xl border border-white/20 shadow-2xl relative transition-all duration-300">
+        
+        {/* IZQUIERDA: Botón Menú (Escalable) */}
+        <div className="flex justify-center items-center">
           <button
-            className="dash-menu-btn text-4xl hover:scale-110 transition-transform bg-blue-600/30 p-2 rounded-xl"
+            className="dash-menu-btn relative group transition-all duration-300 hover:scale-110 flex items-center justify-center 
+                      w-14 h-14 md:w-16 md:h-16 lg:w-24 lg:h-24 xl:w-28 xl:h-28 
+                      bg-blue-700/40 rounded-xl lg:rounded-3xl border border-blue-400/30 
+                      shadow-[0_0_15px_rgba(59,130,246,0.3)]"
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            💻
-            <span className="absolute hidden group-hover:block top-12 left-0 bg-blue-800 text-white text-xs px-2 py-1 rounded">
+            <span className="text-2xl md:text-3xl lg:text-5xl xl:text-6xl">💻</span>
+            
+            {/* Tooltip Adaptado */}
+            <span className="absolute hidden lg:group-hover:block top-full mt-5 left-1/2 -translate-x-1/2 w-max bg-blue-600 text-white text-xs uppercase tracking-widest font-bold px-4 py-2 rounded-lg shadow-lg z-50 border border-blue-400/40">
               Abrir menú lateral
             </span>
           </button>
         </div>
 
-        <header className="relative w-full flex flex-col items-center py-4">
+        {/* CENTRO: Título (Escalable) */}
+        <div className="flex flex-col items-center text-center px-4">
+          <h1 className="text-2xl md:text-2xl lg:text-6xl xl:text-6xl font-black tracking-tighter text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-cyan-300 drop-shadow-lg">
+            ArmatuXPC
+          </h1>
+          <p className="hidden sm:block mt-3 text-[10px] md:text-sm lg:text-base xl:text-lg text-blue-200/70 italic max-w-xs md:max-w-md lg:max-w-2xl leading-relaxed">
+            Plataforma web para el correcto armado de computadoras de escritorio de manera personalizada.
+          </p>
+        </div>
+
+        {/* DERECHA: Logo Proyecto con Tooltip */}
+        <div className="relative group flex justify-center items-center">
           <img 
             src={logoProyecto} 
             alt="ArmatuXPC Logo" 
-            className="absolute top-4 right-0 w-20 h-20 rounded-3xl border-2 border-blue-500 shadow-[0_0_15px_rgba(59,130,246,0.5)]"
+            className="w-14 h-14 md:w-16 md:h-16 lg:w-24 lg:h-24 xl:w-28 xl:h-28 
+                      object-contain rounded-xl lg:rounded-3xl border border-blue-400/30 
+                      shadow-[0_0_20px_rgba(59,130,246,0.5)] bg-white/5 p-2 
+                      transition-all duration-300 group-hover:scale-110 cursor-help"
           />
-          <h1 className="text-6xl font-extrabold tracking-tighter text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-cyan-300">ArmatuXPC</h1>
-          <p className="mt-3 text-center text-blue-200/70 italic max-w-md">
-            Plataforma web para el correcto armado de computadoras de escritorio de manera personalizada.
-          </p>
-          <div className="dash-header-spacer"></div>
-        </header>
+          
+          {/* Tooltip del Logo */}
+          <span className="absolute hidden lg:group-hover:block top-full mt-5 left-1/2 -translate-x-1/2 w-max 
+                          bg-blue-600 text-white text-[10px] md:text-xs uppercase tracking-widest font-bold 
+                          px-4 py-2 rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.4)] z-50 
+                          border border-blue-400/40 pointer-events-none transition-opacity duration-300">
+            Logo oficial de ArmatuXPC
+          </span>
+        </div>
         <div className="dash-header-spacer"></div>
       </header>
 
