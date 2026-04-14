@@ -5,6 +5,8 @@ import logoProyecto from "../assets/Logo.png"; // imagen del logo del proyecto
 import { signOut } from "firebase/auth";
 import { auth } from "../utilidades/firebase"; // Importa la autenticación de Firebase para cerrar sesión
 import heroImage from "../assets/hero-pc.jpg";
+import heroImage1 from "../assets/armar-pc.jpg";
+import heroImage2 from "../assets/componentes.jpg";
 
 export default function DashBoardUser() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -119,36 +121,60 @@ export default function DashBoardUser() {
           Bienvenido, {nombre} 👋
         </h2>
         
-        <div className="info-section">
-          <h3 className="info-title">¿Qué es ArmatuXPC?</h3>
+        <section className="landing-section">
 
-          <p className="info-text">
-            ArmatuXPC es una plataforma educativa diseñada para enseñar a los usuarios 
-            a armar computadoras de escritorio paso a paso, permitiendo explorar componentes, 
-            entender su función y crear configuraciones personalizadas de manera interactiva.
-          </p>
-        </div>
+          <div className="section-content">
+            <div className="section-text">
+              <h2>¿Qué es ArmatuXPC?</h2>
+              <p>
+                ArmatuXPC es una plataforma educativa diseñada para enseñar a los usuarios 
+                a armar computadoras de escritorio paso a paso, permitiendo explorar componentes 
+                y crear configuraciones personalizadas de manera interactiva.
+              </p>
+            </div>
+
+            <div className="section-image">
+              <img src={heroImage1} alt="Armado de PC" />
+            </div>
+          </div>
+
+        </section>
+
+        <section className="landing-section alt">
+
+          <div className="section-content">
+
+            <div className="section-image">
+              <img src={heroImage2} alt="Componentes de PC" />
+            </div>
+
+            <div className="section-text">
+              <h2>Aprende paso a paso</h2>
+              <p>
+                Nuestra guía interactiva te permite comprender cada componente 
+                y su función dentro del sistema, facilitando el aprendizaje práctico.
+              </p>
+            </div>
+
+          </div>
+
+        </section>
 
         <div className="features-section">
 
           <div className="feature-card">
-            <h4>Constructor de PCs</h4>
+            <h4>🔧 Constructor de PCs</h4>
             <p>Crea tu computadora personalizada seleccionando cada componente.</p>
           </div>
 
           <div className="feature-card">
-            <h4>Guía interactiva</h4>
+            <h4>📘 Guía interactiva</h4>
             <p>Aprende paso a paso el proceso correcto de ensamblaje.</p>
           </div>
 
           <div className="feature-card">
-            <h4>Comunidad</h4>
+            <h4>🌐 Comunidad</h4>
             <p>Comparte tus configuraciones y aprende de otros usuarios.</p>
-          </div>
-
-          <div className="feature-card">
-            <h4>Asistente digital</h4>
-            <p>Recibe recomendaciones mediante el uso de nuestro Chatbot.</p>
           </div>
 
         </div>
