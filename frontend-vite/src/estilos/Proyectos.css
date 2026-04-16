@@ -1,0 +1,413 @@
+.proyectos-container {
+    padding: 20px;
+    max-width: auto;
+    margin: 0 auto;
+    background: linear-gradient(#0f172a, #1e3a8a, #0f172a);
+    min-height: 100vh;
+}
+
+.proyectos-grid {
+    /* CONFIGURACIÓN DE COLUMNAS */
+    display: grid;
+    /* Creamos 3 columnas de igual tamaño (1fr) */
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 25px; /* Espacio entre las tarjetas */
+    margin-top: 20px;
+}
+
+/* RESPONSIVE: Para que en tablets sean 2 columnas y en celular 1 */
+@media (max-width: 1024px) {
+    .proyectos-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .proyectos-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.proyecto-card {
+    background: linear-gradient(#0f172a, #1e3a8a, #0f172a);
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: transform 0.2s, box-shadow 0.2s;
+    border: 1px solid #e0e0e0;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.proyecto-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 15px rgba(0,0,0,0.15);
+}
+
+.proyecto-header {
+    border-bottom: 2px solid #3498db;
+    margin-bottom: 15px;
+    padding-bottom: 10px;
+}
+
+.proyecto-nombre {
+    font-size: 1.4rem;
+    color: white;
+    margin: 0;
+}
+
+.proyecto-fecha {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    margin-top: 5px;
+}
+
+.componentes {
+    color: white;
+}
+
+.componente-tag {
+    display: inline-block;
+    background: #f1f2f6;
+    color: #57606f;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    margin: 2px;
+}
+
+.btn-detalle {
+    margin-top: 15px;
+    background: #3498db;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-detalle:hover {
+    background: #2980b9;
+}
+
+/* --- Estilos para el Modal --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(3px); /* Efecto de desenfoque al fondo */
+}
+
+.modal-content {
+    background: white;
+    padding: 30px;
+    border-radius: 15px;
+    width: 90%;
+    max-width: 750px;
+    max-height: 85vh;
+    overflow-y: auto;
+    /* IMPORTANTE: Esto permite que el botón se posicione respecto a la caja */
+    position: relative; 
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 15px 40px rgba(0,0,0,0.4);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #f1f1f1;
+    background: linear-gradient(135deg, #1e5799, #2989d8);
+    margin-bottom: 10px;
+}
+
+.btn-cerrar {
+    /* Posicionamiento en la esquina */
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background: #ff4757;
+    color: white;
+    border: none;
+    padding: 8px 15px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    z-index: 10; /* Asegura que esté por encima de todo */
+}
+
+.btn-cerrar:hover {
+    background: #ff6b81;
+}
+
+.btn-eliminar {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.btn-eliminar:hover {
+    background: #c0392b;
+}
+
+.btn-editar {
+    background: #06b02b;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-editar:hover {
+    background: #066519;
+}
+
+.btn-volver {
+  margin-right: 20px;
+  padding: 8px 14px;
+  border: none;
+  background: #0072ff;
+  color: white; /* Color acorde al degradado */
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+
+}
+
+.title {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -1px;
+    margin-top: 20px;
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    text-align: center;
+}
+
+/* --- Tabla de Detalles --- */
+.tabla-detalles {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.tabla-detalles th {
+    text-align: left;
+    padding: 12px;
+    background: #f8f9fa;
+    color: #2f3542;
+    border-bottom: 2px solid #dfe4ea;
+}
+
+.tabla-detalles td {
+    padding: 15px 12px;
+    border-bottom: 1px solid #f1f1f1;
+    color: #57606f;
+}
+
+/* Filas que cambian de color al pasar el mouse */
+.tabla-detalles tr:hover {
+    background-color: #e8ecf0d7;
+}
+
+/* Componente de Total de precio de los componentes */
+.total-row {
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 2px solid #f1f1f1;
+    width: 100%;
+    
+    /* Usamos flex para empujar todo a la derecha */
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end; 
+    align-items: baseline; /* Alinea los textos por su base */
+    
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: #27ae60; /* Un verde éxito para el precio final */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+}
+
+.total-row span:first-child {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    margin-right: 15px; /* Espacio entre la etiqueta y el monto */
+}
+
+.total-row span:last-child {
+    font-size: 1.8rem; /* Un poco más grande para resaltar */
+    font-weight: 800;
+    color: #2c3e50;
+    min-width: 150px; /* Ayuda a que se alinee con la columna de precios */
+    text-align: right;
+}
+
+/* --- Badges por Tipo de Componente --- */
+.badge-tipo {
+    padding: 5px 12px;
+    border-radius: 15px;
+    font-size: 0.7rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    display: inline-block;
+    min-width: 80px;
+    text-align: center;
+}
+
+.tipo-cpu { background: #ffeaa7; color: #d6a01d; }         /* Amarillo */
+.tipo-gpu { background: #fab1a0; color: #e17055; }         /* Naranja */
+.tipo-ram { background: #a29bfe; color: #6c5ce7; }         /* Morado */
+.tipo-storage { background: #74b9ff; color: #0984e3; }     /* Azul */
+.tipo-psu { background: #636e72; color: #f1f2f6; }         /* Gris Oscuro */
+.tipo-motherboard { background: #55efc4; color: #00b894; } /* Verde Esmeralda */
+.tipo-case { background: #dfe6e9; color: #2d3436; }        /* Gris Claro */
+.tipo-cooler { background: #81ecec; color: #00838f; }      /* Cian */
+.tipo-default { background: #f1f2f6; color: #57606f; }
+
+/* --- Botones de Publicar/Despublicar --- */
+/* Estilo para cuando la tarjeta ya está publicada */
+.card-publicada {
+  border: 2px solid #4caf50; /* Un borde verde sutil */
+  position: relative;
+}
+
+.badge-publicado {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #4caf50;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+/* Botones */
+.btn-publicar {
+  background-color: #2196f3; /* Azul */
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 5px 0;
+}
+
+.btn-despublicar {
+  background-color: #ff9800; /* Naranja */
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 5px 0;
+}
+
+.proyecto-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.componente-info-celda {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mini-imagen-tabla {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  background-color: #f9f9f9; /* Fondo neutro mientras carga */
+  border-radius: 4px;
+  border: 1px solid #eee;
+  /* Evita que la tabla cambie de tamaño al cargar la imagen */
+  flex-shrink: 0; 
+}
+
+.nombre-celda {
+  font-size: 0.9rem;
+  max-width: 250px;
+}
+
+/* --- Estilos para el contador de tokens --- */
+.header-proyectos {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.token-counter-badge {
+  background: linear-gradient(135deg, #1e5799, #2989d8);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 2px solid #3498db;
+  box-shadow: 0 4px 15px rgba(89, 91, 166, 0.2);
+  transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+/* Clase cuando el conteo llega al tope */
+.token-counter-badge.limite-alcanzado {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  border-color: #ff9f94;
+  animation: pulse 2s infinite; /* Un pulso suave para llamar la atención */
+}
+
+.token-icon {
+  font-size: 1.5rem;
+}
+
+.token-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.token-count {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.aviso-tokens {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  border: 1px solid #ffeeba;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+}
+
+.title{
+    color: white;
+}

@@ -3,6 +3,7 @@ using System;
 using ArmatuXPC.Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -11,9 +12,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArmatuXPC.Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260330000942_AddNombreAutorArmado")]
+    partial class AddNombreAutorArmado
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -139,34 +142,6 @@ namespace ArmatuXPC.Backend.Migrations
                     b.HasKey("ComponenteId");
 
                     b.ToTable("Componentes");
-                });
-
-            modelBuilder.Entity("ArmatuXPC.Backend.Models.Usuario", b =>
-                {
-                    b.Property<string>("Uid")
-                        .HasColumnType("text");
-
-                    b.Property<string>("Correo")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<DateTime?>("FechaRegistro")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<string>("Nombre")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("Rol")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<int>("TokensDisponibles")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Uid");
-
-                    b.ToTable("Usuarios");
                 });
 
             modelBuilder.Entity("ArmatuXPC.Backend.Models.ArmadoComponente", b =>

@@ -1,7 +1,40 @@
+// 1. Imports de V2 (HTTPS funciona bien así)
 const { onCall, HttpsError } = require("firebase-functions/v2/https");
+
+// 2. Import de V1 usando la ruta de compatibilidad total
+const functions = require("firebase-functions/v1"); 
+
 const admin = require("firebase-admin");
 
-admin.initializeApp();
+if (admin.apps.length === 0) {
+    admin.initializeApp();
+}
+
+/**
+ * TRIGGER AUTOMÁTICO: Asignar 3 tokens al registrarse
+ * Usamos el objeto functions que ahora sí tendrá .auth definido
+ */
+exports.asignarTokensIniciales = functions.auth.user().onCreate(async (user) => {
+    const uid = user.uid;
+
+    try {
+        // Usamos set con { merge: true }
+        // Esto solo agregará/actualizará los tokens, 
+        // respetando el Nombre que el frontend ya guardó.
+        await admin.firestore().collection("Usuario").doc(uid).set({
+            TokensDisponibles: 3,
+            // No incluimos el nombre aquí para que prevalezca el del frontend
+        }, { merge: true });
+
+        console.log(`✅ Tokens de seguridad asignados al UID: ${uid}`);
+        return null;
+    } catch (error) {
+        console.error("❌ Error asignando tokens:", error);
+        return null;
+    }
+});
+
+// --- FUNCIONES ONCALL V2 PARA ADMIN --- //
 
 /**
  * Crear administrador
@@ -34,7 +67,7 @@ exports.crearAdmin = onCall(async (request) => {
       admin: true,
     });
 
-    await admin.firestore().collection("Usuario").add({
+    await admin.firestore().collection("Usuario").doc(userRecord.uid).set({
       UID: userRecord.uid,
       Nombre: nombre,
       Correo: correo,
@@ -49,7 +82,6 @@ exports.crearAdmin = onCall(async (request) => {
   }
 });
 
-
 /**
  * Eliminar usuario
  */
@@ -63,22 +95,28 @@ exports.eliminarUsuario = onCall(async (request) => {
   );
 }
 
-  const { uid, docId } = request.data; // UID del usuario a eliminar y ID del documento en Firestore
+  const { uid } = request.data; // UID del usuario a eliminar 
 
   // Evitar que un admin elimine su propia cuenta
   if (uid === request.auth.uid) {
-  throw new HttpsError(
-    "permission-denied",
-    "No puedes eliminar tu propia cuenta."
-  );
-}
+    throw new HttpsError(
+      "permission-denied",
+      "No puedes eliminar tu propia cuenta."
+    );
+  }
+
+  const userToDelete = await admin.auth().getUser(uid);
+
+  if (userToDelete.customClaims?.admin) {
+    throw new HttpsError("permission-denied", "No puedes eliminar otro admin.");
+  }
 
   try {
     await admin.auth().deleteUser(uid);
 
     await admin.firestore()
       .collection("Usuario")
-      .doc(docId) 
+      .doc(uid) // uid = docId
       .delete();
 
     return { success: true };
@@ -101,7 +139,14 @@ exports.cambiarRol = onCall(async (request) => {
     );
   }
 
-  const { uid, docId, nuevoRol } = request.data;
+  const { uid, nuevoRol } = request.data;
+
+  const rolesValidos = ["user", "admin"]; // roles permitidos para hacer el cambio
+
+  // Validamos que sea alguno de estos roles
+  if (!rolesValidos.includes(nuevoRol)) {
+    throw new HttpsError("invalid-argument", "Rol inválido.");
+  }
 
   try {
 
@@ -113,7 +158,7 @@ exports.cambiarRol = onCall(async (request) => {
     // 2️⃣ Actualizar Firestore
     await admin.firestore()
       .collection("Usuario")
-      .doc(docId)
+      .doc(uid)
       .update({
         Rol: nuevoRol,
       });

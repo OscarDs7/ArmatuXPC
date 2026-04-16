@@ -13,7 +13,8 @@ namespace ArmatuXPC.Backend.Data
         public DbSet<Armado> Armados { get; set; }
         public DbSet<Compatibilidad> Compatibilidades { get; set; }
         public DbSet<ArmadoComponente> ArmadoComponentes { get; set; } // Tabla de unión para relación muchos a muchos entre Armado y Componente
-
+        public DbSet<Usuario> Usuarios {get; set;}
+        
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);

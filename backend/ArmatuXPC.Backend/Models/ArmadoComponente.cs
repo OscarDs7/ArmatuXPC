@@ -1,8 +1,12 @@
+using System.Text.Json.Serialization;
+
 namespace ArmatuXPC.Backend.Models
 {
     public class ArmadoComponente
     {
         public int ArmadoId { get; set; }
+        
+        [JsonIgnore] // 👈 ESTO ROMPE EL BUCLE INFINITO
         public Armado Armado { get; set; } = null!;
 
         public int ComponenteId { get; set; }

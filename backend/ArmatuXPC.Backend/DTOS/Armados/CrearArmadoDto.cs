@@ -2,8 +2,11 @@
 // Contiene el ID del usuario que crea el armado, el nombre del armado y una lista de componentes con sus cantidades
 public class CrearArmadoDto
 {
-    public int UsuarioId { get; set; }
+    public string UsuarioId { get; set; } = string.Empty;
     public string NombreArmado { get; set; } = string.Empty;
+    public string AutorNombre { get; set; } = string.Empty; // Nuevo campo para el nombre del autor
+     public string FechaCreacion { get; set; } = string.Empty;
+
 
     public List<ComponenteCantidadDto> Componentes { get; set; } = new();
 }

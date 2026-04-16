@@ -11,6 +11,7 @@ namespace ArmatuXPC.Backend.Models
         Almacenamiento = 4,
         FuentePoder = 5,
         PlacaBase = 6,
-        Gabinete = 7
+        Gabinete = 7,
+        Refrigeracion = 8
     }
 }

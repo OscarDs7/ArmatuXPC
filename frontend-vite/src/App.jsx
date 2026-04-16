@@ -3,6 +3,7 @@ import { useState } from "react";
 import Chatbot from "./components/Chatbot";
 
 import { MenuRoles } from "./interfaces/MenuRoles";
+import { Toaster } from 'react-hot-toast';
 import LoginUsuario from "./interfaces/LoginUser";
 import LoginAdmin from "./interfaces/LoginAdmin";
 import DashBoardAdmin from "./interfaces/DashBoardAdmin";
@@ -17,8 +18,13 @@ import AdministrarCuentas from "./interfaces/AdministrarCuentas";
 import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 import MonitoreoLogistica from "./components/MonitoreoLogistica";
+import MetricasReportes from "./interfaces/MetricasReportes";
 import PruebaThree from "./interfaces/PruebaThree";
 import NuevoProyecto from "./interfaces/NuevoProyecto";
+import ProyectosExistentes from "./interfaces/ProyectosExistentes";
+import Comunidad from "./interfaces/Comunidad";
+import ComprarTokens from "./interfaces/ComprarTokens";
+import PagoExitoso from "./interfaces/PagoExitoso";
 import Memorias from "./interfaces/Memorias";
 import Placa from "./interfaces/Placa";
 import Rams from "./interfaces/Rams";
@@ -29,6 +35,7 @@ import Indice from "./interfaces/Indice";
 import Grafica from "./interfaces/Grafica";
 
 function App() {
+<<<<<<< HEAD
 
   // 🔥 CONTROL GLOBAL DEL CHATBOT
   const [chatAbierto, setChatAbierto] = useState(false);
@@ -77,6 +84,179 @@ function App() {
           }
         />
 
+=======
+<<<<<<< HEAD
+  return (
+    <>
+      <Toaster position="top-right" />
+      <Routes>
+      <Route path="/" element={<MenuRoles />} />
+      <Route path="/login-user" element={<LoginUsuario />} />
+      <Route path="/login-admin" element={<LoginAdmin />} />
+
+      {/* Rutas protegidas para usuarios autenticados */}
+      <Route
+        path="/dashboard-user"
+        element={
+          <ProtectedRoute>
+            <DashBoardUser />
+          </ProtectedRoute>
+        }
+      />
+      
+      {/* Rutas protegidas para administradores */}
+      <Route
+        path="/dashboard-admin"
+        element={
+          <AdminRoute>
+            <DashBoardAdmin />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/gestion-cuentas"
+        element={
+          <AdminRoute>
+            <GestionCuentasAdmin />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/crear-cuenta-admin"
+        element={
+          <AdminRoute>
+            <CrearCuentaAdmin />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/administrar-cuentas"
+        element={
+          <AdminRoute>
+            <AdministrarCuentas />
+          </AdminRoute>
+        }
+      />
+      <Route
+        path="/gestion-catalogo-admin"
+        element={
+          <AdminRoute>
+            <AgregarComponenteAdmin />
+          </AdminRoute>
+        }
+      />
+      <Route path="/nuevo-proyecto" element={
+        <ProtectedRoute>
+          <NuevoProyecto />
+          </ProtectedRoute>
+        } 
+      />
+      <Route path="/mis-armados" element={
+        <ProtectedRoute>
+          <ProyectosExistentes />
+          </ProtectedRoute>
+        } 
+      />
+        <Route path="/comunidad" element={
+        <ProtectedRoute>
+          <Comunidad />
+          </ProtectedRoute>
+        } 
+      />
+        <Route path="/comprar-tokens" element={
+        <ProtectedRoute>
+          <ComprarTokens />
+          </ProtectedRoute>
+        }
+      />
+      <Route path="/pago-exitoso" element={
+        <ProtectedRoute>
+          <PagoExitoso />
+          </ProtectedRoute>
+        }
+      />
+        <Route
+        path="/monitoreo-logistica-admin"
+        element={
+          <AdminRoute>
+            <MonitoreoLogistica />
+          </AdminRoute>
+        }
+      />
+      <Route 
+      path="/metricas-reportes"
+      element = {
+        <AdminRoute>
+          <MetricasReportes />
+        </AdminRoute>
+       }
+      />
+=======
+
+  // 🔥 CONTROL GLOBAL DEL CHATBOT
+  const [chatAbierto, setChatAbierto] = useState(false);
+
+  return (
+    <>
+      <Routes>
+        <Route path="/" element={<MenuRoles />} />
+        <Route path="/login-user" element={<LoginUsuario />} />
+        <Route path="/login-admin" element={<LoginAdmin />} />
+
+        {/* Rutas protegidas */}
+        <Route
+          path="/dashboard-user"
+          element={
+            <ProtectedRoute>
+              <DashBoardUser setChatAbierto={setChatAbierto} />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/dashboard-admin"
+          element={
+            <AdminRoute>
+              <DashBoardAdmin setChatAbierto={setChatAbierto} />
+            </AdminRoute>
+          }
+        />
+>>>>>>> 90bf107 (avance local antes de actualizar)
+
+        <Route
+          path="/gestion-cuentas"
+          element={
+            <AdminRoute>
+              <GestionCuentasAdmin />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/crear-cuenta-admin"
+          element={
+            <AdminRoute>
+              <CrearCuentaAdmin />
+            </AdminRoute>
+          }
+        />
+
+<<<<<<< HEAD
+      {/* Rutas de modelado 3D de los componentes (guía interactiva) */}
+      <Route path="/Indice" element={<Indice/>} />
+      <Route path="/Almacenamiento" element={<Memorias />} />
+      <Route path="/Ram" element={<Rams/>} />
+      <Route path="/CPU" element={<CPU/>} />
+      <Route path="/Fuente" element={<Fuente/>} />
+      <Route path="/Ventilador" element={<Ventilador/>} />
+      <Route path="/Grafica" element={<Grafica/>} />
+      <Route path="/Placa" element={<Placa />} />
+    </Routes>
+    </>
+  );  
+} 
+=======
+>>>>>>> cbc651f510a26f6e9a7f74e20a113abf6a2d4933
         <Route
           path="/administrar-cuentas"
           element={
@@ -85,6 +265,10 @@ function App() {
             </AdminRoute>
           }
         />
+<<<<<<< HEAD
+=======
+>>>>>>> 90bf107 (avance local antes de actualizar)
+>>>>>>> cbc651f510a26f6e9a7f74e20a113abf6a2d4933
 
         <Route
           path="/gestion-catalogo-admin"

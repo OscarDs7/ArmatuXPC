@@ -6,19 +6,19 @@ export default function MenuInstructivos() {
   const navigate = useNavigate();
 
   const componentes = [
-    { nombre: "Fuente de Poder", ruta: "/Fuente", icono: "🔌" },
-    { nombre: "Placa Madre", ruta: "/Placa", icono: "🖥️" },
-    { nombre: "Disipador", ruta: "/Ventilador", icono: "❄️" },
-    { nombre: "CPU (Procesador)", ruta: "/Cpu", icono: "🧠" },
-    { nombre: "Tarjeta Gráfica", ruta: "/Grafica", icono: "🎮" },
-    { nombre: "Memoria RAM", ruta: "/Ram", icono: "🔗" },
-    { nombre: "Disco Duro / SSD", ruta: "/Almacenamiento", icono: "🗄️" }
+    { nombre: " 1 Fuente de Poder", ruta: "/Fuente", icono: "🔌" },
+    { nombre: "2 Placa Madre", ruta: "/Placa", icono: "🖥️" },
+    { nombre: "3 Disipador", ruta: "/Ventilador", icono: "❄️" },
+    { nombre: "4 CPU (Procesador)", ruta: "/Cpu", icono: "🧠" },
+    { nombre: "5 Tarjeta Gráfica", ruta: "/Grafica", icono: "🎮" },
+    { nombre: "6 Memoria RAM", ruta: "/Ram", icono: "🔗" },
+    { nombre: "7 Disco Duro / SSD", ruta: "/Almacenamiento", icono: "🗄️" }
     
   ];
 
   return (
 
-   <div className="min-h-screen bg-linear-to-br from-blue-300 via-blue-400 to-blue-500 flex flex-col p-6">
+   <div className="min-h-screen bg-linear-to-b from-[#0f172a] via-[#1e3a8a] to-[#0f172a] text-white flex flex-col p-6">
 
 
       <div className="max-w-6xl mx-auto">
@@ -30,7 +30,7 @@ export default function MenuInstructivos() {
         </h1>
 
         <p className="text-center text-slate-100 mb-10">
-          Selecciona el instructivo que deseas visualizar
+          Selecciona el instructivo que deseas visualizar 
         </p>
 
         <div className="grid grid-cols-3 gap-6">
