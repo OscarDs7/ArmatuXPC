@@ -51,6 +51,9 @@ namespace ArmatuXPC.Backend.Data
                 .WithMany()
                 .HasForeignKey(c => c.ComponenteBId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+                // Esto aplicará el filtro automáticamente en TODAS las consultas de tu App para filtrar solo componentes activos
+                modelBuilder.Entity<Componente>().HasQueryFilter(c => c.EstaActivo);
         }
     }
 }

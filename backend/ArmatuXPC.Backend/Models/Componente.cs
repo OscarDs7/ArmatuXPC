@@ -27,6 +27,8 @@ namespace ArmatuXPC.Backend.Models
         // Imagen del componente (URL o base64), para mostrar en el frontend
         public string? ImagenUrl { get; set; }
 
+        // Nueva propiedad para el borrado lógico
+        public bool EstaActivo { get; set; } = true;
 
 
         // Relación con ArmadoComponente (muchos a muchos)

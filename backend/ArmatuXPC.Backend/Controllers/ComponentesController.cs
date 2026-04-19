@@ -20,14 +20,21 @@ namespace ArmatuXPC.Backend.Controllers
 
         // GET: api/Componentes -> Recibe todos los 'Componentes' disponibles, con opción de filtrar por tipo
         // GET: api/Componentes?tipo=1
-        [HttpGet]
+       [HttpGet]
         public async Task<ActionResult<IEnumerable<ComponenteDto>>> GetComponentes([FromQuery] TipoComponente? tipo)
         {
-            var query = _context.Componentes.AsQueryable();
+            // 1. Iniciamos la consulta filtrando SIEMPRE por los activos
+            var query = _context.Componentes
+                .Where(c => c.EstaActivo) // Borrado lógico global
+                .AsQueryable();
 
+            // 2. Aplicamos el filtro de tipo solo si viene en la petición
             if (tipo.HasValue)
+            {
                 query = query.Where(c => c.Tipo == tipo.Value);
+            }
 
+            // 3. Proyectamos al DTO
             var componentes = await query
                 .Select(c => new ComponenteDto
                 {
@@ -39,13 +46,14 @@ namespace ArmatuXPC.Backend.Controllers
                     Tipo = c.Tipo,
                     ConsumoWatts = c.ConsumoWatts,
                     CapacidadWatts = c.CapacidadWatts,
-                    ImagenUrl = c.ImagenUrl
+                    ImagenUrl = c.ImagenUrl, 
+                    EstaActivo = c.EstaActivo
                 })
                 .ToListAsync();
 
             return Ok(componentes);
         }
-
+        
         // GET: api/Componentes/5 -> Recibe un 'Componente' específico por su ID
         [HttpGet("{id}")]
         public async Task<ActionResult<ComponenteDto>> GetComponente(int id)
@@ -130,24 +138,37 @@ namespace ArmatuXPC.Backend.Controllers
             return NoContent();
         }
 
-        // DELETE: api/Componentes/5 -> Elimina un 'Componente' por su ID
-        [HttpDelete("{id}")]
+       [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteComponente(int id)
         {
-            var componente = await _context.Componentes
-                .Include(c => c.Armados)
-                .FirstOrDefaultAsync(c => c.ComponenteId == id);
+            // 1. Buscamos el componente
+            var componente = await _context.Componentes.FindAsync(id);
 
+            // 2. Si no existe, 404
             if (componente == null)
-                return NotFound();
+                return NotFound(new { mensaje = $"No se encontró el componente con ID {id}" });
 
-            if (componente.Armados.Any())
-                return BadRequest("No se puede eliminar el componente porque está siendo usado en uno o más armados");
+            // 3. Opcional: Si ya está desactivado, podemos retornar éxito de inmediato
+            if (!componente.EstaActivo)
+                return NoContent(); 
 
-            _context.Componentes.Remove(componente);
-            await _context.SaveChangesAsync();
+            // 4. Aplicamos el borrado lógico
+            componente.EstaActivo = false;
 
-            return NoContent();
+            try
+            {
+                // No hace falta Entry().State si el objeto viene de FindAsync
+                await _context.SaveChangesAsync();
+                return NoContent(); 
+            }
+            catch (Exception ex)
+            {
+                // Loguear el error 'ex' aquí si tienes un logger
+                return StatusCode(500, new { 
+                    mensaje = "Error interno al procesar la baja lógica", 
+                    detalle = ex.Message 
+                });
+            }
         }
         
     }
