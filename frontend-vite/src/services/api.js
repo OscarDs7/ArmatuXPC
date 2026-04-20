@@ -131,7 +131,6 @@ export const getCompatiblesComponente = async (id) => {
   return await response.json();
 };
 
-
 // Añade esto a tu archivo api.js
 export const guardarCompatibilidad = async (compatibilidad) => {
   const response = await fetch(`${API_URL}/Compatibilidades`, {
@@ -220,7 +219,6 @@ export const agregarComponente = async (componente) => {
   return response.json();
 };
 
-<<<<<<< HEAD
 // Obtener componentes por medio de el filtro "Tipo"
 export const filtroComponente = async (tipo) => {
   const response = await fetch(`${API_URL}/Componentes?tipo=${tipo}`);
@@ -480,13 +478,13 @@ export const getReporteDetallado = async () => {
     console.error("Error en getReporteDetallado:", error);
     throw error;
   }
-=======
-// Método para obtener reglas de compatibilidad
+};
+
+// Método para obtener reglas de compatibilidad de los componentes
 export const getReglasCompatibilidad = async () => {
   const response = await fetch(`${API_URL}/Compatibilidades`);
   if (!response.ok) {
     throw new Error("No se pudieron cargar las reglas de compatibilidad");
   }
   return response.json();
->>>>>>> 90bf107 (avance local antes de actualizar)
 };
