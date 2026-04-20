@@ -1,4 +1,11 @@
 import { Routes, Route } from "react-router-dom";
+import { useState } from "react";
+import { Toaster } from "react-hot-toast";
+
+import Chatbot from "./components/Chatbot";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
+import MonitoreoLogistica from "./components/MonitoreoLogistica";
 
 import { MenuRoles } from "./interfaces/MenuRoles";
 import LoginUsuario from "./interfaces/LoginUser";
@@ -12,12 +19,14 @@ import GestionCuentasAdmin from "./interfaces/GestionCuentasAdmin";
 import AgregarComponenteAdmin from "./interfaces/GestionCatalogo";
 import CrearCuentaAdmin from "./interfaces/CrearCuentaAdmin";
 import AdministrarCuentas from "./interfaces/AdministrarCuentas";
-import ProtectedRoute from "./components/ProtectedRoute";
-import AdminRoute from "./components/AdminRoute";
-import MonitoreoLogistica from "./components/MonitoreoLogistica";
+import MetricasReportes from "./interfaces/MetricasReportes";
 import PruebaThree from "./interfaces/PruebaThree";
 import NuevoProyecto from "./interfaces/NuevoProyecto";
 import ProyectosExistentes from "./interfaces/ProyectosExistentes";
+import Comunidad from "./interfaces/Comunidad";
+import ComprarTokens from "./interfaces/ComprarTokens";
+import PagoExitoso from "./interfaces/PagoExitoso";
+
 import Memorias from "./interfaces/Memorias";
 import Placa from "./interfaces/Placa";
 import Rams from "./interfaces/Rams";
@@ -26,108 +35,161 @@ import Fuente from "./interfaces/Fuente";
 import Ventilador from "./interfaces/Ventilador";
 import Indice from "./interfaces/Indice";
 import Grafica from "./interfaces/Grafica";
-import QuienesSomos from "./interfaces/QuienesSomos";
 
 function App() {
+  const [chatAbierto, setChatAbierto] = useState(false);
+
   return (
-    <Routes>
-      <Route path="/" element={<MenuRoles />} />
-      <Route path="/login-user" element={<LoginUsuario />} />
-      <Route path="/login-admin" element={<LoginAdmin />} />
+    <>
+      <Toaster position="top-right" />
 
-      {/* Rutas protegidas para usuarios autenticados */}
-      <Route
-        path="/dashboard-user"
-        element={
-          <ProtectedRoute>
-            <DashBoardUser />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="/quienes-somos" element={<QuienesSomos />} />
-      
-      {/* Rutas protegidas para administradores */}
-      <Route
-        path="/dashboard-admin"
-        element={
-          <AdminRoute>
-            <DashBoardAdmin />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/gestion-cuentas"
-        element={
-          <AdminRoute>
-            <GestionCuentasAdmin />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/crear-cuenta-admin"
-        element={
-          <AdminRoute>
-            <CrearCuentaAdmin />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/administrar-cuentas"
-        element={
-          <AdminRoute>
-            <AdministrarCuentas />
-          </AdminRoute>
-        }
-      />
-      <Route
-        path="/gestion-catalogo-admin"
-        element={
-          <AdminRoute>
-            <AgregarComponenteAdmin />
-          </AdminRoute>
-        }
-      />
-      <Route path="/nuevo-proyecto" element={
-        <ProtectedRoute>
-          <NuevoProyecto />
-          </ProtectedRoute>
-        } 
-      />
-      <Route path="/mis-armados" element={
-        <ProtectedRoute>
-          <ProyectosExistentes />
-          </ProtectedRoute>
-        } 
-      />
+      <Routes>
+        <Route path="/" element={<MenuRoles />} />
+        <Route path="/login-user" element={<LoginUsuario />} />
+        <Route path="/login-admin" element={<LoginAdmin />} />
+
+        {/* Usuario */}
         <Route
-        path="/monitoreo-logistica-admin"
-        element={
-          <AdminRoute>
-            <MonitoreoLogistica />
-          </AdminRoute>
-        }
-      />
+          path="/dashboard-user"
+          element={
+            <ProtectedRoute>
+              <DashBoardUser setChatAbierto={setChatAbierto} />
+            </ProtectedRoute>
+          }
+        />
 
-      {/* Rutas de prueba para backend */}
-      <Route path="/test-backend-basico" element={<TestBackendBasico />} />
-      <Route path="/test-backend-medio" element={<TestBackendMedio />} />
-      <Route path="/test-backend-completo" element={<TestBackendCompleto />}    
-      />
+        {/* Admin */}
+        <Route
+          path="/dashboard-admin"
+          element={
+            <AdminRoute>
+              <DashBoardAdmin />
+            </AdminRoute>
+          }
+        />
 
-      {/* Ruta de prueba para Three.js */}
-      <Route path="/prueba-three" element={<PruebaThree />} />  
+        <Route
+          path="/gestion-cuentas"
+          element={
+            <AdminRoute>
+              <GestionCuentasAdmin />
+            </AdminRoute>
+          }
+        />
 
-      {/* Rutas de modelado 3D de los componentes (guía interactiva) */}
-      <Route path="/Indice" element={<Indice/>} />
-      <Route path="/Almacenamiento" element={<Memorias />} />
-      <Route path="/Ram" element={<Rams/>} />
-      <Route path="/CPU" element={<CPU/>} />
-      <Route path="/Fuente" element={<Fuente/>} />
-      <Route path="/Ventilador" element={<Ventilador/>} />
-      <Route path="/Grafica" element={<Grafica/>} />
-      <Route path="/Placa" element={<Placa />} />
-    </Routes>
-  );  
-} 
+        <Route
+          path="/crear-cuenta-admin"
+          element={
+            <AdminRoute>
+              <CrearCuentaAdmin />
+            </AdminRoute>
+          }
+        />
 
-export default App
+        <Route
+          path="/administrar-cuentas"
+          element={
+            <AdminRoute>
+              <AdministrarCuentas />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/gestion-catalogo-admin"
+          element={
+            <AdminRoute>
+              <AgregarComponenteAdmin />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/monitoreo-logistica-admin"
+          element={
+            <AdminRoute>
+              <MonitoreoLogistica />
+            </AdminRoute>
+          }
+        />
+
+        <Route
+          path="/metricas-reportes"
+          element={
+            <AdminRoute>
+              <MetricasReportes />
+            </AdminRoute>
+          }
+        />
+
+        {/* Usuario protegido */}
+        <Route
+          path="/nuevo-proyecto"
+          element={
+            <ProtectedRoute>
+              <NuevoProyecto />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/mis-armados"
+          element={
+            <ProtectedRoute>
+              <ProyectosExistentes />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/comunidad"
+          element={
+            <ProtectedRoute>
+              <Comunidad />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/comprar-tokens"
+          element={
+            <ProtectedRoute>
+              <ComprarTokens />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/pago-exitoso"
+          element={
+            <ProtectedRoute>
+              <PagoExitoso />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Backend tests */}
+        <Route path="/test-backend-basico" element={<TestBackendBasico />} />
+        <Route path="/test-backend-medio" element={<TestBackendMedio />} />
+        <Route path="/test-backend-completo" element={<TestBackendCompleto />} />
+
+        {/* Otros */}
+        <Route path="/prueba-three" element={<PruebaThree />} />
+
+        {/* Modelado */}
+        <Route path="/Indice" element={<Indice />} />
+        <Route path="/Almacenamiento" element={<Memorias />} />
+        <Route path="/Ram" element={<Rams />} />
+        <Route path="/CPU" element={<CPU />} />
+        <Route path="/Fuente" element={<Fuente />} />
+        <Route path="/Ventilador" element={<Ventilador />} />
+        <Route path="/Grafica" element={<Grafica />} />
+        <Route path="/Placa" element={<Placa />} />
+      </Routes>
+
+      <Chatbot abierto={chatAbierto} setAbierto={setChatAbierto} />
+    </>
+  );
+}
+
+export default App;

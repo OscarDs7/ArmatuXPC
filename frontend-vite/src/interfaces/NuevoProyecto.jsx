@@ -1,32 +1,87 @@
 import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
+import { doc, onSnapshot } from "firebase/firestore";
+import { db } from "../utilidades/firebase";
+import { toast } from 'react-hot-toast';
 import gabinete from "../assets/gabinete.png"; 
-import { filtroComponente, guardarArmado } from "../services/api"; 
+import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal, 
+         actualizarArmado, obtenerSugerenciasParaError, obtenerSugerenciasPorTipo } from "../services/api"; 
 import "../estilos/NuevoProyecto.css";
 
 export default function NuevoProyecto() {
-  const navigate = useNavigate();
+  const navigate = useNavigate(); // Hook para navegación programática
+  const location = useLocation(); // Hook para acceder al estado pasado por navigate
+  // Estados principales del componente
   const [selectedComponent, setSelectedComponent] = useState(null);
   const [listaComponentes, setListaComponentes] = useState([]);
   const [loading, setLoading] = useState(false);
   const [imagenSeleccionada, setImagenSeleccionada] = useState(null);
   const [imagenCentral, setImagenCentral] = useState(null);
-  
+  const [modoGuia, setModoGuia] = useState(true);
+  const [incompatibilidades, setIncompatibilidades] = useState([]);
+  const [pasoTutorial, setPasoTutorial] = useState(0);
+  const [mostrarTutorial, setMostrarTutorial] = useState(true);
+  const [cargandoDatos, setCargandoDatos] = useState(true);
+  const [tokens, setTokens] = useState(0); // ✨ Nuevo estado para tokens
+  const [armadoIdEdicion, setArmadoIdEdicion] = useState(null);
+  const [sugerencias, setSugerencias] = useState({}); // { idError: [componentes] }
+
+  // Estados para la persistencia del proyecto en localStorage: UID de sesión, nombre del usuario y clave de almacenamiento específica para este proyecto
+  const uidSession = localStorage.getItem("userUid");
+  const nombreUsuario = localStorage.getItem("userName") || "Usuario Anónimo";
+  const STORAGE_KEY = `pc_borrador_${uidSession}`; // Llave única por usuario para guardar el progreso del último proyecto en localStorage
+  // Estado de autoguardado que el usuario puede activar o desactivar según su preferencia (por defecto activado para no perder progreso)
+  const [autoGuardado, setAutoGuardado] = useState(true);
+
   // Guardaremos el ID del componente que está expandido
   const [expandidoId, setExpandidoId] = useState(null); 
 
+  // Determinamos el modo (por defecto es "nuevo" si entra directo por URL)
+  const modo = location.state?.modo || "nuevo";
+
+  // Estado que representa el armado actual del PC: cada propiedad es un tipo de componente y su valor es el modelo seleccionado (o null si no hay selección)
   const [pcActual, setPcActual] = useState({
     CPU: null, Motherboard: null, RAM: null, GPU: null,
     Almacenamiento: null, "Fuente de poder": null,
     Refrigeracion: null, Gabinete: null
   });
 
+  // Mapeo para traducir el nombre del componente al tipo esperado por el backend
   const mapTipo = {
     CPU: "CPU", GPU: "GPU", RAM: "MemoriaRAM",
     Almacenamiento: "Almacenamiento", "Fuente de poder": "FuentePoder",
     Motherboard: "PlacaBase", Refrigeracion: "Refrigeracion", Gabinete: "Gabinete"
   };
 
+  // Definimos los pasos del tutorial con sus selectores y textos explicativos (son pasos introductorios para guiar al usuario en su primera visita)
+  const pasos = [
+  {
+    selector: ".modo-panel",
+    texto: "Aquí puedes cambiar entre modo guía (paso a paso ordenadamente) y libre (elige cualquier componente sin orden)."
+  },
+  {
+    selector: ".modo-switch",
+    texto: "Usa este switch para alternar el modo (guía / libre)"
+  },
+  {
+    selector: ".lista-componentes",
+    texto: "En el panel de componentes selecciona un tipo de componente para ver los modelos disponibles"
+  },
+  {
+    selector: ".vista-gabinete",
+    texto: "Aquí se mostrará una vista general de tu PC, que irá cambiando según lo que selecciones"
+  },
+  {
+    selector: ".component-details",
+    texto: "En este panel derecho verás los modelos disponibles para el componente seleccionado"
+  },
+  {
+    selector: ".resumen-pc",
+    texto: "Aquí verás un resumen de los componentes seleccionados en tu PC y su consumo energético"
+  },
+];
+
+  // Cada vez que cambie el componente seleccionado, obtenemos su lista desde el backend
   useEffect(() => {
     if (!selectedComponent) return;
     const obtenerComponentes = async () => {
@@ -44,7 +99,7 @@ export default function NuevoProyecto() {
     obtenerComponentes();
   }, [selectedComponent]);
 
-  // Bloquear scroll cuando el modal está abierto
+  // ---  Bloquear scroll cuando el modal está abierto y desbloquearlo al cerrarlo --- //
 useEffect(() => {
   if (imagenSeleccionada) {
     document.body.style.overflow = 'hidden';
@@ -53,7 +108,7 @@ useEffect(() => {
   }
 }, [imagenSeleccionada]);
 
-// Función para alternar los cambios en la imagen central del Gabinete cuando seleccione uno diferente
+// ---  Función para alternar los cambios en la imagen central del Gabinete cuando seleccione uno diferente --- //
   useEffect(() => {
     if (pcActual.Gabinete?.imagenUrl) {
       setImagenCentral(pcActual.Gabinete.imagenUrl);
@@ -62,13 +117,287 @@ useEffect(() => {
     }
   }, [pcActual.Gabinete]);
 
-  const componentes = ["CPU", "Motherboard", "RAM", "GPU", "Almacenamiento", "Fuente de poder", "Refrigeracion", "Gabinete"];
+  // ---  Función para comprobar compatibilidad de componentes en tiempo real --- //
+  useEffect(() => {
+  const evaluar = async () => {
+    try {
+      const ids = Object.values(pcActual)
+        .filter(Boolean)
+        .map(comp => comp.componenteId);
 
+      if (ids.length < 2) {
+        setIncompatibilidades([]);
+        return;
+      }
+
+      const resultado = await evaluarCompatibilidadTiempoReal(ids);
+
+      // 🔥 SOLO guarda si hay errores
+      if (resultado.length > 0) {
+        setIncompatibilidades(resultado);
+      } else {
+        setIncompatibilidades([]); // limpia automáticamente
+      }
+
+    } catch (error) {
+      console.error("Error evaluando compatibilidad:", error);
+    }
+  };
+
+  evaluar();
+}, [pcActual]);
+
+// ---  Función para resaltar el componente relacionado al paso actual del tutorial --- //
+useEffect(() => {
+  // 1. Si el tutorial está apagado, no hacemos nada
+  if (!mostrarTutorial) return;
+
+  const pasoActual = pasos[pasoTutorial]; // Obtenemos el paso actual según el índice
+  if (!pasoActual) return; // Si el paso no existe (por ejemplo, si el array de pasos cambia), evitamos errores
+
+  const elemento = document.querySelector(pasoActual.selector); // Buscamos el elemento en el DOM usando el selector definido en el paso
+
+  if (elemento) {
+    elemento.scrollIntoView({ behavior: "smooth", block: "center" });
+    elemento.classList.add("highlight");
+
+    // 2. Esta función de limpieza se ejecutará:
+    //    - Cuando cambies de paso (remueve el highlight del anterior)
+    //    - Cuando el componente se desmonte
+    //    - CUANDO 'mostrarTutorial' cambie a false
+    return () => elemento.classList.remove("highlight");
+  } else {
+    // Si no encuentra el elemento, mejor no resetear a 0 forzosamente 
+    // a menos que sea un error crítico.
+    console.warn(`Selector no encontrado: ${pasoActual.selector}`);
+  }
+
+}, [pasoTutorial, mostrarTutorial]); 
+
+// ---  Función para verificar si el usuario ya ha visto el tutorial y evitar mostrarlo de nuevo --- //
+useEffect(() => {
+  const visto = localStorage.getItem("tutorialVisto");
+  if (visto) setMostrarTutorial(false);
+}, []);
+
+// Función para finalizar el tutorial y guardar la preferencia del usuario en localStorage
+const finalizarTutorial = () => {
+  localStorage.setItem("tutorialVisto", "true");
+  setMostrarTutorial(false); // Ocultamos el tutorial
+  setPasoTutorial(0); // Limpia el paso para futuras sesiones si decides reabrirlo
+};
+
+  // Función para quitar el componente conflictivo de incompatibilidades si no encuentra una regla específica en Tabla Compatibilidades
+  const quitarComponenteConflicto = (nombreComponente) => {
+  // Buscamos en pcActual cuál categoría tiene ese nombre para ponerla en null
+  const categoriaEncontrada = Object.keys(pcActual).find(
+    key => pcActual[key]?.nombre === nombreComponente
+  );
+
+  if (categoriaEncontrada) {
+    setPcActual(prev => ({
+      ...prev,
+      [categoriaEncontrada]: null
+    }));
+    // Limpiamos sugerencias abiertas
+    setSugerencias({});
+  }
+};
+
+  // Función para validar si un componente está en error por incompatibilidad: lo usamos para marcar en rojo los componentes que tienen conflictos
+  const esComponenteIncompatible = (componente) => {
+    return incompatibilidades.some(inc =>
+      inc.componenteA === componente?.nombre ||
+      inc.componenteB === componente?.nombre
+    );
+  };
+
+// --- LÓGICA DE PERSISTENCIA ---
+
+// 1. Efecto de Carga Inicial (Prioriza Edición > Continuar Borrador > Nuevo)
+useEffect(() => {
+  const inicializar = async () => {
+    const proyectoParaEditar = location.state?.proyectoParaEditar;
+    const esEdicionDeseada = location.state?.esEdicion;
+    const esPlantilla = location.state?.esPlantilla; // Nuevo: para plantillas de comunidad
+
+    // 1. LIMPIEZA PREVENTIVA: Si NO venimos expresamente a editar,
+    // pero el localStorage dice que estábamos editando algo, limpiamos si la ruta es "nuevo"
+    if (modo === "nuevo" && !esEdicionDeseada && !esPlantilla) {
+      localStorage.removeItem(`editando_id_${uidSession}`);
+      localStorage.removeItem(STORAGE_KEY);
+      setArmadoIdEdicion(null);
+      //setPcActual({}); // O tu estado inicial vacío
+      setNombreProyecto("");
+    }
+
+    // ESCENARIO A: Si venimos de "Mis Armados" para EDITAR
+    if ((esEdicionDeseada || esPlantilla) && proyectoParaEditar) {
+      // Si es plantilla, el ID de edición debe ser NULL para que sea un guardado nuevo
+      setArmadoIdEdicion(esPlantilla ? null : proyectoParaEditar.armadoId);
+      setNombreProyecto(proyectoParaEditar.nombreArmado);
+      
+      const configMapeada = { ...pcActual };
+      console.log(proyectoParaEditar.componentes)
+        proyectoParaEditar.componentes.forEach(comp => {
+        const categoriaEnPC = Object.keys(mapTipo).find(key => mapTipo[key] === comp.tipo);
+        
+        if (categoriaEnPC) {
+          configMapeada[categoriaEnPC] = {
+            ...comp, // Mantiene todo lo que venga del API
+            componenteId: comp.componenteId || comp.id || comp.ComponenteId,
+            // NORMALIZACIÓN AGRESIVA: 
+            // Buscamos todas las variantes posibles de nombre que devuelva C#
+            consumoWatts: comp.consumoWatts || comp.ConsumoWatts || comp.consumo || 0,
+            capacidadWatts: comp.capacidadWatts || comp.CapacidadWatts || comp.capacidad || 0,
+            precio: comp.precio || comp.Precio || 0
+          };
+        }
+      });
+      setPcActual(configMapeada);
+      setModoGuia(false);
+      setMostrarTutorial(false);
+      
+      // Guardamos el ID en storage por si se refresca la página
+      if (esEdicionDeseada) {
+        localStorage.setItem(`editando_id_${uidSession}`, proyectoParaEditar.armadoId);
+      }
+
+    } 
+    // ESCENARIO B: Recuperación (Refrescar página o volver del panel)
+    else if (modo === "continuar" || localStorage.getItem(STORAGE_KEY)) {
+      const guardadoRaw = localStorage.getItem(STORAGE_KEY);
+      if (guardadoRaw) {
+        const data = JSON.parse(guardadoRaw);
+        
+        // Verificamos si los datos vienen en el nuevo formato de objeto o el antiguo (solo piezas)
+        const piezasARestaurar = data.piezas ? data.piezas : data;
+        const nombreARestaurar = data.nombre ? data.nombre : "";
+
+        setPcActual(piezasARestaurar);
+        setNombreProyecto(nombreARestaurar); // <--- AQUÍ RECUPERAMOS EL NOMBRE
+        setMostrarTutorial(false);
+        
+        const idRecuperado = localStorage.getItem(`editando_id_${uidSession}`);
+        if (idRecuperado) setArmadoIdEdicion(parseInt(idRecuperado));
+      }
+    }
+    // ESCENARIO C: Proyecto totalmente nuevo
+    else if (modo === "nuevo") {
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(`editando_id_${uidSession}`);
+      setArmadoIdEdicion(null);
+    }
+    setCargandoDatos(false);
+  };
+
+  inicializar();
+}, [modo, uidSession, location.state]);
+
+// 2. Efecto de Auto-guardado (Protección contra cortes de luz o desconexión de Internet)
+useEffect(() => {
+  if (cargandoDatos || !uidSession || !autoGuardado) return;
+
+  const backup = {
+    piezas: pcActual,
+    nombre: nombreProyecto 
+  };
+
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(backup));
+  
+  // Si estamos editando, guardamos el ID para no perder la referencia tras un apagón
+  if (armadoIdEdicion) {
+    localStorage.setItem(`editando_id_${uidSession}`, armadoIdEdicion);
+  }
+  
+}, [pcActual, cargandoDatos, uidSession, autoGuardado, armadoIdEdicion]);
+
+// --- FIN DE LA LÓGICA DE PERSISTENCIA ---
+
+// -- Función de guardado manual mediante botón -- //
+const guardarProgresoManual = () => {
+  if (!uidSession) return;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(pcActual));
+  alert("💾 Progreso guardado manualmente en este navegador.");
+};
+
+  // Función de reset por si el usuario quiere borrar todos los datos de su edición y empezar un nuevo proyecto
+  const resetearProyecto = () => {
+    if (window.confirm("¿Seguro que quieres abandonar la edición? Los cambios no guardados se perderán.")) {
+      // 1. Limpiar LocalStorage
+      localStorage.removeItem(STORAGE_KEY);
+      localStorage.removeItem(`editando_id_${uidSession}`);
+
+      // 2. Limpiar Estados de React
+      setPcActual({}); // O tu objeto inicial con categorías vacías
+      setArmadoIdEdicion(null);
+      setNombreProyecto("");
+      
+      // 3. Limpiar el estado de la navegación (opcional pero recomendado)
+      // Esto evita que si el usuario refresca, el location.state vuelva a disparar la edición
+      navigate("/nuevo-proyecto", { replace: true, state: {} });
+      
+      alert("Iniciando nuevo proyecto...");
+    }
+  };
+
+  // ESCUCHA DE TOKENS EN TIEMPO REAL
+  useEffect(() => {
+    if (!uidSession) return;
+
+    // Creamos una conexión en tiempo real con el documento del usuario
+    const unsub = onSnapshot(doc(db, "Usuario", uidSession), (docSnap) => {
+      if (docSnap.exists()) {
+        setTokens(docSnap.data().TokensDisponibles || 0);
+      }
+    });
+
+    return () => unsub(); // Limpiamos la conexión al salir del componente
+  }, [uidSession]);
+
+const componentes = [
+  "Gabinete",
+  "Fuente de poder",
+  "Motherboard",
+  "Refrigeracion",
+  "CPU",
+  "GPU",
+  "RAM",
+  "Almacenamiento"
+];
+
+const ordenComponentes = [
+  "Gabinete",
+  "Fuente de poder",
+  "Motherboard",
+  "Refrigeracion",
+  "CPU",
+  "GPU",
+  "RAM",
+  "Almacenamiento"
+];
+
+// Función para determinar si un componente está desbloqueado o no según el modo y el orden
+const estaDesbloqueado = (comp) => {
+  //  Si está en modo libre → todo desbloqueado
+  if (!modoGuia) return true;
+
+  const index = ordenComponentes.indexOf(comp);
+
+  if (index === 0) return true;
+
+  const anterior = ordenComponentes[index - 1];
+
+  return pcActual[anterior] !== null;
+};
+
+  // Función para agregar un componente al armado actual
   const agregarComponente = (componente) => {
     setPcActual({ ...pcActual, [selectedComponent]: componente });
     setExpandidoId(null);
   };
 
+  // Función para quitar un componente del armado actual
   const quitarComponente = () => {
   setPcActual({
     ...pcActual,
@@ -87,8 +416,13 @@ useEffect(() => {
   };
 
   // Cálculos de precio total y consumo energético total del armado
-  const total = Object.values(pcActual).filter(Boolean).reduce((acc, comp) => acc + (comp.precio || 0), 0);
-  const watts = Object.values(pcActual).filter(Boolean).reduce((acc, comp) => acc + (comp.consumoWatts || 0), 0);
+  const total = Object.values(pcActual)
+    .filter(Boolean)
+    .reduce((acc, comp) => acc + (Number(comp.precio) || 0), 0);
+
+  const watts = Object.values(pcActual)
+    .filter(Boolean)
+    .reduce((acc, comp) => acc + (Number(comp.consumoWatts) || 0), 0);
 
   // Definimos el margen de seguridad de consumo de los componentes (1.2 = +20%)
   const margen_seguridad = 1.2;
@@ -97,236 +431,731 @@ useEffect(() => {
   const fuente = pcActual["Fuente de poder"];
   const wattsConMargen = watts * margen_seguridad
 
-  // Validamos comparación
-  const energiaValida = fuente
+  // Validamos la energía con un fallback para evitar el rojo por defecto
+  const energiaValida = (fuente && fuente.capacidadWatts > 0)
     ? fuente.capacidadWatts >= wattsConMargen
-    : true; // Si no hay fuente seleccionada aún, es true para no asustar al usuario
+    : true; // Si no hay fuente o está cargando, asumimos true para no mostrar error falso
 
 
-  // --- FUNCIÓN PARA GUARDAR UN ARMADO NUEVO --- //
+  // --- FUNCIÓN PARA GUARDAR UN ARMADO NUEVO O ACTUALIZAR UN ARMADO EXISTENTE --- //
   const handleGuardarArmado = async () => {
-    // 1. Obtenemos el usuario actual de Firebase almacenado en localStorage para mayor persistencia del dato
-    const uidSession = localStorage.getItem("userUid"); // Aquí está tu string de Firebase 
-    
-    if (!uidSession) {
-      alert("No se detectó sesión activa.");
-      return;
+  // 1. Verificación de Seguridad (Compatibilidad y Energía)
+  if (incompatibilidades.length > 0) {
+    alert("No puedes guardar: Existen piezas incompatibles.");
+    return;
+  }
+  if (!energiaValida) {
+    alert("No puedes guardar: Exceso de consumo energético.");
+    return;
+  }
+
+  // 2. Validación de sesión
+  if (!uidSession) {
+    alert("No se detectó sesión activa.");
+    return;
+  }
+
+  // 3. Validación de tokens (SOLO si es un proyecto NUEVO)
+  // Si estamos editando (armadoIdEdicion !== null), no debería gastar tokens extra
+  if (!armadoIdEdicion && tokens === 0) {
+    alert("No tienes tokens disponibles para un nuevo proyecto.");
+    return;
+  }
+
+  // 4. Componentes esenciales
+  const esenciales = ["CPU", "Motherboard", "RAM", "Fuente de poder", "Gabinete"];
+  const faltantes = esenciales.filter(tipo => !pcActual[tipo]);
+  if (faltantes.length > 0) {
+    alert(`Te falta seleccionar: ${faltantes.join(", ")}`);
+    return;
+  }
+
+  const nombrePrompt = window.prompt("Nombre del armado:", nombreProyecto || "Mi PC Nueva");
+  if (!nombrePrompt) return;
+
+  const componentesPayload = Object.entries(pcActual)
+    .filter(([key, value]) => value !== null)
+    .map(([key, comp]) => ({
+      componenteId: parseInt(comp.componenteId),
+      cantidad: 1
+    }));
+
+  const datosArmado = {
+    usuarioId: uidSession,
+    nombreArmado: nombrePrompt,
+    nombreUsuario: nombreUsuario,
+    componentes: componentesPayload
+  };
+
+  try {
+    setLoading(true);
+
+    if (armadoIdEdicion) {
+      // --- LÓGICA DE ACTUALIZACIÓN (PUT) ---
+      // Aquí asumo que tienes o crearás actualizarArmado en api.js
+      await actualizarArmado(armadoIdEdicion, datosArmado); 
+      //alert("✅ ¡Armado actualizado exitosamente!");
+      toast.success(`Armado actualizado exitosamente!`)
+    } else {
+      // --- LÓGICA DE GUARDADO NUEVO (POST) ---
+      await guardarArmado(datosArmado);
+      toast.success("¡Proyecto nuevo guardado exitosamente!")
+
     }
 
-    // --- VALIDACIÓN DE COMPONENTES ESENCIALES ---
-    const esenciales = ["CPU", "Motherboard", "RAM", "Fuente de poder", "Gabinete"];
-    const faltantes = esenciales.filter(tipo => !pcActual[tipo]);
+    // Limpieza post-guardado
+    localStorage.removeItem(STORAGE_KEY);
+    localStorage.removeItem(`editando_id_${uidSession}`);
+    navigate("/mis-armados");
 
-    if (faltantes.length > 0) {
-      alert(`Para un armado funcional, aún te falta seleccionar: ${faltantes.join(", ")}`);
-      return;
-    }
+  } catch (error) {
+    console.error("Error del servidor:", error);
+    alert(`Error: ${error.message}`);
+  } finally {
+    setLoading(false);
+  }
+};
 
-    // --- VALIDACIÓN ENERGÉTICA ---
-    if (!energiaValida) {
-      alert("No puedes guardar el armado: el consumo total excede la capacidad de la fuente de poder.");
-      return;
-    }
+  // El armado es inválido si: 
+  // 1. Hay incompatibilidades en el array
+  // 2. La energía no es válida
+  // 3. Está cargando
+  const tieneErrores = incompatibilidades.length > 0 || !energiaValida;
+  const puedeGuardar = !tieneErrores && !loading;
 
-    // --- SOLICITUD DE NOMBRE ---
-    const nombrePrompt = window.prompt("Dale un nombre a tu creación:", "Mi PC Nueva");
-    if (!nombrePrompt) return;
+  
+  // --- Estados para recibir solicitud de plantilla desde la Comunidad y cargarla automáticamente en el configurador --- //
+  const [nombreProyecto, setNombreProyecto] = useState("");
 
-    // --- ESTRUCTURA PARA EL DTO DE C# ---
-    // Obtenemos todos los componentes seleccionados (ignoramos los nulos)
-    const componentesPayload = Object.entries(pcActual)
-      .filter(([key, value]) => value !== null)
-      .map(([key, comp]) => ({
-        componenteId: comp.componenteId,
-        cantidad: 1 
-      }));
+  // --- Si venimos de la comunidad con una plantilla, cargamos los componentes en el estado local del configurador --- //
+  useEffect(() => {
+  if (location.state && location.state.componentesPlantilla) {
+    const { componentesPlantilla, nombreOriginal } = location.state;
 
-    const nuevoArmado = {
-      usuarioId: uidSession,
-      nombreArmado: nombrePrompt,
-      componentes: componentesPayload
+    const nuevaConfiguracion = {
+      CPU: null, Motherboard: null, RAM: null, GPU: null,
+      Almacenamiento: null, "Fuente de poder": null,
+      Refrigeracion: null, Gabinete: null
     };
 
+    componentesPlantilla.forEach(comp => {
+      const categoriaEnPC = Object.keys(mapTipo).find(key => mapTipo[key] === comp.tipo);
+      
+      if (categoriaEnPC) {
+        // NORMALIZACIÓN CRÍTICA
+        nuevaConfiguracion[categoriaEnPC] = {
+          ...comp,
+          // Intentamos obtener el ID de todas las formas posibles que pueda venir del JSON
+          componenteId: comp.componenteId || comp.id || comp.ComponenteId,
+          // Hacemos lo mismo para la imagen
+          imagenUrl: comp.imagenUrl || comp.imagen || comp.ImagenUrl
+        };
+      }
+    });
+    // Actualizamos el estado del configurador con la plantilla recibida
+    setPcActual(nuevaConfiguracion);
+    setNombreProyecto(`Copia de ${nombreOriginal}`);
+    setModoGuia(false);
+    window.history.replaceState({}, document.title); // Limpiamos el estado de la URL para evitar recargas accidentales con la plantilla
+  }
+}, [location]);
+  // FIN de la lógica de carga automática desde la comunidad (esto permite que al hacer click en "Usar esta plantilla" en la comunidad, se abra el configurador con esa plantilla ya cargada y lista para editar)
+
+  
+  // Función para reemplazar una pieza de componente por uno que si sea compatible
+const reemplazarPieza = (sug) => {
+  // 1. Traductor de categorías (Normalización Robusta)
+  const mapeoCategorias = {
+    "PlacaBase": "Motherboard",
+    "CPU": "CPU",
+    "GPU": "GPU",
+    "Refrigeracion": "Refrigeracion",
+    "MemoriaRAM": "RAM",
+    "FuentePoder": "Fuente de poder",
+    "Gabinete": "Gabinete",
+    "Almacenamiento": "Almacenamiento"
+  };
+
+  const categoriaOriginal = sug.tipo || sug.Tipo;
+  const categoriaDestino = mapeoCategorias[categoriaOriginal] || categoriaOriginal;
+
+  // 2. Actualización de PC y Limpieza de Estados
+  setPcActual(prev => ({
+    ...prev,
+    [categoriaDestino]: {
+      ...sug,
+      nombre: sug.nombre || sug.Nombre, // Soporte para PascalCase del Backend
+      precio: sug.precio || sug.Precio,
+      imagenUrl: sug.imagenUrl || sug.ImagenUrl,
+      tipo: categoriaDestino
+    }
+  }));
+
+  // 3. IMPORTANTE: Limpiar sugerencias y errores específicos
+  setSugerencias({}); 
+
+  // Scroll suave hacia el resumen para mostrar que la pieza cambió
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // Notificación de éxito en el reemplazo del componente
+  toast.success(`¡${sug.nombre} añadido con éxito!`);
+  
+  // Si tienes un estado de 'incompatibilidades', podrías forzar una limpieza
+  // o dejar que el useEffect de validación haga su trabajo.
+  console.log(`✅ Éxito: ${sug.nombre} ahora ocupa el lugar de ${categoriaDestino}`);
+};
+
+
+  // Función PRO que unifica a las otras dos funciones de brindar sugerencias de componentes compatibles de manera automática
+  const handleSugerenciasPro = async (index, idBase, tipoBuscado = null) => {
     try {
-      setLoading(true);
-      await guardarArmado(nuevoArmado);
-      alert("🚀 ¡Proyecto guardado exitosamente!");
-      navigate("/mis-armados"); // Redirige a la lista de proyectos del usuario
+      // 1. Decidimos qué servicio usar de forma limpia
+      const servicio = tipoBuscado 
+        ? obtenerSugerenciasPorTipo(idBase, tipoBuscado) 
+        : obtenerSugerenciasParaError(idBase);
+
+      const piezas = await servicio;
+
+      // 2. Actualizamos el estado asegurando que siempre sea un array
+      setSugerencias(prev => ({ 
+        ...prev, 
+        [index]: piezas || [] 
+      }));
     } catch (error) {
-      // Si el backend lanza el BadRequest que vimos en tu C# (Error energético)
-      console.error("Error del servidor:", error);
-      alert(`Error al guardar: ${error.message}`);
-    } finally {
-      setLoading(false);
+      console.error("Error al obtener sugerencias optimizadas:", error);
+      // Opcional: limpiar el estado en caso de error para no mostrar datos viejos
+      setSugerencias(prev => ({ ...prev, [index]: [] }));
     }
   };
 
+  // Renderizamos el componente //
   return (
     <div className="nuevo-proyecto-container">
-      <header className="nuevo-header">
-        <button className="btn-volver" onClick={() => navigate("/dashboard-user")}>← Volver</button>
-        <h1>Crear nuevo proyecto</h1>
+      <header className="nuevo-header flex items-center justify-between bg-blue-950/60 backdrop-blur-md p-5 border-b border-blue-500/30">
+        <button className="btn-volver-neon" onClick={() => navigate("/dashboard-user")}>
+            <span className="mr-2">←</span> Volver al Dashboard
+        </button>
+          {/* El título cambia según el modo */}
+        <h1 className="text-2xl md:text-3xl font-black tracking-tighter text-transparent bg-clip-text bg-linear-to-r from-blue-400 to-cyan-300">
+          {modo === "continuar" ? "Continuar Proyecto" : "Crear Nuevo Proyecto"}</h1>
+
+          <div className="w-32 hidden md:block"></div> {/* Espaciador para centrar el título */}
       </header>
 
-      <div className="nuevo-main">
-        {/* SIDEBAR IZQUIERDO */}
-        <div className="componentes-menu">
-          <h3>Componentes</h3>
-          {componentes.map((comp) => (
-            <button key={comp} className={`comp-btn ${selectedComponent === comp ? "active" : ""}`} onClick={() => setSelectedComponent(comp)}>
-              {comp}
-            </button>
-          ))}
-        </div>
-
-        {/* VISTA CENTRAL */}
-        <div className="central-view">
-          <div className="gabinete-view">
-            <img 
-                src={imagenCentral || gabinete} 
-                alt="Gabinete PC" 
-                className="imagen-central"
+      {/* BARRA DE CONTROLES (AUTOGUARDADO) / GUARDADO MANUAL */}
+      <div className="project-controls-bar flex flex-wrap items-center justify-between p-4 bg-slate-900/50 border-b border-white/5">
+        <div className="status-group flex items-center gap-6">
+          {/* Switch de Autoguardado */}
+          <div className="flex items-center gap-3">
+            <label className="relative inline-flex items-center cursor-pointer">
+              <input 
+                type="checkbox" 
+                className="sr-only peer" 
+                checked={autoGuardado}
+                onChange={() => setAutoGuardado(!autoGuardado)}
               />
+              <div className="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-0.5 after:left-0.5 after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.3)]"></div>
+            </label>
+            <span className="text-sm font-medium text-gray-700">
+              <span className={`w-2 h-2 rounded-full mr-2 ${autoGuardado ? "bg-green-400 animate-pulse" : "bg-slate-500"}`}></span>
+              Autoguardado {autoGuardado ? "Activado" : "Manual"}
+            </span>
           </div>
-          <div className="pc-resumen">
-            <h2>Resumen del armado</h2>
-            <ul>
-              {Object.entries(pcActual).map(([key, modelo]) => (
-                <li key={key} className="resumen-item">
-                  <strong>{key}:</strong> {modelo ? `${modelo.nombre} ($${modelo.precio})` : "Sin seleccionar"}
-                </li>
-              ))}
-            </ul>
-            <div className="resumen-extra">
-                <p>Total: <strong>${total}</strong></p>
-                <p>Consumo Real: <strong>{watts}W</strong></p>
-                
-                {/* Mostramos el consumo recomendado con el margen del 20% */}
-                <p>Consumo Recomendado (+20%):  
-                  <strong style={{ color: energiaValida ? "inherit" : "#dc2626" }}>
-                      {Math.round(watts * 1.2)}W
-                  </strong>
-                </p>
 
-                <p>Capacidad Fuente: <strong>{fuente?.capacidadWatts || 0}W</strong></p>
-              </div>
-              <div className="mensaje-energetico">
-                <p style={{ color: energiaValida ? "#059669" : "#dc2626", fontWeight: "bold", marginTop: "10px" }}>
-                  {energiaValida 
-                    ? "✔ Configuración Energética Segura" 
-                    : "⚠ Se recomienda una fuente más potente (Margen de seguridad insuficiente)"}
-                </p>
-              </div>
-            {/* Botón de Guardar */}
-              <button 
-                className="btn-guardar-final" 
-                onClick={handleGuardarArmado}
-                disabled={loading} // Deshabilitar si hay error de energía
-              >
-                {loading ? "Procesando..." : "Guardar Proyecto"}
-              </button>
-              {/* Mensaje de ayuda visual */}
-              {!energiaValida && (
-                <p style={{ color: "#dc2626", fontSize: "0.8rem", marginTop: "10px" }}>
-                  ⚠️ Revisa la fuente de poder antes de guardar.
-                </p>
-              )}
+          {/* Indicador de Estado */}
+          <div className="status-indicator">
+            {autoGuardado ? (
+              <span className={`flex items-center text-sm font-bold ${autoGuardado ? "text-green-400" : "text-slate-400"}`}>
+                <span className="dot-green mr-2">●</span> Cambios guardados
+              </span>
+            ) : (
+              <span className="flex items-center text-gray-500 text-sm">
+                <span className="dot-gray mr-2">●</span> Modo manual
+              </span>
+            )}
           </div>
         </div>
 
-        {/* PANEL DERECHO: CATÁLOGO */}
-        <div className="component-details">
-          {selectedComponent ? (
-            <>
-              <h3>Catálogo de {selectedComponent}</h3>
-              <div className="lista-modelos">
-                {loading ? <p>Cargando...</p> : 
-                  listaComponentes.map((comp) => (
-                    <div key={comp.componenteId} className={`card-componente ${
-                        pcActual[selectedComponent]?.componenteId === comp.componenteId 
-                          ? "seleccionado" 
-                          : ""
-                      }`}>
-                      {/* Cabecera de la tarjeta: Siempre visible */}
-                      <div className="card-header-simple">
-                        <h4>{comp.nombre}</h4>
-                        <button 
-                          className="btn-expandir" 
-                          onClick={() => setExpandidoId(expandidoId === comp.componenteId ? null : comp.componenteId)}
-                        >
-                          {expandidoId === comp.componenteId ? "− Ver menos" : "+ Detalles"}
-                        </button>
-                      </div>
-
-                      {/* Cuerpo de la tarjeta: Solo si está expandido */}
-                      {expandidoId === comp.componenteId && (
-                        <div className="card-expanded-content">
-                          <img 
-                            src={comp.imagenUrl} 
-                            alt={comp.nombre} 
-                            className="card-img-small clickable"
-                            onClick={() => setImagenSeleccionada(comp.imagenUrl)}
-                          />
-                          <div className="info-detallada">
-                            <p><strong>Marca:</strong> {comp.marca}</p>
-                            <p><strong>Modelo:</strong> {comp.modelo}</p>
-                            <p className="precio"><strong>Precio:</strong> ${comp.precio}</p>
-                            {renderWatts(comp)}
-                              <div className="acciones-botones">
-                                  {! pcActual[selectedComponent]? (
-                                    <button 
-                                      className="btn-agregar"
-                                      onClick={() => agregarComponente(comp)}
-                                    >
-                                      Seleccionar
-                                    </button>
-                                  ) : (
-                                    <button 
-                                      className="btn-quitar"
-                                      onClick={quitarComponente}
-                                    >
-                                      Quitar
-                                    </button>
-                                  )}
-                                </div>
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                }
-              </div>
-            </>
-          ) : <p>Selecciona una categoría a la izquierda</p>}
+        <div className="action-group">
+          {/* Botón de Guardado Manual (Solo se resalta si el autoguardado está OFF) */}
+          <button 
+            onClick={guardarProgresoManual}
+            className={`btn-manual-save ${!autoGuardado ? 'active' : 'disabled'}`}
+            title="Guardar progreso actual"
+          >
+            💾 Guardar Borrador
+          </button>
         </div>
       </div>
-
-      {/* MODAL DE IMAGEN DEL CARDVIEW PARA AMPLIARLA */}
-        {imagenSeleccionada && (
-          <div 
-            className="modal-overlay"
-            onClick={() => setImagenSeleccionada(null)}
-          >
-            <div 
-              className="modal-content"
-              onClick={(e) => e.stopPropagation()} // 🔥 evita cerrar al hacer click dentro
-            >
-              <img 
-                src={imagenSeleccionada} 
-                alt="Vista ampliada" 
-                className="modal-img"
-              />
-
-              <button 
-                className="btn-cerrar-modal"
-                onClick={() => setImagenSeleccionada(null)}
-              >
-                ✕
-              </button>
-              
-            </div>
+      
+      <div className="nuevo-main flex p-4 gap-6">
+      {/* SIDEBAR IZQUIERDO: SECCIÓN DE COMPONENTES */}
+        <div className="componentes-menu bg-amber-200 p-4 rounded-lg">
+          {/* PANEL DE MODO: MEJORADO */}
+          <div className={`modo-panel-neon p-4 rounded-xl border-2 transition-all ${modoGuia ? "border-blue-500/50 bg-blue-500/10" : "border-purple-500/50 bg-purple-500/10"}`}>
+            <span>
+              {modoGuia ? "🧭 Modo guía" : "🎮 Modo libre"}
+              <p style={{ fontSize: "0.9rem", marginTop: "5px", color: "black" }}>
+              {modoGuia 
+                ? "Te guiaremos por el orden recomendado para el armado de una PC."
+                : "Puedes elegir cualquier componente en el orden que prefieras."}
+            </p>
+            </span>
           </div>
-        )}
-       </div>
-  );
-}
+        <div className="modo-switch">
+          <span className={`${modoGuia ? "text-blue-400 font-bold" : "text-gray-400"}`}>
+             🧭 Guía
+          </span>
+          {/* SWITCH MODO */}
+          <label className="switch">
+            <input 
+              type="checkbox" 
+              checked={!modoGuia}
+              onChange={() => setModoGuia(!modoGuia)}
+            />
+            <span className="slider"></span>
+          </label>
+          <span className={`${!modoGuia ? "text-purple-400 font-bold" : "text-gray-400"}`}>
+            🎮 Libre
+          </span>
+        </div>
+
+       <div className="lista-componentes">
+          <h3><strong>Componentes</strong></h3>
+          {/* Listamos los componentes disponibles en el menú lateral */}
+          {componentes.map((comp) => {
+          const bloqueado = !estaDesbloqueado(comp);
+
+          return (
+            <button 
+              key={comp}
+              className={`comp-btn 
+                ${selectedComponent === comp ? "active" : ""} 
+                ${bloqueado ? "bloqueado" : ""}
+              `}
+              onClick={() => !bloqueado && setSelectedComponent(comp)}
+              disabled={bloqueado}
+            >
+              {comp} {bloqueado && <span className="lock-icon">🔒</span>}
+            </button>
+          );
+        })}
+          </div>
+        </div>
+        
+        {/* VISTA CENTRAL */}
+        <div className="central-view">
+           {/* Mostrar mensaje cuando ya no quedan tokens */}
+            {tokens === 0 && (
+              <div className="aviso-tokens-container">
+                <div className="aviso-tokens-card">
+                  <div className="aviso-header">
+                    <span className="aviso-icon">⚠️</span>
+                    <h3><strong>Límite de Armados Alcanzado</strong></h3>
+                  </div>
+                  
+                  <p className="aviso-texto">
+                    Has alcanzado el límite de armados (3/3). Para guardar este nuevo proyecto, 
+                    necesitas liberar un espacio de armado o ampliar tu capacidad comprando más tokens. 
+                    <br />
+                    <strong> ¡Gracias por ser parte de ArmatuXPC! 🚀</strong>
+                  </p>
+
+                  <div className="aviso-acciones">
+                    <button 
+                      className="btn-accion-tokens comprar" 
+                      onClick={() => navigate("/comprar-tokens")}
+                    >
+                      💳 Comprar más tokens
+                    </button>
+                    
+                    <button 
+                      className="btn-accion-tokens gestionar" 
+                      onClick={() => navigate("/mis-armados")}
+                    >
+                      🗑️ Gestionar mis armados
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          <div className="gabinete-view vista-gabinete">
+            {/* El contenedor principal debe ser relativo */}
+              <div className="gabinete-container-relativo">
+                <img 
+                  src={imagenCentral || gabinete} 
+                  alt="Gabinete PC" 
+                  className="imagen-central"
+                />
+                {/* Mapeamos los componentes para renderizar los globos */}
+                {Object.entries(pcActual).map(([tipo, componente]) => {
+                  // Solo mostramos globos para componentes seleccionados (no nulos)
+                  // y opcionalmente excluimos el Gabinete mismo si ya es la imagen central
+                  if (!componente || tipo === "Gabinete") return null;
+
+                  // Verificamos si este componente específico tiene conflictos
+                  const tieneError = esComponenteIncompatible(componente);
+
+                  return (
+                    <div 
+                      key={tipo} 
+                      // Usamos una clase dinámica para posicionar cada tipo (ej: globo-cpu)
+                      className={`globito-componente globo-${tipo.toLowerCase().replace(/ /g, '-')}`}
+                    >
+                      {/* Contenido del globo */}
+                      <div className="globito-content">
+                        {/* Si hay error, podemos añadir un pequeño badge de advertencia sobre la imagen */}
+                        <div className="globito-img-container">
+                          <img src={componente.imagenUrl} alt={componente.nombre} className="globito-img" />
+                          {tieneError && <span className="error-badge">!</span>}
+                        </div>
+
+                        <div className="globito-info">
+                          <span className="globito-tipo">{tipo}{tieneError && <span className="error-badge">!</span>}</span>
+                          <span className="globito-nombre">{componente.nombre}</span>
+                        </div>
+                      </div>
+                      {/* Línea conectora (opcional, da un toque pro) */}
+                              <div className="globito-linea"></div>
+                            </div>
+                          );
+                        })}
+                        </div>
+                        
+                    </div> {/* Fin del contenedor relativo para los globos */}
+
+                    {/* RESUMEN DEL ARMADO Y BOTÓN DE GUARDAR */}   
+                    <div className="pc-resumen resumen-pc">
+                        <h2 className="titulo-resumen">Resumen del armado</h2>
+                        <div className="status-messages">
+                            {armadoIdEdicion ? (
+                              <div className="aviso-edicion">
+                                <span>✏️ Estás editando: <strong>{nombreProyecto}</strong></span>
+                                <button onClick={resetearProyecto} className="btn-cancelar-edicion">
+                                  Abandonar edición y crear nueva PC
+                                </button>
+                              </div>
+                            ) : modo === "continuar" ? (
+                              <p style={{ color: "#3b82f6", fontSize: "0.8rem", marginBottom: "10px" }}>
+                                ℹ️ Estás viendo tu progreso guardado localmente.
+                              </p>
+                            ) : null}
+                          </div>
+                        <ul>
+                        {Object.entries(pcActual).map(([key, modelo]) => (
+                          <li key={key} 
+                          className={`resumen-item ${esComponenteIncompatible(modelo) ? "incompatible" : ""}`}>
+                            <strong>{key}:</strong> 
+                            {modelo ? `${modelo.nombre} ($${modelo.precio})` : "Sin seleccionar"}
+
+                            {/* 🔥 Indicador visual */}
+                            {esComponenteIncompatible(modelo) && (
+                              <span style={{ color: "red", marginLeft: "10px" }}>
+                                ⚠ Incompatible
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                      {/* Barra de progreso de consumo energético */}
+                      <div className="energy-bar-overlay">
+                        <div className="energy-text">
+                          <span>Consumo Energético: {Math.round(wattsConMargen)}W / {fuente?.capacidadWatts || 0}W (fuente de poder)</span>
+                        </div>
+                        <div className="energy-progress-bg">
+                          <div 
+                            className="energy-progress-fill"
+                            style={{ 
+                              // Si no hay fuente, el ancho es 0. Si hay fuente, calculamos el %
+                              width: `${fuente?.capacidadWatts > 0 
+                                ? Math.min((wattsConMargen / fuente.capacidadWatts) * 100, 100) 
+                                : 0}%`,
+                              backgroundColor: energiaValida ? '#10b981' : '#ef4444',
+                              transition: 'width 0.5s ease-in-out' // Para que se vea fluido al cargar
+                            }}
+                          ></div>
+                        </div>
+                      </div>
+                      {/* Detalles adicionales de consumo y validación energética */}
+                      <div className="resumen-extra">
+                          <p>Total: <strong>${total}</strong></p>
+                          <p>Consumo Real: <strong>{watts}W</strong></p>
+                          
+                          {/* Mostramos el consumo recomendado con el margen del 20% */}
+                          <p>Consumo Recomendado (+20%): <strong style={{ color: energiaValida ? "inherit" : "#dc2626" }}>
+                                {Math.round(watts * 1.2)}W
+                            </strong>
+                          </p>
+                        </div>
+
+                        <div className="mensaje-energetico">
+                          <p style={{ color: energiaValida ? "#059669" : "#dc2626", fontWeight: "bold", marginTop: "10px" }}>
+                            {energiaValida 
+                              ? "✔ Configuración Energética Segura" 
+                              : "⚠ Se recomienda una fuente más potente (Margen de seguridad insuficiente)"}
+                          </p>
+                        </div>
+
+                        {/* Botón de Guardar */}
+                          <button 
+                            className="btn-guardar-final" 
+                            onClick={handleGuardarArmado}
+                            disabled={!puedeGuardar || tokens == 0} // Deshabilitar si hay error de energía
+                          >
+                            {loading ? "Procesando..." : "Guardar Proyecto"}
+                          </button>
+                          
+                          {/* Mensajes de advertencia dinámicos */}
+                          <div className="mensajes-validacion"> 
+                            {!energiaValida && (
+                              <p className="error-text">⚠️ El consumo excede la capacidad de la fuente.</p>
+                            )}
+                            {incompatibilidades.length > 0 && (
+                              <p className="error-text">⚠️ Existen conflictos de compatibilidad sin resolver.</p>
+                            )}
+                          </div>
+                      </div>
+                    </div>
+
+                    {/* INCOMPATIBILIDADES EN TIEMPO REAL */}
+                    {incompatibilidades.length > 0 && (
+                      <div className="alerta-error">
+                        <h3>⚠️ Incompatibilidades detectadas:</h3>
+                        
+                        <div className="conflict-list">
+                          {incompatibilidades.map((inc, index) => (
+                            <div key={index} className="conflict-item-container">
+                              <div className="conflict-card">
+                                <div className="conflict-header">
+                                  <span className="comp-name">{inc.componenteA}</span>
+                                  <span className="vs-icon">❌</span>
+                                  <span className="comp-name">{inc.componenteB}</span>
+                                </div>
+                                <p className="conflict-reason">{inc.motivo}</p>
+                                
+                                {/* BOTÓN: Ahora usa 'inc' que es la variable del map y está dentro del bucle */}
+                                {/* Dentro de tu .map de incompatibilidades */}
+                                  <div className="acciones-inteligentes">
+                                    <p className="texto-ayuda">
+                                      Parece que hay un problema con la categoría: <strong>{inc.tipoComponenteB}</strong>
+                                    </p>
+                                    
+                                    {/* OPCIÓN A: Cambiar el primer componente por otro del mismo tipo */}
+                                    <button 
+                                      onClick={() => handleSugerenciasPro(index, inc.componenteBId, inc.tipoComponenteA)}
+                                      className="btn-accion-rapida"
+                                    >
+                                      <span className="icon">🔍</span>
+                                      <div>
+                                        Buscar otro <span className="categoria-resaltada">{inc.tipoComponenteA}</span> que sirva con {inc.componenteB}
+                                      </div>
+                                    </button>
+
+                                    {/* OPCIÓN B: Cambiar el segundo componente por otro del mismo tipo */}
+                                    <button 
+                                      onClick={() => handleSugerenciasPro(index, inc.componenteAId, inc.tipoComponenteB)}
+                                      className="btn-accion-rapida"
+                                    >
+                                      <span className="icon">❄️</span>
+                                      <div>
+                                       Buscar otro <span className="categoria-resaltada">{inc.tipoComponenteB}</span> que sirva con {inc.componenteA}
+                                      </div>
+                                    </button>
+                                  </div>
+
+                                {/* Ejemplo extra: Si el error fuera de Placa Base */}
+                                {/* handleVerSugerenciasTipo(index, id, "PlacaBase") */}
+                              </div>
+
+                              {/* RENDERIZADO DE SUGERENCIAS */}
+                              {sugerencias[index] && (
+                                <div className="drawer-sugerencias animate-in">
+                                  <p style={{fontSize: '0.75rem', fontWeight: 'bold', color: '#64748b', padding: '5px'}}>
+                                    OPCIONES COMPATIBLES DETECTADAS:
+                                  </p>
+                                  <ul>
+                                    {sugerencias[index].length > 0 ? (
+                                      // Si hay sugerencias, las listamos
+                                      sugerencias[index].map(sug => (
+                                        <li key={sug.componenteId} className="sug-item">
+                                          <div className="sug-info">
+                                            <strong>{sug.nombre}</strong>
+                                            <span className="motivo-sug">{sug.motivo}</span>
+                                          </div>
+                                          <button className="btn-seleccionar-sug" onClick={() => reemplazarPieza(sug)}>
+                                            Reemplazar
+                                          </button>
+                                        </li>
+                                      ))
+                                    ) : (
+                                      // SI NO HAY SUGERENCIAS: Mostramos la "Salida de Emergencia"
+                                      <li className="no-sug-container">
+                                        <p className="no-sug">No tenemos sugerencias automáticas para esta combinación.</p>
+                                        <div className="acciones-conflicto">
+                                          <button 
+                                            onClick={() => quitarComponenteConflicto(inc.componenteB)}
+                                            className="btn-quitar-conflicto"
+                                          >
+                                            🗑️ Quitar {inc.componenteB}
+                                          </button>
+                                          <button 
+                                            onClick={() => quitarComponenteConflicto(inc.componenteA)}
+                                            className="btn-quitar-secundario"
+                                          >
+                                            Quitar {inc.componenteA}
+                                          </button>
+                                        </div>
+                                      </li>
+                                    )}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                        
+                  {/* PANEL DERECHO: CATÁLOGO */}
+                  <div className="component-details catalogo-componentes">
+                    {selectedComponent ? (
+                      <>
+                        <h3><strong>Catálogo de {selectedComponent}</strong></h3>
+                        <div className="lista-modelos">
+                          {loading ? <p>Cargando...</p> : 
+                            listaComponentes.map((comp) => (
+                              <div key={comp.componenteId} className={`card-componente ${
+                                  pcActual[selectedComponent]?.componenteId === comp.componenteId 
+                                    ? "seleccionado" 
+                                    : ""
+                                }`}>
+                                {/* Cabecera de la tarjeta: Siempre visible */}
+                                <div className="card-header-simple">
+                                  <h4>{comp.nombre}</h4>
+                                  <button 
+                                    className="btn-expandir" 
+                                    onClick={() => setExpandidoId(expandidoId === comp.componenteId ? null : comp.componenteId)}
+                                  >
+                                    {expandidoId === comp.componenteId ? "− Ver menos" : "+ Detalles"}
+                                  </button>
+                                </div>
+
+                                {/* Cuerpo de la tarjeta: Solo si está expandido */}
+                                {expandidoId === comp.componenteId && (
+                                  <div className="card-expanded-content">
+                                    <img 
+                                      src={comp.imagenUrl} 
+                                      alt={comp.nombre} 
+                                      className="card-img-small clickable"
+                                      onClick={() => setImagenSeleccionada(comp.imagenUrl)}
+                                    />
+                                    <div className="info-detallada">
+                                      <p><strong>Marca:</strong> {comp.marca}</p>
+                                      <p><strong>Modelo:</strong> {comp.modelo}</p>
+                                      <p className="precio"><strong>Precio:</strong> ${comp.precio}</p>
+                                      {renderWatts(comp)}
+                                        <div className="acciones-botones">
+                                            {! pcActual[selectedComponent]? (
+                                              <button 
+                                                className="btn-agregar"
+                                                onClick={() => agregarComponente(comp)}
+                                              >
+                                                Seleccionar
+                                              </button>
+                                            ) : (
+                                              <button 
+                                                className="btn-quitar"
+                                                onClick={quitarComponente}
+                                              >
+                                                Quitar
+                                              </button>
+                                            )}
+                                          </div>
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          }
+                        </div>
+                      </>
+                    ) : <p>Selecciona una categoría a la izquierda</p>}
+                  </div>
+                </div>
+
+                {/* TUTORIAL INTERACTIVO: Solo se muestra si el usuario no lo ha cerrado previamente */}
+                {mostrarTutorial && (
+                <div className="tutorial-overlay">
+                  <div className="tutorial-box">
+                    <div>
+                      <h3> <strong> Tutorial introductorio del uso de esta ventana de Armado </strong></h3>
+                    </div>
+                    <p>{pasos[pasoTutorial].texto}</p>
+
+                    <div className="tutorial-buttons">
+                      {/* Botón de Salto Global (Siempre visible) */}
+                      <button 
+                        className="btn-saltar" 
+                        onClick={finalizarTutorial}
+                        style={{ opacity: 0.7, fontSize: '0.8rem' }}
+                      >
+                        ✖ Saltar tutorial
+                      </button>
+                      {/* Botón de Anterior */}
+                      <button 
+                        onClick={() => setPasoTutorial(p => Math.max(p - 1, 0))}
+                        disabled={pasoTutorial === 0}
+                      >
+                        ⬅ Anterior
+                      </button>
+                        {/* Botón de Siguiente o Finalizar */}
+                      {pasoTutorial < pasos.length - 1 ? (
+                        <button onClick={() => setPasoTutorial(p => p + 1)}>
+                          Siguiente ➡
+                        </button>
+                    
+                      ) : (
+                        <button onClick={() => {
+                          finalizarTutorial(); // Guardamos la preferencia de no mostrar el tutorial de nuevo y cerramos el tutorial
+                        }}>
+                          ✅ Finalizar
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )} 
+
+              {/* MODAL DE IMAGEN DEL CARDVIEW PARA AMPLIARLA */}
+                {imagenSeleccionada && (
+                  <div 
+                    className="modal-overlay"
+                    onClick={() => setImagenSeleccionada(null)}
+                  >
+                    <div 
+                      className="modal-content"
+                      onClick={(e) => e.stopPropagation()} // 🔥 evita cerrar al hacer click dentro
+                    >
+                      <img 
+                        src={imagenSeleccionada} 
+                        alt="Vista ampliada" 
+                        className="modal-img"
+                      />
+
+                      <button 
+                        className="btn-cerrar-modal"
+                        onClick={() => setImagenSeleccionada(null)}
+                      >
+                        ✕
+                      </button>
+                      
+                    </div>
+                  </div>
+                )}
+              </div>
+       
+      );
+      // --- FIN DEL COMPONENTE PRINCIPAL DE CONFIGURACIÓN DE ARMADO --- //
+  
+} // --- FIN DEL COMPONENTE --- //

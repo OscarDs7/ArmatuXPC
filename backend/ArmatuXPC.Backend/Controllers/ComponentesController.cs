@@ -18,34 +18,50 @@ namespace ArmatuXPC.Backend.Controllers
             _context = context;
         }
 
-        // GET: api/Componentes -> Recibe todos los 'Componentes' disponibles, con opción de filtrar por tipo
-        // GET: api/Componentes?tipo=1
+        // --- ENDPOINT PARA USUARIOS (Tienda/Armador) ---
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ComponenteDto>>> GetComponentes([FromQuery] TipoComponente? tipo)
         {
+            // Ya NO necesitas .Where(c => c.EstaActivo) porque el filtro global lo hace por ti.
             var query = _context.Componentes.AsQueryable();
 
             if (tipo.HasValue)
                 query = query.Where(c => c.Tipo == tipo.Value);
 
-            var componentes = await query
-                .Select(c => new ComponenteDto
-                {
-                    ComponenteId = c.ComponenteId,
-                    Nombre = c.Nombre,
-                    Marca = c.Marca,
-                    Modelo = c.Modelo,
-                    Precio = c.Precio,
-                    Tipo = c.Tipo,
-                    ConsumoWatts = c.ConsumoWatts,
-                    CapacidadWatts = c.CapacidadWatts,
-                    ImagenUrl = c.ImagenUrl
-                })
-                .ToListAsync();
-
-            return Ok(componentes);
+            return Ok(await ProyectarADto(query).ToListAsync());
         }
 
+        // --- ENDPOINT PARA ADMIN (Panel de Control) ---
+        [HttpGet("admin/todos")]
+        public async Task<ActionResult<IEnumerable<ComponenteDto>>> GetComponentesAdmin()
+        {
+            // No filtramos por 'EstaActivo', enviamos la lista completa
+            // IMPORTANTE: Debes usar .IgnoreQueryFilters() para poder ver los inactivos
+            var query = _context.Componentes
+                .IgnoreQueryFilters() 
+                .AsQueryable();
+
+            return Ok(await ProyectarADto(query).ToListAsync());
+        }
+
+        // Método auxiliar para no repetir el código del 'Select'
+        private IQueryable<ComponenteDto> ProyectarADto(IQueryable<Componente> query)
+        {
+            return query.Select(c => new ComponenteDto
+            {
+                ComponenteId = c.ComponenteId,
+                Nombre = c.Nombre,
+                Marca = c.Marca,
+                Modelo = c.Modelo,
+                Precio = c.Precio,
+                Tipo = c.Tipo,
+                ConsumoWatts = c.ConsumoWatts,
+                CapacidadWatts = c.CapacidadWatts,
+                ImagenUrl = c.ImagenUrl,
+                EstaActivo = c.EstaActivo
+            });
+        }
+        
         // GET: api/Componentes/5 -> Recibe un 'Componente' específico por su ID
         [HttpGet("{id}")]
         public async Task<ActionResult<ComponenteDto>> GetComponente(int id)
@@ -91,7 +107,8 @@ namespace ArmatuXPC.Backend.Controllers
                 Tipo = dto.Tipo,
                 ConsumoWatts = dto.ConsumoWatts,
                 CapacidadWatts = dto.CapacidadWatts,
-                ImagenUrl = dto.ImagenUrl
+                ImagenUrl = dto.ImagenUrl,
+                EstaActivo = dto.EstaActivo
             };
             Console.WriteLine("Tipo recibido: " + dto.Tipo);
 
@@ -130,25 +147,64 @@ namespace ArmatuXPC.Backend.Controllers
             return NoContent();
         }
 
-        // DELETE: api/Componentes/5 -> Elimina un 'Componente' por su ID
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteComponente(int id)
+        // ENDPOINT: Para restaurar el estado del componente que está desactivado en activo 
+        // para su disponibilidad en tienda para el usuario.
+        [HttpPut("{id}/restaurar")]
+        public async Task<IActionResult> RestaurarComponente(int id)
         {
             var componente = await _context.Componentes
-                .Include(c => c.Armados)
+                .IgnoreQueryFilters() // encontrar el componente aunque esté desactivado en la BD
                 .FirstOrDefaultAsync(c => c.ComponenteId == id);
 
-            if (componente == null)
-                return NotFound();
+            if (componente == null)  
+                return NotFound(new { mensaje = "El componente no existe en la base de datos" });
 
-            if (componente.Armados.Any())
-                return BadRequest("No se puede eliminar el componente porque está siendo usado en uno o más armados");
+            componente.EstaActivo = true; // Volvemos a habilitarlo
 
-            _context.Componentes.Remove(componente);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok(new { mensaje = "Componente restaurado correctamente" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al restaurar", detalle = ex.Message });
+            }
         }
+
+        // ENDPOINT: para eliminar un componente o darlo de baja de la tienda para el usuario
+       [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteComponente(int id)
+        {
+            // 1. Buscamos el componente
+            var componente = await _context.Componentes.FindAsync(id);
+
+            // 2. Si no existe, 404
+            if (componente == null)
+                return NotFound(new { mensaje = $"No se encontró el componente con ID {id}" });
+
+            // 3. Opcional: Si ya está desactivado, podemos retornar éxito de inmediato
+            if (!componente.EstaActivo)
+                return NoContent(); 
+
+            // 4. Aplicamos el borrado lógico
+            componente.EstaActivo = false;
+
+            try
+            {
+                // No hace falta Entry().State si el objeto viene de FindAsync
+                await _context.SaveChangesAsync();
+                return NoContent(); 
+            }
+            catch (Exception ex)
+            {
+                // Loguear el error 'ex' aquí si tienes un logger
+                return StatusCode(500, new { 
+                    mensaje = "Error interno al procesar la baja lógica", 
+                    detalle = ex.Message 
+                });
+            }
+        } // fin-delete(id)
         
     }
 }

@@ -12,7 +12,7 @@ export default function DashBoardAdmin() {
     { title: "Gestión de cuentas", icon: "⚙️", path: "/gestion-cuentas" },
     { title: "Gestión de Catálogo", icon: "📦", path: "/gestion-catalogo-admin" },
     { title: "Monitoreo y logística", icon: "📊", path: "/monitoreo-logistica-admin" },
-    { title: "Métricas y reportes", icon: "📈", path: "/metricas-reportes-admin" },
+    { title: "Métricas y reportes", icon: "📈", path: "/metricas-reportes" },
   ];
 
   return (

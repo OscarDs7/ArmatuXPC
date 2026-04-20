@@ -1,18 +1,35 @@
 .proyectos-container {
     padding: 20px;
-    max-width: 1200px;
+    max-width: auto;
     margin: 0 auto;
+    background: linear-gradient(#0f172a, #1e3a8a, #0f172a);
+    min-height: 100vh;
 }
 
 .proyectos-grid {
+    /* CONFIGURACIÓN DE COLUMNAS */
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 25px;
+    /* Creamos 3 columnas de igual tamaño (1fr) */
+    grid-template-columns: repeat(3, 1fr); 
+    gap: 25px; /* Espacio entre las tarjetas */
     margin-top: 20px;
 }
 
+/* RESPONSIVE: Para que en tablets sean 2 columnas y en celular 1 */
+@media (max-width: 1024px) {
+    .proyectos-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (max-width: 640px) {
+    .proyectos-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 .proyecto-card {
-    background: #fff;
+    background: linear-gradient(#0f172a, #1e3a8a, #0f172a);
     border-radius: 12px;
     padding: 20px;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
@@ -36,7 +53,7 @@
 
 .proyecto-nombre {
     font-size: 1.4rem;
-    color: #2c3e50;
+    color: white;
     margin: 0;
 }
 
@@ -44,6 +61,10 @@
     font-size: 0.85rem;
     color: #7f8c8d;
     margin-top: 5px;
+}
+
+.componentes {
+    color: white;
 }
 
 .componente-tag {
@@ -106,8 +127,8 @@
     justify-content: space-between;
     align-items: center;
     border-bottom: 2px solid #f1f1f1;
-    margin-bottom: 20px;
-    padding-bottom: 10px;
+    background: linear-gradient(135deg, #1e5799, #2989d8);
+    margin-bottom: 10px;
 }
 
 .btn-cerrar {
@@ -127,6 +148,57 @@
 
 .btn-cerrar:hover {
     background: #ff6b81;
+}
+
+.btn-eliminar {
+    background: #e74c3c;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+    margin-top: 20px;
+}
+
+.btn-eliminar:hover {
+    background: #c0392b;
+}
+
+.btn-editar {
+    background: #06b02b;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: bold;
+}
+
+.btn-editar:hover {
+    background: #066519;
+}
+
+.btn-volver {
+  margin-right: 20px;
+  padding: 8px 14px;
+  border: none;
+  background: #0072ff;
+  color: white; /* Color acorde al degradado */
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+
+}
+
+.title {
+    font-size: 2.8rem;
+    font-weight: 900;
+    color: #fff;
+    letter-spacing: -1px;
+    margin-top: 20px;
+    text-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    text-align: center;
 }
 
 /* --- Tabla de Detalles --- */
@@ -208,3 +280,134 @@
 .tipo-case { background: #dfe6e9; color: #2d3436; }        /* Gris Claro */
 .tipo-cooler { background: #81ecec; color: #00838f; }      /* Cian */
 .tipo-default { background: #f1f2f6; color: #57606f; }
+
+/* --- Botones de Publicar/Despublicar --- */
+/* Estilo para cuando la tarjeta ya está publicada */
+.card-publicada {
+  border: 2px solid #4caf50; /* Un borde verde sutil */
+  position: relative;
+}
+
+.badge-publicado {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #4caf50;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+}
+
+/* Botones */
+.btn-publicar {
+  background-color: #2196f3; /* Azul */
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 5px 0;
+}
+
+.btn-despublicar {
+  background-color: #ff9800; /* Naranja */
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 5px 0;
+}
+
+.proyecto-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 15px;
+}
+
+.componente-info-celda {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mini-imagen-tabla {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  background-color: #f9f9f9; /* Fondo neutro mientras carga */
+  border-radius: 4px;
+  border: 1px solid #eee;
+  /* Evita que la tabla cambie de tamaño al cargar la imagen */
+  flex-shrink: 0; 
+}
+
+.nombre-celda {
+  font-size: 0.9rem;
+  max-width: 250px;
+}
+
+/* --- Estilos para el contador de tokens --- */
+.header-proyectos {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+}
+
+.token-counter-badge {
+  background: linear-gradient(135deg, #1e5799, #2989d8);
+  color: white;
+  padding: 10px 20px;
+  border-radius: 50px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 2px solid #3498db;
+  box-shadow: 0 4px 15px rgba(89, 91, 166, 0.2);
+  transition: background-color 0.4s ease, border-color 0.4s ease;
+}
+
+/* Clase cuando el conteo llega al tope */
+.token-counter-badge.limite-alcanzado {
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+  border-color: #ff9f94;
+  animation: pulse 2s infinite; /* Un pulso suave para llamar la atención */
+}
+
+.token-icon {
+  font-size: 1.5rem;
+}
+
+.token-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.token-count {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.aviso-tokens {
+  background-color: #fff3cd;
+  color: #856404;
+  padding: 1rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+  text-align: center;
+  border: 1px solid #ffeeba;
+}
+
+@keyframes pulse {
+  0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.4); }
+  70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+}
+
+.title{
+    color: white;
+}

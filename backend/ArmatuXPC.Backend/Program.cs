@@ -1,75 +1,93 @@
 using ArmatuXPC.Backend.Data;
 using Microsoft.EntityFrameworkCore;
 using DotNetEnv;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 using ArmatuXPC.Backend.Services.Armados;
+using Google.Cloud.Firestore;
+using Stripe;
+
+// 1. Cargar el archivo .env ANTES de cualquier otra cosa
+Env.Load(); 
+
+var builder = WebApplication.CreateBuilder(args);
+
+// 2. FORZAR a builder.Configuration a reconocer las variables que acabamos de cargar en el Environment
+builder.Configuration.AddEnvironmentVariables();
+
+// 3. Intentar obtener la clave (Probamos ambas formas por seguridad)
+var stripeSecretKey = builder.Configuration["Stripe:SecretKey"] 
+                      ?? Environment.GetEnvironmentVariable("Stripe__SecretKey");
+
+// 4. VALIDAR Y ASIGNAR
+if (!string.IsNullOrEmpty(stripeSecretKey))
+{
+    StripeConfiguration.ApiKey = stripeSecretKey;
+    // Log para confirmar en consola que ya no es nulo
+    Console.WriteLine("✅ Stripe__SecretKey se ha leído correctamente.");}
+else
+{
+    Console.WriteLine("❌ ERROR: Stripe__SecretKey sigue sin leerse. Revisa la ubicación del .env, debe esta en la raíz del proyecto backend/ArmatuXPC.Backend/. También verifica que la variable esté nombrada exactamente como 'Stripe__SecretKey' y que el archivo .env se esté cargando correctamente.");
+}
+
+// --- CONFIGURACIÓN DE FIREBASE ---
+string rutaFirebase = Path.Combine(Directory.GetCurrentDirectory(), "firebase-adminsdk.json");
+Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", rutaFirebase);
+
+builder.Services.AddSingleton(s => {
+    // Asegúrate de que el ProjectId coincida con tu consola de Firebase
+    return FirestoreDb.Create("armatuxpc");
+});
+
+// --- CONFIGURACIÓN DE BASE DE DATOS ---
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 
-Env.Load(); // Cargar variables de entorno desde el archivo .env
-
-var builder = WebApplication.CreateBuilder(args); // Crear el constructor de la aplicación
-
-// Controllers
+// --- SERVICIOS BASE ---
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
-        // Configurar el convertidor de enumeraciones a cadenas JSON
-        options.JsonSerializerOptions.Converters.Add(
-            new JsonStringEnumConverter());
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+        options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; // Asegura que las propiedades se serialicen en camelCase, que es común en APIs REST
     });
 
-// Swagger / OpenAPI (estable)
-builder.Services.AddEndpointsApiExplorer(); // Explorador de puntos finales API
-builder.Services.AddSwaggerGen(); // Generador de Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-// Servicios personalizados de lógica de negocio
+// --- SERVICIOS DE NEGOCIO ---
 builder.Services.AddScoped<IArmadoValidationService, ArmadoValidationService>();
 builder.Services.AddScoped<IArmadoEnergiaService, ArmadoEnergiaService>();
 
-// EF Core + PostgreSQL
+// --- BASE DE DATOS (PostgreSQL) ---
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(
-        builder.Configuration.GetConnectionString("DefaultConnection")
-    )
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-// Configuración de CORS para permitir solicitudes desde el frontend React
+// --- CORS ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173") // URL del frontend React
+            policy.WithOrigins("http://localhost:5173") 
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
 });
 
+var app = builder.Build();
 
-var app = builder.Build(); // Construir la aplicación
+// --- PIPELINE HTTP ---
+app.UseCors("AllowReact");
 
-/*
-using (var scope = app.Services.CreateScope())
+if (app.Environment.IsDevelopment())
 {
-    var services = scope.ServiceProvider;
-    var context = services.GetRequiredService<AppDbContext>();
-    // Llamamos a nuestro inicializador
-    DbInitializer.Initialize(context);
-}*/
+    app.UseSwagger();
+    app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "ArmatuXPC.Backend v1"));
+}
 
-app.UseCors("AllowReact"); // Habilitar CORS con la política definida
-
-// Pipeline HTTP
-app.UseSwagger();
-app.UseSwaggerUI(c =>
-{
-    c.SwaggerEndpoint("/swagger/v1/swagger.json", "ArmatuXPC.Backend v1");
-});
-
-app.UseHttpsRedirection(); // Redirección HTTPS
-
-// Map Controllers
+//app.UseHttpsRedirection();
+app.UseAuthorization(); // Añade esto si planeas usar [Authorize] en el futuro
 app.MapControllers();
 
-
-app.Run(); // Ejecutar la aplicación
+app.Run();

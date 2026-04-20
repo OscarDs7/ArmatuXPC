@@ -7,7 +7,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArmatuXPC.Backend.Migrations
 {
     /// <inheritdoc />
-    public partial class CleanInitialCreate : Migration
+    public partial class MigracionInicialLimpia : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -19,8 +19,10 @@ namespace ArmatuXPC.Backend.Migrations
                     ArmadoId = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     UsuarioId = table.Column<string>(type: "text", nullable: false),
+                    AutorNombre = table.Column<string>(type: "text", nullable: false),
                     NombreArmado = table.Column<string>(type: "text", nullable: false),
-                    FechaCreacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                    FechaCreacion = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
+                    EsPublicado = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -40,11 +42,28 @@ namespace ArmatuXPC.Backend.Migrations
                     Tipo = table.Column<int>(type: "integer", nullable: false),
                     ConsumoWatts = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
                     CapacidadWatts = table.Column<decimal>(type: "numeric(10,2)", nullable: true),
-                    ImagenUrl = table.Column<string>(type: "text", nullable: true)
+                    ImagenUrl = table.Column<string>(type: "text", nullable: true),
+                    EstaActivo = table.Column<bool>(type: "boolean", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_Componentes", x => x.ComponenteId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "Usuarios",
+                columns: table => new
+                {
+                    Uid = table.Column<string>(type: "text", nullable: false),
+                    Nombre = table.Column<string>(type: "text", nullable: false),
+                    Correo = table.Column<string>(type: "text", nullable: false),
+                    FechaRegistro = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    TokensDisponibles = table.Column<int>(type: "integer", nullable: false),
+                    Rol = table.Column<string>(type: "text", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Usuarios", x => x.Uid);
                 });
 
             migrationBuilder.CreateTable(
@@ -124,6 +143,9 @@ namespace ArmatuXPC.Backend.Migrations
 
             migrationBuilder.DropTable(
                 name: "Compatibilidades");
+
+            migrationBuilder.DropTable(
+                name: "Usuarios");
 
             migrationBuilder.DropTable(
                 name: "Armados");
