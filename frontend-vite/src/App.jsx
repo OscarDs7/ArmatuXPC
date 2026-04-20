@@ -167,14 +167,6 @@ function App() {
           }
         />
 
-        {/* Backend tests */}
-        <Route path="/test-backend-basico" element={<TestBackendBasico />} />
-        <Route path="/test-backend-medio" element={<TestBackendMedio />} />
-        <Route path="/test-backend-completo" element={<TestBackendCompleto />} />
-
-        {/* Otros */}
-        <Route path="/prueba-three" element={<PruebaThree />} />
-
         {/* Modelado */}
         <Route path="/Indice" element={<Indice />} />
         <Route path="/Almacenamiento" element={<Memorias />} />
