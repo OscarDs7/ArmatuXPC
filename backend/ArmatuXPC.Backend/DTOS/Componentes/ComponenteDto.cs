@@ -10,4 +10,5 @@ public class ComponenteDto
     public decimal? ConsumoWatts { get; set; }
     public int? CapacidadWatts { get; set; }
     public string? ImagenUrl { get; set; }
+    public bool EstaActivo {get; set; }
 }

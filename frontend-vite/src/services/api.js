@@ -4,12 +4,21 @@
 
 const API_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_BACKEND_URL_LOCAL;
 
-export const getComponentes = async () => {
-  const response = await fetch(`${API_URL}/Componentes`);
-  if (!response.ok) throw new Error("Error al obtener componentes");
-  return response.json();
+// Para la tienda normal
+export const getComponentes = async (tipo = null) => {
+  const url = tipo ? `${API_URL}/Componentes?tipo=${tipo}` : `${API_URL}/Componentes`;
+  const response = await fetch(url);
+  return await response.json();
 };
 
+// EXCLUSIVO PARA ADMIN
+export const obtenerTodosLosComponentesAdmin = async () => {
+  const response = await fetch(`${API_URL}/Componentes/admin/todos`);
+  if (!response.ok) throw new Error("Error al obtener componentes de admin");
+  return await response.json();
+};
+
+//  MÉTODO DE ADMIN PARA ELIMINAR LÓGICAMENTE UN COMPONENTE (esActivo = false)
 export const eliminarComponente = async (id) => {
   const response = await fetch(`${API_URL}/Componentes/${id}`, {
     method: "DELETE"
@@ -17,6 +26,20 @@ export const eliminarComponente = async (id) => {
 
   if (!response.ok)
     throw new Error("Error al eliminar componente");
+};
+
+export const restaurarComponente = async (id) => {
+  const response = await fetch(`${API_URL}/Componentes/${id}/restaurar`, {
+    method: "PUT", // Usamos PUT porque estamos modificando un recurso existente
+    headers: { "Content-Type": "application/json" }
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.mensaje || "Error al restaurar el componente");
+  }
+
+  return await response.json();
 };
 
 export const actualizarComponente = async (id, componente) => {
@@ -44,6 +67,7 @@ export const actualizarComponente = async (id, componente) => {
   return response.json();
 };
 
+// MÉTODO PARA OBTENER ARMADOS PARA ADMIN
 export const getArmados = async () => {
   try {
     const response = await fetch(`${API_URL}/Armados`);
@@ -182,7 +206,6 @@ export const obtenerSugerenciasPorTipo = async (idBase, tipoBuscado) => {
     return [];
   }
 };
-
 
 // Agregar un nuevo componente
 export const agregarComponente = async (componente) => {
