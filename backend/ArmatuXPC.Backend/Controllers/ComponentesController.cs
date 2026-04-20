@@ -18,40 +18,48 @@ namespace ArmatuXPC.Backend.Controllers
             _context = context;
         }
 
-        // GET: api/Componentes -> Recibe todos los 'Componentes' disponibles, con opción de filtrar por tipo
-        // GET: api/Componentes?tipo=1
-       [HttpGet]
+        // --- ENDPOINT PARA USUARIOS (Tienda/Armador) ---
+        [HttpGet]
         public async Task<ActionResult<IEnumerable<ComponenteDto>>> GetComponentes([FromQuery] TipoComponente? tipo)
         {
-            // 1. Iniciamos la consulta filtrando SIEMPRE por los activos
+            // Ya NO necesitas .Where(c => c.EstaActivo) porque el filtro global lo hace por ti.
+            var query = _context.Componentes.AsQueryable();
+
+            if (tipo.HasValue)
+                query = query.Where(c => c.Tipo == tipo.Value);
+
+            return Ok(await ProyectarADto(query).ToListAsync());
+        }
+
+        // --- ENDPOINT PARA ADMIN (Panel de Control) ---
+        [HttpGet("admin/todos")]
+        public async Task<ActionResult<IEnumerable<ComponenteDto>>> GetComponentesAdmin()
+        {
+            // No filtramos por 'EstaActivo', enviamos la lista completa
+            // IMPORTANTE: Debes usar .IgnoreQueryFilters() para poder ver los inactivos
             var query = _context.Componentes
-                .Where(c => c.EstaActivo) // Borrado lógico global
+                .IgnoreQueryFilters() 
                 .AsQueryable();
 
-            // 2. Aplicamos el filtro de tipo solo si viene en la petición
-            if (tipo.HasValue)
+            return Ok(await ProyectarADto(query).ToListAsync());
+        }
+
+        // Método auxiliar para no repetir el código del 'Select'
+        private IQueryable<ComponenteDto> ProyectarADto(IQueryable<Componente> query)
+        {
+            return query.Select(c => new ComponenteDto
             {
-                query = query.Where(c => c.Tipo == tipo.Value);
-            }
-
-            // 3. Proyectamos al DTO
-            var componentes = await query
-                .Select(c => new ComponenteDto
-                {
-                    ComponenteId = c.ComponenteId,
-                    Nombre = c.Nombre,
-                    Marca = c.Marca,
-                    Modelo = c.Modelo,
-                    Precio = c.Precio,
-                    Tipo = c.Tipo,
-                    ConsumoWatts = c.ConsumoWatts,
-                    CapacidadWatts = c.CapacidadWatts,
-                    ImagenUrl = c.ImagenUrl, 
-                    EstaActivo = c.EstaActivo
-                })
-                .ToListAsync();
-
-            return Ok(componentes);
+                ComponenteId = c.ComponenteId,
+                Nombre = c.Nombre,
+                Marca = c.Marca,
+                Modelo = c.Modelo,
+                Precio = c.Precio,
+                Tipo = c.Tipo,
+                ConsumoWatts = c.ConsumoWatts,
+                CapacidadWatts = c.CapacidadWatts,
+                ImagenUrl = c.ImagenUrl,
+                EstaActivo = c.EstaActivo
+            });
         }
         
         // GET: api/Componentes/5 -> Recibe un 'Componente' específico por su ID
@@ -99,7 +107,8 @@ namespace ArmatuXPC.Backend.Controllers
                 Tipo = dto.Tipo,
                 ConsumoWatts = dto.ConsumoWatts,
                 CapacidadWatts = dto.CapacidadWatts,
-                ImagenUrl = dto.ImagenUrl
+                ImagenUrl = dto.ImagenUrl,
+                EstaActivo = dto.EstaActivo
             };
             Console.WriteLine("Tipo recibido: " + dto.Tipo);
 
@@ -138,6 +147,32 @@ namespace ArmatuXPC.Backend.Controllers
             return NoContent();
         }
 
+        // ENDPOINT: Para restaurar el estado del componente que está desactivado en activo 
+        // para su disponibilidad en tienda para el usuario.
+        [HttpPut("{id}/restaurar")]
+        public async Task<IActionResult> RestaurarComponente(int id)
+        {
+            var componente = await _context.Componentes
+                .IgnoreQueryFilters() // encontrar el componente aunque esté desactivado en la BD
+                .FirstOrDefaultAsync(c => c.ComponenteId == id);
+
+            if (componente == null)  
+                return NotFound(new { mensaje = "El componente no existe en la base de datos" });
+
+            componente.EstaActivo = true; // Volvemos a habilitarlo
+
+            try
+            {
+                await _context.SaveChangesAsync();
+                return Ok(new { mensaje = "Componente restaurado correctamente" });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { mensaje = "Error al restaurar", detalle = ex.Message });
+            }
+        }
+
+        // ENDPOINT: para eliminar un componente o darlo de baja de la tienda para el usuario
        [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteComponente(int id)
         {
@@ -169,7 +204,7 @@ namespace ArmatuXPC.Backend.Controllers
                     detalle = ex.Message 
                 });
             }
-        }
+        } // fin-delete(id)
         
     }
 }
