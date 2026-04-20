@@ -75,6 +75,7 @@ namespace ArmatuXPC.Backend.Controllers
         public async Task<ActionResult<IEnumerable<ArmadoDto>>> GetArmados()
         {
             var armados = await _context.Armados
+                .IgnoreQueryFilters() // Fundamental para ver componentes desactivados
                 .Include(a => a.Componentes)
                     .ThenInclude(ac => ac.Componente)
                 .Select(a => new ArmadoDto
@@ -113,6 +114,7 @@ namespace ArmatuXPC.Backend.Controllers
             try 
             {
                 var misArmados = await _context.Armados
+                    .IgnoreQueryFilters()
                     .Where(a => a.UsuarioId == usuarioId)
                     .Include(a => a.Componentes)
                     .ThenInclude(ac => ac.Componente) // Importante para traer los datos del componente real
