@@ -183,8 +183,7 @@ namespace ArmatuXPC.Backend.Migrations
                     b.HasOne("ArmatuXPC.Backend.Models.Componente", "Componente")
                         .WithMany("Armados")
                         .HasForeignKey("ComponenteId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Armado");
 
@@ -196,14 +195,12 @@ namespace ArmatuXPC.Backend.Migrations
                     b.HasOne("ArmatuXPC.Backend.Models.Componente", "ComponenteA")
                         .WithMany()
                         .HasForeignKey("ComponenteAId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ArmatuXPC.Backend.Models.Componente", "ComponenteB")
                         .WithMany()
                         .HasForeignKey("ComponenteBId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ComponenteA");
 
