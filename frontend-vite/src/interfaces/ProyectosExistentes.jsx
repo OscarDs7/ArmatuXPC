@@ -168,16 +168,7 @@ export default function ProyectosExistentes() {
     const yaDioFeedback1 = localStorage.getItem(llaveFb1) === "true";
     const yaDioFeedback3 = localStorage.getItem(llaveFb3) === "true";
 
-    // 3. Logs para monitorear (ahora verás la info real por usuario)
-    console.log("Revisando hitos:", { 
-      usuario: uid,
-      cantidad: proyectos.length, 
-      cargando: loading, 
-      fb1_local: yaDioFeedback1,
-      fb3_local: yaDioFeedback3
-    });
-
-    // 4. Lógica de activación
+    // 3. Lógica de activación
     if (!loading && proyectos.length > 0) {
       if (proyectos.length === 1 && !yaDioFeedback1) {
         setTipoFeedback("primero");
@@ -189,7 +180,7 @@ export default function ProyectosExistentes() {
     }
   }, [proyectos.length, loading, uid]);
 
-  // Pequeño módulo o función de la lógica del feedback 
+  // ---- Pequeño módulo o función de la lógica del feedback --- //
   const ModalFeedback = () => {
     const [rating, setRating] = useState(0);
     const [comentario, setComentario] = useState("");
