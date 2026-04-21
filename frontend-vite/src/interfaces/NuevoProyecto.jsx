@@ -56,7 +56,7 @@ export default function NuevoProyecto() {
   // Definimos los pasos del tutorial con sus selectores y textos explicativos (son pasos introductorios para guiar al usuario en su primera visita)
   const pasos = [
   {
-    selector: ".modo-panel",
+    selector: ".modo-panel-neon",
     texto: "Aquí puedes cambiar entre modo guía (paso a paso ordenadamente) y libre (elige cualquier componente sin orden)."
   },
   {

@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 // Importamos funciones de la API para manejar los armados
-import { obtenerMisArmados, eliminarArmado, publicarArmado, despublicarArmado } from "../services/api";
+import { obtenerMisArmados, eliminarArmado, publicarArmado, despublicarArmado, enviarFeedback } from "../services/api";
 // Importamos librerías para el contador de tokens directo de Firestore
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../utilidades/firebase";
@@ -18,7 +18,9 @@ export default function ProyectosExistentes() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(true); // Estado específico para la carga de tokens, así podemos mostrar un mensaje o loader mientras se obtiene el dato de Firestore
-
+  // Estados para controlar cuando mostrar la ventana de feedback al usuario
+  const [mostrarFeedback, setMostrarFeedback] = useState(false);
+  const [tipoFeedback, setTipoFeedback] = useState(""); // "primero" o "tercero"
 
   // En un entorno real, obtendrías el nombre desde tu contexto de Auth/Firebase
   const nombreUsuario = localStorage.getItem("userName") || "Usuario de ArmatuXPC";
@@ -154,6 +156,132 @@ export default function ProyectosExistentes() {
     });
   };
 
+  // useEffect para detectar hitos de armado y mostrar el feedback correspondiente
+  useEffect(() => {
+    // 1. Creamos llaves únicas usando el uid del usuario actual (solo si hay un uid)
+    if (!uid) return; 
+
+    const llaveFb1 = `feedback_1_realizado_${uid}`;
+    const llaveFb3 = `feedback_3_realizado_${uid}`;
+
+    // 2. Usamos las llaves dinámicas para leer del storage
+    const yaDioFeedback1 = localStorage.getItem(llaveFb1) === "true";
+    const yaDioFeedback3 = localStorage.getItem(llaveFb3) === "true";
+
+    // 3. Lógica de activación
+    if (!loading && proyectos.length > 0) {
+      if (proyectos.length === 1 && !yaDioFeedback1) {
+        setTipoFeedback("primero");
+        setMostrarFeedback(true);
+      } else if (proyectos.length === 3 && !yaDioFeedback3) {
+        setTipoFeedback("tercero");
+        setMostrarFeedback(true);
+      }
+    }
+  }, [proyectos.length, loading, uid]);
+
+  // ---- Pequeño módulo o función de la lógica del feedback --- //
+  const ModalFeedback = () => {
+    const [rating, setRating] = useState(0);
+    const [comentario, setComentario] = useState("");
+    const [loadingFeedback, setLoadingFeedback] = useState(false); // Inicializado en false
+
+    const handleEnviarFeedback = async () => {
+      // 1. Validación de Rating si es el tercer armado
+      if (tipoFeedback === "tercero" && rating === 0) {
+        alert("Por favor, selecciona una calificación con estrellas.");
+        return;
+      }
+
+      // 2. Validación de comentario
+      if (comentario.trim().length < 10) {
+        alert("Cuéntanos un poco más (mínimo 10 caracteres) para poder mejorar.");
+        return;
+      }
+
+      const payload = {
+        usuarioUid: uid,
+        rating: tipoFeedback === "primero" ? 0 : rating,
+        comentario: comentario,
+        tipoHito: tipoFeedback === "primero" ? "PRIMER_ARMADO" : "TERCER_ARMADO"
+      };
+
+      try {
+        setLoadingFeedback(true); // Activamos loader
+        await enviarFeedback(payload);
+
+        // Guardar el estado de feedback realizado por usuario
+        const llaveAGuardar = `feedback_${tipoFeedback === "primero" ? "1" : "3"}_realizado_${uid}`;
+        localStorage.setItem(llaveAGuardar, "true");
+        
+        setMostrarFeedback(false);
+        alert("¡Mil gracias! Tu opinión nos ayuda a que ArmatuXPC crezca. 🚀");
+      } catch (error) {
+        console.error("Error al enviar feedback:", error);
+        alert("Hubo un error al conectar con el servidor. Inténtalo más tarde.");
+      } finally {
+        setLoadingFeedback(false); // Desactivamos loader sin importar el resultado
+      }
+    };
+
+    return (
+      <div className="modal-overlay">
+        <div className="modal-content feedback-modal">
+          <h2>
+            {tipoFeedback === "primero" 
+              ? "¡Felicidades por tu primer PC! 🥳" 
+              : "¡Ya eres un experto armador! 🛠️"}
+          </h2>
+          
+          <p>
+            {tipoFeedback === "primero" 
+              ? "¿Cómo te sentiste armando tu primera PC personalizada" 
+              : "Has completado 3 armados. ¿Qué calificación le das a la herramienta?"}
+          </p>
+
+          {/* Mostrar estrellas solo en el tercer armado */}
+          {tipoFeedback === "tercero" && (
+            <div className="rating-bar">
+              {[1, 2, 3, 4, 5].map((star) => (
+                <span 
+                  key={star} 
+                  className={`star ${rating >= star ? "active" : ""}`}
+                  onClick={() => setRating(star)}
+                >
+                  ⭐
+                </span>
+              ))}
+            </div>
+          )}
+
+          <textarea 
+            className="feedback-textarea"
+            value={comentario}
+            placeholder="Escribe aquí tus comentarios..."
+            onChange={(e) => setComentario(e.target.value)}
+            disabled={loadingFeedback}
+          />
+
+          <div className="modal-actions">
+            <button 
+              className="btn-publicar" 
+              onClick={handleEnviarFeedback}
+              disabled={loadingFeedback}
+            >
+              {loadingFeedback ? "Enviando feedback..." : "Enviar Feedback"}
+            </button>
+            <button 
+              className="btn-cerrar-link" 
+              onClick={() => setMostrarFeedback(false)}
+              disabled={loadingFeedback}
+            >
+              Quizás más tarde
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="proyectos-container">
@@ -314,13 +442,15 @@ export default function ProyectosExistentes() {
                       .toLocaleString('es-MX')} MXN
               </span>
           </div>
-          <div className="modal-actions">
-            
-          </div>
+          <div className="modal-actions"> </div>
 
           </div>
         </div>
       )}
+
+      {/* ✨ NUEVO: Modal de Feedback */}
+      {mostrarFeedback && <ModalFeedback />}
+
     </div>
   );
 }

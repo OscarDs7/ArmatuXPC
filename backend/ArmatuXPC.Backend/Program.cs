@@ -75,6 +75,8 @@ builder.Services.AddCors(options =>
         });
 });
 
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var app = builder.Build();
 
 // --- PIPELINE HTTP ---

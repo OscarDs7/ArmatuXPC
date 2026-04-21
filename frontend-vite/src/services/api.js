@@ -488,3 +488,19 @@ export const getReglasCompatibilidad = async () => {
   }
   return response.json();
 };
+
+// Servicio para conectar el FeedbackController con el modal del frontend
+export const enviarFeedback = async (datosFeedback) => {
+  try {
+    const response = await fetch(`${API_URL}/Feedback`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(datosFeedback),
+    });
+    if (!response.ok) throw new Error("Error al enviar la retroalimentación");
+    return await response.json();
+  } catch (error) {
+    console.error("Error API Feedback:", error);
+    throw error;
+  }
+};
