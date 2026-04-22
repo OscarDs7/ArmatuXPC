@@ -35,5 +35,25 @@ namespace ArmatuXPC.Backend.Controllers
                 return StatusCode(500, new { error = errorReal });
             }
         }
+
+        [HttpGet]
+        public async Task<ActionResult<IEnumerable<FeedbackUsuario>>> GetFeedbacks()
+        {
+            // Traemos los feedbacks ordenados por fecha descendente
+            return await _context.Feedbacks
+                .OrderByDescending(f => f.Fecha)
+                .ToListAsync();
+        }
+
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> DeleteFeedback(int id)
+        {
+            var feedback = await _context.Feedbacks.FindAsync(id);
+            if (feedback == null) return NotFound();
+
+            _context.Feedbacks.Remove(feedback);
+            await _context.SaveChangesAsync();
+            return Ok(new { message = "Feedback eliminado" });
+        }
     }
 }
