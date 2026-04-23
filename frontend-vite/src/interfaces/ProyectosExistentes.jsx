@@ -6,6 +6,7 @@ import { obtenerMisArmados, eliminarArmado, publicarArmado, despublicarArmado, e
 // Importamos librerías para el contador de tokens directo de Firestore
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../utilidades/firebase";
+import { toast } from 'react-hot-toast';
 // Importamos estilos específicos para esta sección
 import "../estilos/Proyectos.css";
 
@@ -126,7 +127,7 @@ export default function ProyectosExistentes() {
         }
 
         // 3. Notificamos al usuario
-        alert("Armado eliminado exitosamente. ✅");
+        toast.success(`¡Armado eliminado con éxito!`);
         
       } catch (err) {
         // Si el error es el de JSON pero sabemos que el status fue 200/204, 
@@ -186,6 +187,9 @@ export default function ProyectosExistentes() {
     const [comentario, setComentario] = useState("");
     const [loadingFeedback, setLoadingFeedback] = useState(false); // Inicializado en false
     const [completoSinAyuda, setCompletoSinAyuda] = useState(null); // null = no seleccionado
+
+    // Estados para hover de estrellas
+    const [hoverRating, setHoverRating] = useState(0);
 
     const handleEnviarFeedback = async () => {
       // 1. Validación de Rating si es el tercer armado
@@ -287,18 +291,24 @@ export default function ProyectosExistentes() {
             </div>
           )}
 
-          {/* Mostrar estrellas solo en el tercer armado */}
+          {/* SECCIÓN ESTRELLAS (Solo Tercer Armado) con efecto Hover */}
           {tipoFeedback === "tercero" && (
-            <div className="rating-bar">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <span 
-                  key={star} 
-                  className={`star ${rating >= star ? "active" : ""}`}
-                  onClick={() => setRating(star)}
-                >
-                  ⭐
-                </span>
-              ))}
+            <div className="text-center mb-6 relative z-10">
+              <div className="rating-bar flex justify-center items-center gap-2 bg-slate-800 p-3 rounded-full border border-slate-700 w-fit mx-auto shadow-inner">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span 
+                    key={star} 
+                    className={`star text-4xl cursor-pointer transition-all duration-200 transform hover:scale-125 ${
+                      (hoverRating || rating) >= star ? "text-yellow-400" : "text-yellow-300"
+                    }`}
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                  >
+                    { (hoverRating || rating) >= star ? "★" : "☆" }
+                  </span>
+                ))}
+              </div>
             </div>
           )}
 
