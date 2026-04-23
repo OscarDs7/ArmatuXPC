@@ -26,6 +26,7 @@ import ProyectosExistentes from "./interfaces/ProyectosExistentes";
 import Comunidad from "./interfaces/Comunidad";
 import ComprarTokens from "./interfaces/ComprarTokens";
 import PagoExitoso from "./interfaces/PagoExitoso";
+import QuienesSomos from "./interfaces/QuienesSomos";
 
 import Memorias from "./interfaces/Memorias";
 import Placa from "./interfaces/Placa";
@@ -166,6 +167,13 @@ function App() {
               <PagoExitoso />
             </ProtectedRoute>
           }
+        />
+
+        <Route 
+          path="/quienes-somos" 
+          element={
+          <QuienesSomos />
+          } 
         />
 
         {/* Backend tests */}

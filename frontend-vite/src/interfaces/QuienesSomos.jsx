@@ -3,8 +3,8 @@ import { useNavigate } from "react-router-dom";
 import "../estilos/QuienesSomos.css";
 import oscar from "../assets/integrantes/oscar.jfif";
 import eduardo from "../assets/integrantes/yayo.jpeg";
-import bryan from "../assets/integrantes/bryan.jpg";
-import diego from "../assets/integrantes/diego.jpg";
+import bryan from "../assets/integrantes/bryan.jpeg";
+import diego from "../assets/integrantes/diego.jpeg";
 
 export default function QuienesSomos() {
 

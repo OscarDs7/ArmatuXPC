@@ -2,10 +2,11 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 // Importamos funciones de la API para manejar los armados
-import { obtenerMisArmados, eliminarArmado, publicarArmado, despublicarArmado } from "../services/api";
+import { obtenerMisArmados, eliminarArmado, publicarArmado, despublicarArmado, enviarFeedback } from "../services/api";
 // Importamos librerías para el contador de tokens directo de Firestore
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../utilidades/firebase";
+import { toast } from 'react-hot-toast';
 // Importamos estilos específicos para esta sección
 import "../estilos/Proyectos.css";
 
@@ -18,7 +19,9 @@ export default function ProyectosExistentes() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [loadingTokens, setLoadingTokens] = useState(true); // Estado específico para la carga de tokens, así podemos mostrar un mensaje o loader mientras se obtiene el dato de Firestore
-
+  // Estados para controlar cuando mostrar la ventana de feedback al usuario
+  const [mostrarFeedback, setMostrarFeedback] = useState(false);
+  const [tipoFeedback, setTipoFeedback] = useState(""); // "primero" o "tercero"
 
   // En un entorno real, obtendrías el nombre desde tu contexto de Auth/Firebase
   const nombreUsuario = localStorage.getItem("userName") || "Usuario de ArmatuXPC";
@@ -124,7 +127,7 @@ export default function ProyectosExistentes() {
         }
 
         // 3. Notificamos al usuario
-        alert("Armado eliminado exitosamente. ✅");
+        toast.success(`¡Armado eliminado con éxito!`);
         
       } catch (err) {
         // Si el error es el de JSON pero sabemos que el status fue 200/204, 
@@ -154,6 +157,189 @@ export default function ProyectosExistentes() {
     });
   };
 
+  // useEffect para detectar hitos de armado y mostrar el feedback correspondiente
+  useEffect(() => {
+    // 1. Creamos llaves únicas usando el uid del usuario actual (solo si hay un uid)
+    if (!uid) return; 
+
+    const llaveFb1 = `feedback_1_realizado_${uid}`;
+    const llaveFb3 = `feedback_3_realizado_${uid}`;
+
+    // 2. Usamos las llaves dinámicas para leer del storage
+    const yaDioFeedback1 = localStorage.getItem(llaveFb1) === "true";
+    const yaDioFeedback3 = localStorage.getItem(llaveFb3) === "true";
+
+    // 3. Lógica de activación
+    if (!loading && proyectos.length > 0) {
+      if (proyectos.length === 1 && !yaDioFeedback1) {
+        setTipoFeedback("primero");
+        setMostrarFeedback(true);
+      } else if (proyectos.length === 3 && !yaDioFeedback3) {
+        setTipoFeedback("tercero");
+        setMostrarFeedback(true);
+      }
+    }
+  }, [proyectos.length, loading, uid]);
+
+  // ---- Pequeño módulo o función de la lógica del feedback --- //
+  const ModalFeedback = () => {
+    const [rating, setRating] = useState(0);
+    const [comentario, setComentario] = useState("");
+    const [loadingFeedback, setLoadingFeedback] = useState(false); // Inicializado en false
+    const [completoSinAyuda, setCompletoSinAyuda] = useState(null); // null = no seleccionado
+
+    // Estados para hover de estrellas
+    const [hoverRating, setHoverRating] = useState(0);
+
+    const handleEnviarFeedback = async () => {
+      // 1. Validación de Rating si es el tercer armado
+      if (tipoFeedback === "tercero" && rating === 0) {
+        alert("Por favor, selecciona una calificación con estrellas.");
+        return;
+      } 
+
+      // 2. NUEVA VALIDACIÓN: Si es primer armado, debe elegir Sí o No
+      if (tipoFeedback === "primero" && completoSinAyuda === null) {
+        alert("Por favor, cuéntanos si lograste armar tu PC sin ayuda.");
+        return;
+      }
+
+      // 3. Validación de comentario
+      if (comentario.trim().length < 10) {
+        alert("Cuéntanos un poco más (mínimo 10 caracteres) para poder mejorar.");
+        return;
+      }
+      
+      // Cuerpo del comentario que se enviará a la BD
+      const payload = {
+        usuarioUid: uid,
+        rating: tipoFeedback === "primero" ? 0 : rating,
+        comentario: comentario,
+        tipoHito: tipoFeedback === "primero" ? "PRIMER_ARMADO" : "TERCER_ARMADO",
+        completoSinAyuda: completoSinAyuda
+
+      };
+
+      try {
+        setLoadingFeedback(true); // Activamos loader
+        await enviarFeedback(payload);
+
+        // Guardar el estado de feedback realizado por usuario
+        const llaveAGuardar = `feedback_${tipoFeedback === "primero" ? "1" : "3"}_realizado_${uid}`;
+        localStorage.setItem(llaveAGuardar, "true");
+        
+        setMostrarFeedback(false);
+        alert("¡Muchísimas gracias! Tu opinión nos ayuda a que ArmatuXPC crezca. 🚀");
+      } catch (error) {
+        console.error("Error al enviar feedback:", error);
+        alert("Hubo un error al conectar con el servidor. Inténtalo más tarde.");
+      } finally {
+        setLoadingFeedback(false); // Desactivamos loader sin importar el resultado
+      }
+    };
+
+    return (
+      <div className="modal-overlay">
+        <div className="modal-content feedback-modal">
+
+          <h1 className="text-3xl font-bold text-black mb-2 tracking-tight">
+            Armatu<span className="text-blue-900">XPC</span>
+          </h1>
+
+          <h1 className="text-xl font-bold mb-2 text-black">
+            {tipoFeedback === "primero" 
+              ? "¡Felicidades por tu primer PC! 🥳" 
+              : "¡Ya eres un experto armador! 🛠️"}
+          </h1>
+
+          <p className="mb-6 text-blue-900 font-bold">
+            {tipoFeedback === "primero" 
+              ? "¿Cómo te sentiste armando tu primera PC personalizada?" 
+              : "Has completado 3 armados. ¿Qué calificación le das a la herramienta?"}
+          </p>
+          
+          {/* BLOQUE NUEVO: Pregunta de ayuda (Solo para primer armado) */}
+          {tipoFeedback === "primero" && (
+            <div className="pregunta-ayuda-container mb-6 p-4 bg-slate-800/50 rounded-2xl border border-slate-700">
+              <p className="text-sm font-medium text-white mb-3 text-center">
+                ¿Lograste terminar el armado sin necesidad de ayuda externa?
+              </p>
+              <div className="flex justify-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setCompletoSinAyuda(true)}
+                  className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${
+                    completoSinAyuda === true 
+                    ? "bg-green-600 text-white shadow-[0_0_15px_rgba(22,163,74,0.4)]" 
+                    : "bg-slate-700 text-slate-400 hover:bg-slate-600"
+                  }`}
+                >
+                  Sí, fue fácil ✅
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setCompletoSinAyuda(false)}
+                  className={`flex-1 py-2 rounded-xl text-sm font-bold transition-all ${
+                    completoSinAyuda === false 
+                    ? "bg-red-600 text-white shadow-[0_0_15px_rgba(220,38,38,0.4)]" 
+                    : "bg-slate-700 text-slate-400 hover:bg-slate-600"
+                  }`}
+                >
+                  No, tuve dudas ❌
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* SECCIÓN ESTRELLAS (Solo Tercer Armado) con efecto Hover */}
+          {tipoFeedback === "tercero" && (
+            <div className="text-center mb-6 relative z-10">
+              <div className="rating-bar flex justify-center items-center gap-2 bg-slate-800 p-3 rounded-full border border-slate-700 w-fit mx-auto shadow-inner">
+                {[1, 2, 3, 4, 5].map((star) => (
+                  <span 
+                    key={star} 
+                    className={`star text-4xl cursor-pointer transition-all duration-200 transform hover:scale-125 ${
+                      (hoverRating || rating) >= star ? "text-yellow-400" : "text-yellow-300"
+                    }`}
+                    onClick={() => setRating(star)}
+                    onMouseEnter={() => setHoverRating(star)}
+                    onMouseLeave={() => setHoverRating(0)}
+                  >
+                    { (hoverRating || rating) >= star ? "★" : "☆" }
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <textarea 
+            className="feedback-textarea"
+            value={comentario}
+            placeholder="Escribe aquí tus comentarios..."
+            onChange={(e) => setComentario(e.target.value)}
+            disabled={loadingFeedback}
+          />
+
+          <div className="modal-actions">
+            <button 
+              className="btn-publicar" 
+              onClick={handleEnviarFeedback}
+              disabled={loadingFeedback}
+            >
+              {loadingFeedback ? "Enviando feedback..." : "Enviar Feedback"}
+            </button>
+            <button 
+              className="btn-cerrar-link" 
+              onClick={() => setMostrarFeedback(false)}
+              disabled={loadingFeedback}
+            >
+              Quizás más tarde
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="proyectos-container">
@@ -314,13 +500,15 @@ export default function ProyectosExistentes() {
                       .toLocaleString('es-MX')} MXN
               </span>
           </div>
-          <div className="modal-actions">
-            
-          </div>
+          <div className="modal-actions"> </div>
 
           </div>
         </div>
       )}
+
+      {/* ✨ NUEVO: Modal de Feedback */}
+      {mostrarFeedback && <ModalFeedback />}
+
     </div>
   );
 }
