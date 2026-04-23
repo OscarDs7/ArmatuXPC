@@ -489,7 +489,9 @@ export const getReglasCompatibilidad = async () => {
   return response.json();
 };
 
-// Servicio para conectar el FeedbackController con el modal del frontend
+// --- CONEXIÓN CON ENDPOINTS DE FEEDBACK_CONTROLLER --- //
+
+// Servicio para enviar el comentario del usuario al backend
 export const enviarFeedback = async (datosFeedback) => {
   try {
     const response = await fetch(`${API_URL}/Feedback`, {
@@ -504,3 +506,42 @@ export const enviarFeedback = async (datosFeedback) => {
     throw error;
   }
 };
+
+// --- Funciones para la gestión de Feedback (Admin) --- //
+
+// Servicio para extraer u obtener todos los comentarios desde el backend
+export const obtenerTodosLosFeedbacks = async () => {
+  try {
+    const response = await fetch(`${API_URL}/Feedback`);
+    if (!response.ok) {
+      throw new Error("Error al obtener los feedbacks");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error en api.js - obtenerTodosLosFeedbacks:", error);
+    throw error;
+  }
+};
+
+//  Servicio para eliminar un comentario en específico por su id desde el backend
+/**
+ * Elimina un feedback específico por su ID
+ * @param {number} id - ID numérico del feedback en la base de datos
+ */
+export const eliminarFeedback = async (id) => {
+  try {
+    const response = await fetch(`${API_URL}/Feedback/${id}`, {
+      method: "DELETE",
+    });
+    if (!response.ok) {
+      throw new Error("No se pudo eliminar el feedback");
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error en api.js - eliminarFeedback:", error);
+    throw error;
+  }
+};
+
+
+

@@ -4,7 +4,7 @@ export default function Chatbot({ abierto, setAbierto }) {
 
   const [mensaje, setMensaje] = useState("");
   const [chat, setChat] = useState([
-    { tipo: "bot", texto: "Hola 👋 soy tu asistente de ArmaTuXPC" }
+    { tipo: "bot", texto: "Hola 👋 soy tu Asistente de ArmatuXPC, listo para apoyarte!" }
   ]);
   function obtenerOpciones(texto) {
 
@@ -122,7 +122,7 @@ export default function Chatbot({ abierto, setAbierto }) {
         display: "flex",
         justifyContent: "space-between"
       }}>
-        <span>ArmaTuXPC Assistant</span>
+        <span>ArmatuXPC Assistant</span>
         <button
           onClick={() => setAbierto(false)}
           style={{
