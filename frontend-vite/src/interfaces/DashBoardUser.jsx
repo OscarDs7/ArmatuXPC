@@ -4,6 +4,13 @@ import "../estilos/DashBoardUser.css";
 import logoProyecto from "../assets/Logo.png"; 
 import { signOut } from "firebase/auth";
 import { auth } from "../utilidades/firebase";
+import menu from "../assets/menu.png";
+import heroImage from "../assets/hero-pc.jpg";
+import heroImage1 from "../assets/armar-pc.jpg";
+import heroImage2 from "../assets/componentes.jpg";
+import heroImage3 from "../assets/construir-pc.jpg";
+import heroImage4 from "../assets/guia.PNG";
+import heroImage5 from "../assets/comunidad.jpg";
 
 export default function DashBoardUser({ setChatAbierto }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -50,7 +57,9 @@ export default function DashBoardUser({ setChatAbierto }) {
                       shadow-[0_0_15px_rgba(59,130,246,0.3)]"
             onClick={() => setMenuOpen(!menuOpen)}
           >
-            <span className="text-2xl md:text-3xl lg:text-5xl xl:text-6xl">💻</span>
+            <span className="text-2xl md:text-3xl lg:text-5xl xl:text-6xl">
+              <img src={menu} alt="Armado de PC" />
+            </span>
             
             {/* Tooltip Adaptado */}
             <span className="absolute hidden lg:group-hover:block top-full mt-5 left-1/2 -translate-x-1/2 w-max bg-blue-600 text-white text-xs uppercase tracking-widest font-bold px-4 py-2 rounded-lg shadow-lg z-50 border border-blue-400/40">
@@ -109,6 +118,12 @@ export default function DashBoardUser({ setChatAbierto }) {
           <button onClick={() => { setMenuOpen(false); navigate("/Indice"); }}>
             Guía Interactiva
           </button>
+          <button onClick={() => { setMenuOpen(false); navigate("/comprar-tokens"); }}>
+            Comprar tokens
+          </button>
+          <button onClick={() => { setMenuOpen(false); navigate("/quienes-somos"); }}>
+            Quiénes somos
+          </button>
         </div>
 
         <button
@@ -132,9 +147,92 @@ export default function DashBoardUser({ setChatAbierto }) {
 
       {/* CONTENIDO PRINCIPAL */}
       <main className="flex flex-col items-center gap-6 mt-12 w-full max-w-4xl mx-auto">
+        <img src={heroImage} alt="Armado de PC" className="hero-image"/>
         <h2 className="text-3xl font-light text-blue-100 text-center ml-4">
           Bienvenido, <span className="font-bold text-white">{nombre}</span> 👋
         </h2>
+
+        <section className="landing-section">
+          <div className="section-content">
+            <div className="section-text-a">
+              <h2>¿Qué es ArmatuXPC?</h2>
+              <p>
+                ArmatuXPC es una plataforma educativa diseñada para enseñar a los usuarios 
+                a armar computadoras de escritorio paso a paso, permitiendo explorar componentes 
+                y crear configuraciones personalizadas de manera interactiva.
+              </p>
+            </div>
+
+            <div className="section-image">
+              <img src={heroImage1} alt="Armado de PC" />
+            </div>
+          </div>
+        </section>
+
+        <section className="landing-section alt">
+          <div className="section-content">
+
+            <div className="section-image">
+              <img src={heroImage2} alt="Componentes de PC" />
+            </div>
+
+            <div className="section-text-b">
+              <h2>Aprende paso a paso</h2>
+              <p>
+                Nuestra guía interactiva te permite comprender cada componente 
+                y su función dentro del sistema, facilitando el aprendizaje práctico.
+              </p>
+            </div>
+
+          </div>
+        </section>
+
+        <section className="landing-section">
+          <div className="section-content">
+            <div className="section-text-a">
+              <h2>🔧 Constructor de PCs</h2>
+              <p>
+                Crea tu computadora personalizada seleccionando cada componente, ya sea de forma libre o asistida con el modo guía
+              </p>
+            </div>
+
+            <div className="section-image">
+              <img src={heroImage3} alt="Armado de PC" />
+            </div>
+          </div>
+        </section>
+
+        <section className="landing-section alt">
+          <div className="section-content">
+
+            <div className="section-image">
+              <img src={heroImage4} alt="Componentes de PC" />
+            </div>
+
+            <div className="section-text-b">
+              <h2>📘 Guía interactiva</h2>
+              <p>
+                Aprende paso a paso el proceso correcto de ensamblaje de una PC.
+              </p>
+            </div>
+
+          </div>
+        </section>
+
+        <section className="landing-section">
+          <div className="section-content">
+            <div className="section-text-a">
+              <h2>🌐 Comunidad</h2>
+              <p>
+                Comparte tus configuraciones y aprende de otros usuarios.
+              </p>
+            </div>
+
+            <div className="section-image">
+              <img src={heroImage5} alt="Armado de PC" />
+            </div>
+          </div>
+        </section>
 
         {/* CARDS ESTILO DARK/NEON */}
         {[
