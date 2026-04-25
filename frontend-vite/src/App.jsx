@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 
 /* Interfaces de Admin */
+import MonitoreoLogistica from "./components/MonitoreoLogistica";
 import LoginAdmin from "./interfaces/LoginAdmin";
 import DashBoardAdmin from "./interfaces/DashBoardAdmin";;
 import GestionCuentasAdmin from "./interfaces/GestionCuentasAdmin";
@@ -47,6 +48,7 @@ function App() {
         <Route path="/" element={<MenuRoles />} />
         <Route path="/login-user" element={<LoginUsuario />} />
         <Route path="/login-admin" element={<LoginAdmin />} />
+        <Route path="/quienes-somos" element={<QuienesSomos />} />
 
         {/* Usuario */}
         <Route

@@ -169,14 +169,14 @@ export default function DashBoardUser({ setChatAbierto }) {
           </div>
         </section>
 
-        <section className="landing-section alt">
+        <section className="landing-section">
           <div className="section-content">
 
             <div className="section-image">
               <img src={heroImage2} alt="Componentes de PC" />
             </div>
 
-            <div className="section-text-b">
+            <div className="section-text-a">
               <h2>Aprende paso a paso</h2>
               <p>
                 Nuestra guía interactiva te permite comprender cada componente 
@@ -202,14 +202,14 @@ export default function DashBoardUser({ setChatAbierto }) {
           </div>
         </section>
 
-        <section className="landing-section alt">
+        <section className="landing-section">
           <div className="section-content">
 
             <div className="section-image">
               <img src={heroImage4} alt="Componentes de PC" />
             </div>
 
-            <div className="section-text-b">
+            <div className="section-text-q">
               <h2>📘 Guía interactiva</h2>
               <p>
                 Aprende paso a paso el proceso correcto de ensamblaje de una PC.
@@ -227,38 +227,11 @@ export default function DashBoardUser({ setChatAbierto }) {
                 Comparte tus configuraciones y aprende de otros usuarios.
               </p>
             </div>
-
             <div className="section-image">
               <img src={heroImage5} alt="Armado de PC" />
             </div>
           </div>
         </section>
-
-        {/* CARDS ESTILO DARK/NEON */}
-        {[
-          { title: "📂 Continuar último borrador", desc: "Retoma tu última configuración guardada.", action: irAContinuarProyecto },
-          { title: "✨ Crear nuevo proyecto", desc: "Empieza un armado de PC desde cero.", action: irANuevoProyecto },
-          { title: "📚 Mis Armados Guardados", desc: "Consulta tus proyectos en la nube.", action: () => navigate("/mis-armados") },
-          { title: "🪙 Comprar tokens", desc: "Desbloquea más espacios de armado.", action: () => navigate("/comprar-tokens") }
-        ].map((card, i) => (
-          <div 
-            key={i}
-            onClick={card.action}
-            className={`w-full group relative overflow-hidden rounded-2xl p-6 transition-all duration-300 cursor-pointer border border-blue-500/20 
-              ${card.primary ? 'bg-blue-900/40' : 'bg-slate-900/60'} 
-              hover:border-blue-400 hover:shadow-[0_0_20px_rgba(59,130,246,0.2)]`}
-          >
-            {/* Efecto de brillo al pasar el mouse */}
-            <div className="absolute inset-0 bg-linear-to-r from-blue-500/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-            
-            <h3 className="text-xl font-bold text-blue-300 group-hover:text-blue-100 transition-colors">
-              {card.title}
-            </h3>
-            <p className="text-slate-400 group-hover:text-slate-200">
-              {card.desc}
-            </p>
-          </div>
-        ))}
 
       </main>
 
