@@ -48,7 +48,6 @@ function App() {
         <Route path="/" element={<MenuRoles />} />
         <Route path="/login-user" element={<LoginUsuario />} />
         <Route path="/login-admin" element={<LoginAdmin />} />
-        <Route path="/quienes-somos" element={<QuienesSomos />} />
 
         {/* Usuario */}
         <Route
@@ -166,6 +165,15 @@ function App() {
           element={
             <ProtectedRoute>
               <PagoExitoso />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route 
+          path="/quienes-somos"
+          element={
+            <ProtectedRoute>
+              <QuienesSomos />
             </ProtectedRoute>
           }
         />
