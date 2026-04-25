@@ -9,13 +9,13 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import AdminRoute from "./components/AdminRoute";
 
 /* Interfaces de Admin */
+import MonitoreoLogistica from "./components/MonitoreoLogistica";
 import LoginAdmin from "./interfaces/LoginAdmin";
 import DashBoardAdmin from "./interfaces/DashBoardAdmin";;
 import GestionCuentasAdmin from "./interfaces/GestionCuentasAdmin";
 import AgregarComponenteAdmin from "./interfaces/GestionCatalogo";
 import CrearCuentaAdmin from "./interfaces/CrearCuentaAdmin";
-import AdministrarCuentas from "./interfaces/AdministrarCuentas";;
-import MonitoreoLogistica from "./components/MonitoreoLogistica";
+import AdministrarCuentas from "./interfaces/AdministrarCuentas";
 import MetricasReportes from "./interfaces/MetricasReportes";
 
 /* Interfaces de Usuario */
@@ -26,6 +26,8 @@ import ProyectosExistentes from "./interfaces/ProyectosExistentes";
 import Comunidad from "./interfaces/Comunidad";
 import ComprarTokens from "./interfaces/ComprarTokens";
 import PagoExitoso from "./interfaces/PagoExitoso";
+import QuienesSomos from "./interfaces/QuienesSomos";
+
 import Memorias from "./interfaces/Memorias";
 import Placa from "./interfaces/Placa";
 import Rams from "./interfaces/Rams";
@@ -163,6 +165,15 @@ function App() {
           element={
             <ProtectedRoute>
               <PagoExitoso />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route 
+          path="/quienes-somos"
+          element={
+            <ProtectedRoute>
+              <QuienesSomos />
             </ProtectedRoute>
           }
         />
