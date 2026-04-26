@@ -9,9 +9,12 @@ import menu from "../assets/menu.png";
 import heroImage from "../assets/hero-pc.jpg";
 import heroImage1 from "../assets/armar-pc.jpg";
 import heroImage2 from "../assets/componentes.jpg";
-import heroImage3 from "../assets/construir-pc.jpg";
-import heroImage4 from "../assets/configurador-PC.jpg";
-import heroImage5 from "../assets/comunidad.jpg";
+import heroImage3 from "../assets/configurador-PC.jpg";
+import heroImage4 from "../assets/borrador-PC.jpg";
+import heroImage5 from "../assets/armados-PCs.jpg";
+import heroImage6 from "../assets/comunidad2.jpg";
+import heroImage7 from "../assets/comprar-tokens.jpg";
+
 
 export default function DashBoardUser({ setChatAbierto }) {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -68,9 +71,15 @@ export default function DashBoardUser({ setChatAbierto }) {
               <img src={menu} alt="Armado de PC" />
             </span>
             
-            {/* Tooltip Adaptado */}
-            <span className="absolute hidden lg:group-hover:block top-full mt-5 left-1/2 -translate-x-1/2 w-max bg-blue-600 text-white text-xs uppercase tracking-widest font-bold px-4 py-2 rounded-lg shadow-lg z-50 border border-blue-400/40">
-              Abrir menú lateral
+            {/* Tooltip del menú lateral */}
+            <span className="absolute hidden lg:group-hover:block 
+                  top-[110%] left-1/4 -translate-x-1/4
+                  w-max bg-blue-600 text-white text-[10px] md:text-xs 
+                  uppercase tracking-widest font-bold px-4 py-2 
+                  rounded-lg shadow-[0_0_15px_rgba(37,99,235,0.6)] z-100 
+                  border border-blue-400/30 pointer-events-none 
+                  transition-all duration-300">
+                Abrir menú de navegación
             </span>
           </button>
         </div>
@@ -97,13 +106,16 @@ export default function DashBoardUser({ setChatAbierto }) {
                       shadow-[0_0_20px_rgba(59,130,246,0.5)] bg-white/5 p-2 
                       transition-all duration-300 group-hover:scale-110"
           />
-          
           {/* Tooltip del Logo */}
-          <span className="absolute hidden lg:group-hover:block top-full mt-5 left-1/2 -translate-x-1/2 w-max 
-                          bg-blue-600 text-white text-[10px] md:text-xs uppercase tracking-widest font-bold 
-                          px-4 py-2 rounded-lg shadow-[0_0_15px_rgba(59,130,246,0.4)] z-50 
-                          border border-blue-400/40 pointer-events-none transition-opacity duration-300">
-            Logo oficial de ArmatuXPC
+          <span className="absolute hidden lg:group-hover:block 
+                top-[110%] left-1/2 -translate-x-1/2 
+                w-max bg-blue-600 text-white text-[10px] md:text-xs 
+                uppercase tracking-widest font-bold px-4 py-2 
+                rounded-lg shadow-[0_0_15px_rgba(37,99,235,0.6)] z-[100] 
+                border border-blue-400/30 pointer-events-none 
+                transition-all duration-300"
+          >
+              Logo oficial de ArmatuXPC
           </span>
         </div>
         <div className="dash-header-spacer"></div>
@@ -163,10 +175,10 @@ export default function DashBoardUser({ setChatAbierto }) {
           <div className="absolute top-[-10%] left-[-10%] w-125 h-125 bg-blue-600/10 rounded-full blur-[120px]" />
           
           {/* Círculo Púrpura en el medio derecha */}
-          <div className="absolute top-[40%] right-[-5%] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[100px]" />
+          <div className="absolute top-[40%] right-[-5%] w-100 h-100 bg-purple-600/10 rounded-full blur-[100px]" />
           
           {/* Círculo Cyan inferior izquierda */}
-          <div className="absolute bottom-[10%] left-[5%] w-[350px] h-[350px] bg-cyan-500/10 rounded-full blur-[110px]" />
+          <div className="absolute bottom-[10%] left-[5%] w-87.5 h-87.5 bg-cyan-500/10 rounded-full blur-[110px]" />
         </div>
 
         {/* HERO SECTION - ANCHO COMPLETO Y RESPONSIVE */}
@@ -187,8 +199,8 @@ export default function DashBoardUser({ setChatAbierto }) {
             transition={{ duration: 1 }}
             className="relative z-10 text-center px-4"
           >
-            <h2 className="text-4xl md:text-6xl font-extralight text-blue-100">
-              Bienvenido, <span className="font-bold text-white block md:inline bg-clip-text  bg-linear-to-r from-blue-400 to-purple-500">
+            <h2 className="text-4xl md:text-6xl font-extralight text-blue-100/80 mb-4">
+              Bienvenido, <span className="font-bold text-white block md:inline bg-clip-text bg-linear-to-r from-blue-400 to-purple-500">
                 {nombre}
               </span> 👋
             </h2>
@@ -227,7 +239,7 @@ export default function DashBoardUser({ setChatAbierto }) {
               className="rounded-2xl overflow-hidden border border-blue-500/30 shadow-[0_0_30px_rgba(59,130,246,0.2)]">
               <img 
                 src={heroImage1} 
-                alt="Explorar" 
+                alt="Conocenos mejor" 
                 className="w-full hover:scale-105 transition-transform duration-500"
                />
             </motion.div>
@@ -253,7 +265,7 @@ export default function DashBoardUser({ setChatAbierto }) {
           <div className="order-1 md:order-2 space-y-6 p-8 rounded-3xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl">
             <h2 className="text-4xl font-bold text-purple-400">Aprende paso a paso</h2>
             <p className="text-lg text-gray-300 leading-relaxed">
-              Nuestra guía interactiva te permite comprender cada componente y su función...
+              Nuestra guía interactiva te permite comprender cada componente dentro de tu PC, su manera de instalarlo o desinstalarlo, y cómo se relaciona con el resto del sistema. ¡Aprende haciendo!
             </p>
             <div className="flex justify-center">
               <button 
@@ -292,7 +304,7 @@ export default function DashBoardUser({ setChatAbierto }) {
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               className="rounded-2xl overflow-hidden border border-cyan-500/30 shadow-[0_0_30px_rgba(6,182,212,0.2)]">
-              <img src={heroImage3} alt="Construir PC" className="w-full" />
+              <img src={heroImage3} alt="Configurador PC" className="w-full" />
             </motion.div>
           </motion.section>
 
@@ -317,7 +329,7 @@ export default function DashBoardUser({ setChatAbierto }) {
             <div className="order-1 md:order-2 space-y-6 p-8 rounded-3xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl">
               <h2 className="text-4xl font-bold text-green-400">Continuar Borrador</h2>
               <p className="text-lg text-gray-300 leading-relaxed">
-                Retoma tu proyecto donde lo dejaste. Nuestra función de borrador automático guarda tu progreso para que puedas continuar armando tu PC personalizada en cualquier momento.
+                Retoma tu último proyecto donde lo dejaste. Nuestra función de borrador automático guarda tu progreso para que puedas continuar armando tu PC personalizada en cualquier momento.
               </p>
               <div className="flex justify-center">
                 <button 
@@ -330,9 +342,8 @@ export default function DashBoardUser({ setChatAbierto }) {
 
             </div>
           </motion.section>
-
         
-          {/* SECCIÓN 5: COMUNIDAD (TEXTO IZQ - IMAGEN DER) */}
+          {/* SECCIÓN 5: PROYECTOS EXISTENTES (TEXTO IZQ - IMAGEN DER) */}
           <motion.section
             variants={fadeInVariant}
             initial="hidden"
@@ -341,16 +352,16 @@ export default function DashBoardUser({ setChatAbierto }) {
             className="grid md:grid-cols-2 gap-12 items-center"
           >
             <div className="space-y-6 p-8 rounded-3xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl">
-              <h2 className="text-4xl font-bold text-yellow-400">Únete a la comunidad</h2>
+              <h2 className="text-4xl font-bold text-yellow-400">Ve tus armados</h2>
               <p className="text-lg text-gray-300 leading-relaxed">
-                Comparte tus configuraciones, recibe feedback y conecta con otros entusiastas del armado de PCs en nuestra sección de comunidad.
+                Revisa y gestiona tus proyectos existentes, edita tus armados anteriores o publica tus configuraciones para que otros usuarios puedan inspirarse en ellas. ¡Comparte tu creatividad con la comunidad!
               </p>
               <div className="flex justify-center">
                 <button 
-                  onClick={() => navigate("/comunidad")} 
+                  onClick={() => navigate("/mis-armados")} 
                   className="px-6 py-3 bg-blue-500/30 border border-blue-400/50 text-white rounded-lg shadow-lg hover:bg-blue-500/50 transition-all justify-center flex items-center gap-2 cursor-pointer"
                 >
-                  Visitar comunidad
+                  Ver proyectos existentes
                 </button>
               </div>
             </div>
@@ -358,7 +369,72 @@ export default function DashBoardUser({ setChatAbierto }) {
               animate={{ y: [0, -10, 0] }}
               transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
               className="rounded-2xl overflow-hidden border border-yellow-500/30 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
-              <img src={heroImage5} alt="Comunidad" className="w-full" />
+              <img src={heroImage5} alt="Proyectos Existentes" className="w-full" />
+            </motion.div>
+          </motion.section>
+
+          {/* SECCIÓN 6: COMUNIDAD (IMAGEN IZQ - TEXTO DER) */}
+          <motion.section
+            variants={fadeInVariant}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            className="grid md:grid-cols-2 gap-12 items-center"
+          >
+            <motion.div 
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="order-2 md:order-1 rounded-2xl overflow-hidden border border-green-500/30 shadow-[0_0_30px_rgba(34,197,94,0.2)]">
+              <img
+                 src={heroImage6} 
+                 alt="Comunidad" 
+                 className="w-full" />
+            </motion.div>
+
+            <div className="order-1 md:order-2 space-y-6 p-8 rounded-3xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl">
+              <h2 className="text-4xl font-bold text-green-400">Comunidad</h2>
+              <p className="text-lg text-gray-300 leading-relaxed">
+                Comparte tus configuraciones, inspírate con los armados de otros usuarios y crea tu PC ideal. Nuestra comunidad es el lugar perfecto para aprender, compartir y crecer como entusiasta del armado de PCs.
+              </p>
+              <div className="flex justify-center">
+                <button 
+                  onClick={() => navigate("/comunidad")} 
+                  className="px-6 py-3 bg-blue-500/30 border border-blue-400/50 text-white rounded-lg shadow-lg hover:bg-blue-500/50 transition-all justify-center flex items-center gap-2 cursor-pointer"
+                >
+                  Explorar comunidad
+                </button>
+              </div>
+
+            </div>
+          </motion.section>
+
+          {/* SECCIÓN 7: COMPRA DE TOKENS (TEXTO IZQ - IMAGEN DER) */}
+          <motion.section
+            variants={fadeInVariant}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            className="grid md:grid-cols-2 gap-12 items-center"
+          >
+            <div className="space-y-6 p-8 rounded-3xl bg-white/5 backdrop-blur-md border border-white/10 shadow-2xl">
+              <h2 className="text-4xl font-bold text-yellow-400">Compra de Tokens</h2>
+              <p className="text-lg text-gray-300 leading-relaxed">
+                Adquiere tokens para desbloquear más espacios de armado para nuevas configuraciones y proyectos adicionales. Personaliza tu experiencia y lleva tu creatividad al siguiente nivel con nuestros planes de tokens flexibles.
+              </p>
+              <div className="flex justify-center">
+                <button 
+                  onClick={() => navigate("/comprar-tokens")} 
+                  className="px-6 py-3 bg-blue-500/30 border border-blue-400/50 text-white rounded-lg shadow-lg hover:bg-blue-500/50 transition-all justify-center flex items-center gap-2 cursor-pointer"
+                >
+                  Ver planes de tokens
+                </button>
+              </div>
+            </div>
+            <motion.div 
+              animate={{ y: [0, -10, 0] }}
+              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              className="rounded-2xl overflow-hidden border border-yellow-500/30 shadow-[0_0_30px_rgba(234,179,8,0.2)]">
+              <img src={heroImage7} alt="Comprar Tokens" className="w-full" />
             </motion.div>
           </motion.section>
 
