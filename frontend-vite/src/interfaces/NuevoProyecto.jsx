@@ -41,16 +41,15 @@ export default function NuevoProyecto() {
 
   // Estado que representa el armado actual del PC: cada propiedad es un tipo de componente y su valor es el modelo seleccionado (o null si no hay selección)
   const [pcActual, setPcActual] = useState({
-    CPU: null, Motherboard: null, RAM: null, GPU: null,
-    Almacenamiento: null, "Fuente de poder": null,
-    Refrigeracion: null, Gabinete: null
+    Gabinete: null, "Fuente de poder": null, Motherboard: null, "Refrigeración": null,
+    CPU: null, GPU: null, RAM: null, Almacenamiento: null
   });
 
   // Mapeo para traducir el nombre del componente al tipo esperado por el backend
   const mapTipo = {
     CPU: "CPU", GPU: "GPU", RAM: "MemoriaRAM",
-    Almacenamiento: "Almacenamiento", "Fuente de poder": "FuentePoder",
-    Motherboard: "PlacaBase", Refrigeracion: "Refrigeracion", Gabinete: "Gabinete"
+    Almacenamiento: "Almacenamiento", "Refrigeración": "Refrigeracion", "Fuente de poder": "FuentePoder",
+    Motherboard: "PlacaBase", Gabinete: "Gabinete"
   };
 
   // Definimos los pasos del tutorial con sus selectores y textos explicativos (son pasos introductorios para guiar al usuario en su primera visita)
@@ -355,22 +354,24 @@ const guardarProgresoManual = () => {
     return () => unsub(); // Limpiamos la conexión al salir del componente
   }, [uidSession]);
 
+  // Definimos los componentes disponibles para cada categoría 
 const componentes = [
   "Gabinete",
   "Fuente de poder",
   "Motherboard",
-  "Refrigeracion",
+  "Refrigeración",
   "CPU",
   "GPU",
   "RAM",
   "Almacenamiento"
 ];
 
+// Definimos el orden de desbloqueo de los componentes para el modo guía
 const ordenComponentes = [
   "Gabinete",
   "Fuente de poder",
   "Motherboard",
-  "Refrigeracion",
+  "Refrigeración",
   "CPU",
   "GPU",
   "RAM",
@@ -477,6 +478,7 @@ const estaDesbloqueado = (comp) => {
     .filter(([key, value]) => value !== null)
     .map(([key, comp]) => ({
       componenteId: parseInt(comp.componenteId),
+      tipo: mapTipo[key],
       cantidad: 1
     }));
 
@@ -535,7 +537,7 @@ const estaDesbloqueado = (comp) => {
     const nuevaConfiguracion = {
       CPU: null, Motherboard: null, RAM: null, GPU: null,
       Almacenamiento: null, "Fuente de poder": null,
-      Refrigeracion: null, Gabinete: null
+      "Refrigeración": null, Gabinete: null
     };
 
     componentesPlantilla.forEach(comp => {
@@ -569,7 +571,7 @@ const reemplazarPieza = (sug) => {
     "PlacaBase": "Motherboard",
     "CPU": "CPU",
     "GPU": "GPU",
-    "Refrigeracion": "Refrigeracion",
+    "Refrigeracion": "Refrigeración",
     "MemoriaRAM": "RAM",
     "FuentePoder": "Fuente de poder",
     "Gabinete": "Gabinete",
@@ -690,7 +692,7 @@ const reemplazarPieza = (sug) => {
       
       <div className="nuevo-main flex p-4 gap-6">
       {/* SIDEBAR IZQUIERDO: SECCIÓN DE COMPONENTES */}
-        <div className="componentes-menu bg-amber-200 p-4 rounded-lg">
+        <div className="componentes-menu bg-amber-200 p-4 rounded-lg overflow-y-auto custom-scrollbar">
           {/* PANEL DE MODO: MEJORADO */}
           <div className={`modo-panel-neon p-4 rounded-xl border-2 transition-all ${modoGuia ? "border-blue-500/50 bg-blue-500/10" : "border-purple-500/50 bg-purple-500/10"}`}>
             <span>
@@ -702,7 +704,7 @@ const reemplazarPieza = (sug) => {
             </p>
             </span>
           </div>
-        <div className="modo-switch">
+        <div className="modo-switch mb-0.2 flex items-center justify-center gap-2">
           <span className={`${modoGuia ? "text-blue-400 font-bold" : "text-gray-400"}`}>
              🧭 Guía
           </span>
@@ -916,23 +918,30 @@ const reemplazarPieza = (sug) => {
                             )}
                           </div>
                       </div>
-                    </div>
-
-                    {/* INCOMPATIBILIDADES EN TIEMPO REAL */}
-                    {incompatibilidades.length > 0 && (
+                    </div>  
+                  
+                {/* DIV PADRE DEL CATÁLOGO DE COMPONENTES (PANEL DERECHO) + INCOMPATIBILIDADES EN TIEMPO REAL */}
+                <div className="columna-derecha-contenido overflow-y-auto custom-scrollbar">
+                  
+                   {/* INCOMPATIBILIDADES EN TIEMPO REAL */}
+                    {incompatibilidades.length > 0 ? (
                       <div className="alerta-error">
-                        <h3>⚠️ Incompatibilidades detectadas:</h3>
-                        
+                        <h3 className="text-center"><strong>⚠️ Incompatibilidades detectadas:</strong></h3>
+
                         <div className="conflict-list">
                           {incompatibilidades.map((inc, index) => (
-                            <div key={index} className="conflict-item-container">
+                            <div key={index} className="conflict-card-wrapper">
+                              {/* TARJETA DE ERROR PRINCIPAL */}
                               <div className="conflict-card">
                                 <div className="conflict-header">
                                   <span className="comp-name">{inc.componenteA}</span>
                                   <span className="vs-icon">❌</span>
                                   <span className="comp-name">{inc.componenteB}</span>
                                 </div>
-                                <p className="conflict-reason">{inc.motivo}</p>
+                                <div className="conflict-details">
+                                  <p className="conflict-type"><strong>Motivo:</strong> {inc.tipoConflicto}</p>
+                                  <p className="conflict-reason">{inc.motivo}</p>
+                                </div>
                                 
                                 {/* BOTÓN: Ahora usa 'inc' que es la variable del map y está dentro del bucle */}
                                 {/* Dentro de tu .map de incompatibilidades */}
@@ -941,6 +950,7 @@ const reemplazarPieza = (sug) => {
                                       Parece que hay un problema con la categoría: <strong>{inc.tipoComponenteB}</strong>
                                     </p>
                                     
+                                    <div className="sugerencias-inteligentes">
                                     {/* OPCIÓN A: Cambiar el primer componente por otro del mismo tipo */}
                                     <button 
                                       onClick={() => handleSugerenciasPro(index, inc.componenteBId, inc.tipoComponenteA)}
@@ -962,13 +972,12 @@ const reemplazarPieza = (sug) => {
                                        Buscar otro <span className="categoria-resaltada">{inc.tipoComponenteB}</span> que sirva con {inc.componenteA}
                                       </div>
                                     </button>
+                                    </div>
+                                    
                                   </div>
-
-                                {/* Ejemplo extra: Si el error fuera de Placa Base */}
-                                {/* handleVerSugerenciasTipo(index, id, "PlacaBase") */}
                               </div>
 
-                              {/* RENDERIZADO DE SUGERENCIAS */}
+                              {/* DRAWER DE SUGERENCIAS (Solo si existen) */}
                               {sugerencias[index] && (
                                 <div className="drawer-sugerencias animate-in">
                                   <p style={{fontSize: '0.75rem', fontWeight: 'bold', color: '#64748b', padding: '5px'}}>
@@ -1015,74 +1024,81 @@ const reemplazarPieza = (sug) => {
                           ))}
                         </div>
                       </div>
-                    )}
-                        
-                  {/* PANEL DERECHO: CATÁLOGO */}
-                  <div className="component-details catalogo-componentes">
-                    {selectedComponent ? (
+                    ) : (
                       <>
-                        <h3><strong>Catálogo de {selectedComponent}</strong></h3>
-                        <div className="lista-modelos">
-                          {loading ? <p>Cargando...</p> : 
-                            listaComponentes.map((comp) => (
-                              <div key={comp.componenteId} className={`card-componente ${
-                                  pcActual[selectedComponent]?.componenteId === comp.componenteId 
-                                    ? "seleccionado" 
-                                    : ""
-                                }`}>
-                                {/* Cabecera de la tarjeta: Siempre visible */}
-                                <div className="card-header-simple">
-                                  <h4>{comp.nombre}</h4>
-                                  <button 
-                                    className="btn-expandir" 
-                                    onClick={() => setExpandidoId(expandidoId === comp.componenteId ? null : comp.componenteId)}
-                                  >
-                                    {expandidoId === comp.componenteId ? "− Ver menos" : "+ Detalles"}
-                                  </button>
-                                </div>
-
-                                {/* Cuerpo de la tarjeta: Solo si está expandido */}
-                                {expandidoId === comp.componenteId && (
-                                  <div className="card-expanded-content">
-                                    <img 
-                                      src={comp.imagenUrl} 
-                                      alt={comp.nombre} 
-                                      className="card-img-small clickable"
-                                      onClick={() => setImagenSeleccionada(comp.imagenUrl)}
-                                    />
-                                    <div className="info-detallada">
-                                      <p><strong>Marca:</strong> {comp.marca}</p>
-                                      <p><strong>Modelo:</strong> {comp.modelo}</p>
-                                      <p className="precio"><strong>Precio:</strong> ${comp.precio}</p>
-                                      {renderWatts(comp)}
-                                        <div className="acciones-botones">
-                                            {! pcActual[selectedComponent]? (
-                                              <button 
-                                                className="btn-agregar"
-                                                onClick={() => agregarComponente(comp)}
-                                              >
-                                                Seleccionar
-                                              </button>
-                                            ) : (
-                                              <button 
-                                                className="btn-quitar"
-                                                onClick={quitarComponente}
-                                              >
-                                                Quitar
-                                              </button>
-                                            )}
-                                          </div>
-                                    </div>
+                    {/* CATÁLOGO DE COMPONENTES */}
+                    <div className="component-details catalogo-componentes overflow-y-auto custom-scrollbar">
+                      {selectedComponent ? (
+                        <>
+                          <h3><strong>Catálogo de {selectedComponent}</strong></h3>
+                          <div className="lista-modelos">
+                            {loading ? <p>Cargando...</p> : 
+                              listaComponentes.map((comp) => (
+                                <div key={comp.componenteId} className={`card-componente ${
+                                    pcActual[selectedComponent]?.componenteId === comp.componenteId 
+                                      ? "seleccionado" 
+                                      : ""
+                                  }`}>
+                                  {/* Cabecera de la tarjeta: Siempre visible */}
+                                  <div className="card-header-simple">
+                                    <h4>{comp.nombre}</h4>
+                                    <button 
+                                      className="btn-expandir" 
+                                      onClick={() => setExpandidoId(expandidoId === comp.componenteId ? null : comp.componenteId)}
+                                    >
+                                      {expandidoId === comp.componenteId ? "− Ver menos" : "+ Detalles"}
+                                    </button>
                                   </div>
-                                )}
-                              </div>
-                            ))
-                          }
-                        </div>
+
+                                  {/* Cuerpo de la tarjeta: Solo si está expandido */}
+                                  {expandidoId === comp.componenteId && (
+                                    <div className="card-expanded-content">
+                                      <img 
+                                        src={comp.imagenUrl} 
+                                        alt={comp.nombre} 
+                                        className="card-img-small clickable"
+                                        onClick={() => setImagenSeleccionada(comp.imagenUrl)}
+                                      />
+                                      <div className="info-detallada">
+                                        <p><strong>Marca:</strong> {comp.marca}</p>
+                                        <p><strong>Modelo:</strong> {comp.modelo}</p>
+                                        <p className="precio"><strong>Precio:</strong> ${comp.precio}</p>
+                                        {renderWatts(comp)}
+                                          <div className="acciones-botones">
+                                              {! pcActual[selectedComponent]? (
+                                                <button 
+                                                  className="btn-agregar"
+                                                  onClick={() => agregarComponente(comp)}
+                                                >
+                                                  Seleccionar
+                                                </button>
+                                              ) : (
+                                                <button 
+                                                  className="btn-quitar"
+                                                  onClick={quitarComponente}
+                                                >
+                                                  Quitar
+                                                </button>
+                                              )}
+                                            </div>
+                                      </div>
+                                    </div>
+                                  )}
+                                </div>
+                              ))
+                            }
+                          </div>
                       </>
-                    ) : <p>Selecciona una categoría a la izquierda</p>}
+                    ) : (
+                      <p className="no-selection">Selecciona una categoría a la izquierda</p>
+                      )}
                   </div>
-                </div>
+                  </>
+                    )}
+
+                  </div> {/* Fin de la columna derecha (catálogo + incompatibilidades) */}
+
+                </div> {/* Fin de la vista central */}
 
                 {/* TUTORIAL INTERACTIVO: Solo se muestra si el usuario no lo ha cerrado previamente */}
                 {mostrarTutorial && (

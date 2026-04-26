@@ -17,7 +17,7 @@ export default function QuienesSomos() {
       rol: "Project Manager/Full Stack Developer",
       correo: "a22110112@ceti.mx", 
       imagen: oscar,
-      descripcion: "Líder del proyecto y encargado del desarrollo backend de la lógica del negocio, asegurando la arquitectura sólida y eficiente de la plataforma para brindar una experiencia fluida a los usuarios."
+      descripcion: "Líder del proyecto y encargado del desarrollo backend de la lógica del negocio y de la mejora profesional en las interfaces del frontend, asegurando la arquitectura sólida y eficiente de la plataforma para brindar una experiencia fluida y atractiva a los usuarios."
     },
     { 
       nombre: "Eduardo Medina", 
