@@ -394,33 +394,37 @@ namespace ArmatuXPC.Backend.Controllers
         [HttpGet("comunidad")]
         public async Task<ActionResult<IEnumerable<ArmadoDto>>> GetComunidad()
         {
-            // Agregamos los Includes para evitar NullReferenceException en los componentes
             var armados = await _context.Armados
-                    .Include(a => a.Componentes)
+                .Include(a => a.Componentes)
                     .ThenInclude(c => c.Componente)
                 .Where(a => a.EsPublicado)
-                .Select(a => new ArmadoDto {
-                    ArmadoId = a.ArmadoId,
-                    UsuarioId = a.UsuarioId,
-                    NombreArmado = a.NombreArmado,
-                    AutorNombre = a.AutorNombre, // Ahora sí lo reconocerá
-                    FechaCreacion = a.FechaCreacion,
-                    // Mapeamos los componentes con sus detalles para el DTO
-                    Componentes = a.Componentes.Select(c => new ArmadoComponenteDto {
+                .ToListAsync();
+
+            var resultado = armados.Select(a => new ArmadoDto {
+                ArmadoId = a.ArmadoId,
+                UsuarioId = a.UsuarioId,
+                NombreArmado = a.NombreArmado,
+                AutorNombre = a.AutorNombre,
+                FechaCreacion = a.FechaCreacion,
+                EsPublicado = a.EsPublicado,
+                Componentes = a.Componentes
+                    .Where(c => c.Componente != null) // Evita que componentes huérfanos rompan el código
+                    .Select(c => new ArmadoComponenteDto {
                         ComponenteId = c.ComponenteId,
-                        Nombre = c.Componente.Nombre,
-                        Marca = c.Componente.Marca,
-                        Modelo = c.Componente.Modelo,
+                        Nombre = c.Componente.Nombre ?? "Sin nombre",
+                        Marca = c.Componente.Marca ?? "N/A",
+                        Modelo = c.Componente.Modelo ?? "N/A",
                         Tipo = c.Componente.Tipo,
                         Precio = c.Componente.Precio,
-                        ConsumoWatts = c.Componente.ConsumoWatts,
-                        CapacidadWatts = c.Componente.CapacidadWatts,
+                        // Usamos el operador de coalescencia para manejar nulos
+                        ConsumoWatts = c.Componente.ConsumoWatts ?? 0,
+                        CapacidadWatts = c.Componente.CapacidadWatts ?? 0, 
                         Cantidad = c.Cantidad,
-                        ImagenUrl = c.Componente.ImagenUrl // Asegúrate de que esta propiedad exista en tu modelo Componente
+                        ImagenUrl = c.Componente.ImagenUrl ?? ""
                     }).ToList()
-                })
-                .ToListAsync();
-            return Ok(armados);
+            }).ToList();
+
+            return Ok(resultado);
         }
 
         // ENDPOINT: DESPUBLICAR ARMADO DE LA INTERFAZ DE LA COMUNIDAD

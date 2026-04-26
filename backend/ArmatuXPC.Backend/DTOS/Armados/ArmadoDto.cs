@@ -26,7 +26,7 @@ public class ArmadoComponenteDto
     public TipoComponente Tipo { get; set; }
     public decimal Precio { get; set; }
     public decimal? ConsumoWatts { get; set; }
-    public int? CapacidadWatts { get; set; }
+    public decimal? CapacidadWatts { get; set; }
     public int Cantidad { get; set; }
     public string? ImagenUrl { get; set; } = string.Empty;
 }
