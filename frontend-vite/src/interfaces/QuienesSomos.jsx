@@ -9,12 +9,12 @@ import diego from "../assets/integrantes/diego.jpeg";
 
 export default function QuienesSomos() {
   const navigate = useNavigate();
-  const [flippedIndex, setFlippedIndex] = useState(null);
+  const [flippedIndex, setFlippedIndex] = useState(null); // Para controlar qué tarjeta está volteada
 
   const integrantes = [
     { 
       nombre: "Oscar Romero", 
-      rol: "Project Manager/Backend",
+      rol: "Project Manager/Full Stack Developer",
       correo: "a22110112@ceti.mx", 
       imagen: oscar,
       descripcion: "Líder del proyecto y encargado del desarrollo backend de la lógica del negocio, asegurando la arquitectura sólida y eficiente de la plataforma para brindar una experiencia fluida a los usuarios."
