@@ -321,6 +321,20 @@
   margin: 5px 0;
 }
 
+.btn-publicar-feedback {
+  background-color: #0e0166; /* Morado */
+  color: white;
+  border: none;
+  padding: 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  margin: 5px 0;
+}
+
+.btn-publicar-feedback:hover {
+  background-color: #242ea3; /* Un morado más oscuro al pasar el mouse */
+}
+
 .proyecto-actions {
   display: flex;
   flex-direction: column;
