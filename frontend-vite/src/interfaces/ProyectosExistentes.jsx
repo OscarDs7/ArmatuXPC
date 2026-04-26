@@ -41,16 +41,6 @@ export default function ProyectosExistentes() {
     obtenerMisArmados(uid)
       .then(data => {
         setProyectos(data);
-        
-        // LÓGICA DE AUTO-SELECCIÓN:
-        const idPersistido = localStorage.getItem("ultimoProyectoPublicado");
-        if (idPersistido) {
-          // Buscamos el proyecto en la data recién llegada
-          const encontrado = data.find(proy => proy.armadoId === parseInt(idPersistido));
-          if (encontrado) {
-            setProyectoSeleccionado(encontrado);
-          }
-        }
       })
       .catch(err => console.log(err))
       .finally(() => setLoading(false));
@@ -322,14 +312,14 @@ export default function ProyectosExistentes() {
 
           <div className="modal-actions">
             <button 
-              className="btn-publicar" 
+              className="btn-publicar-feedback" 
               onClick={handleEnviarFeedback}
               disabled={loadingFeedback}
             >
               {loadingFeedback ? "Enviando feedback..." : "Enviar Feedback"}
             </button>
             <button 
-              className="btn-cerrar-link" 
+              className="btn-cerrar-link ml-4 underline text-sm hover:text-blue-700 transition-colors" 
               onClick={() => setMostrarFeedback(false)}
               disabled={loadingFeedback}
             >
@@ -379,7 +369,6 @@ export default function ProyectosExistentes() {
       {loading ? (
         <div className="loader">Cargando tus proyectos...</div>
       ) : (
-
       <div className="proyectos-grid">
           {proyectos.map((p) => (
           <div key={p.armadoId} className={`proyecto-card ${p.esPublicado ? 'card-publicada' : ''}`}>
