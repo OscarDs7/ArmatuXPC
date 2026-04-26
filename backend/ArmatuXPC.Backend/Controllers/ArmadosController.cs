@@ -406,6 +406,7 @@ namespace ArmatuXPC.Backend.Controllers
                 NombreArmado = a.NombreArmado,
                 AutorNombre = a.AutorNombre,
                 FechaCreacion = a.FechaCreacion,
+                EsPublicado = a.EsPublicado,
                 Componentes = a.Componentes
                     .Where(c => c.Componente != null) // Evita que componentes huérfanos rompan el código
                     .Select(c => new ArmadoComponenteDto {
