@@ -36,7 +36,7 @@ export default function QuienesSomos() {
       { 
         nombre: "Diego Corona", 
         rol: "Frontend",
-        correo: "a22310368@ceti.mx", 
+        correo: "a22310358@ceti.mx", 
         imagen: diego, 
         descripcion: "Responsable del diseño y desarrollo del frontend de la plataforma, creando una interfaz atractiva, intuitiva y fácil de usar para garantizar una experiencia de usuario excepcional."
       },
