@@ -229,7 +229,7 @@ export default function DashBoardUser({ setChatAbierto }) {
                   onClick={() => navigate("/quienes-somos")} 
                   className="px-6 py-3 bg-blue-500/30 border border-blue-400/50 text-white rounded-lg shadow-lg hover:bg-blue-500/50 transition-all justify-center flex items-center gap-2 cursor-pointer"
                 >
-                  Conocenos mejor
+                  Conócenos mejor
                 </button>
               </div>
             </div>  
