@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import "../estilos/DashBoardUser.css";
-import logoProyecto from "../assets/Logo.png"; 
+import logoProyecto from "../assets/Armatuxpc.png"; 
 import { signOut } from "firebase/auth";
 import { auth } from "../utilidades/firebase";
 import { motion } from "framer-motion";
@@ -111,7 +111,7 @@ export default function DashBoardUser({ setChatAbierto }) {
                 top-[110%] left-1/2 -translate-x-1/2 
                 w-max bg-blue-600 text-white text-[10px] md:text-xs 
                 uppercase tracking-widest font-bold px-4 py-2 
-                rounded-lg shadow-[0_0_15px_rgba(37,99,235,0.6)] z-[100] 
+                rounded-lg shadow-[0_0_15px_rgba(37,99,235,0.6)] z-100 
                 border border-blue-400/30 pointer-events-none 
                 transition-all duration-300"
           >
