@@ -1,54 +1,122 @@
+/* Contendor general del menú de selección de roles */
 .menu-container {
-  background-size: cover;
-  background-position: center;
-  background-repeat: no-repeat;
-  width: 100vw;
-  height: 100vh;
+  position: relative; /* Necesario para que el .overlay funcione */
+  width: 100%;
+  min-height: 100vh; /* Usa min-height para asegurar que cubra toda la pantalla */
   display: flex;
   justify-content: center;
-  align-items: center;
-  background: #0b7a8f; /* color base tu proyecto */
+  align-items: center;  
+  
+  /* Control de la imagen de fondo */
+  background-size: cover;    /* Fuerza a la imagen a cubrir todo el espacio */
+  background-position: center; /* Centra la imagen de fondo */
+  background-attachment: fixed; /* Opcional: evita que el fondo se mueva al hacer scroll */
+  overflow: hidden; /* Evita scrolls accidentales */
 }
 
-.menu-card {
-  width: 370px;
-  padding: 30px;
-  background: #ffffff;
-  border-radius: 15px;
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
+/* Contenedor principal de la cabecera del card */
+.menu-header {
+  display: flex;
+  flex-direction: column; /* Alinea los elementos en columna */
+  align-items: center;    /* Centra horizontalmente el logo, h1 y p */
+  justify-content: center;
   text-align: center;
+  width: 100%;            /* Asegura que ocupe todo el ancho del card */
 }
 
-.menu-title {
-  font-size: 30px;
-  color: #0b7a8f;
-  margin-bottom: 20px;
-  font-weight: bold;
+/* Oscurece el fondo para que la tarjeta resalte */
+.overlay {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle, rgba(11, 122, 143, 0.2) 0%, rgba(5, 10, 20, 0.8) 100%);
 }
 
-.menu-logo-container {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 25px;
+/* Tarjeta principal del menú */
+.menu-card {
+  position: relative;
+  z-index: 10;
+  width: 100%;
+  max-width: 400px;
+  padding: 40px;
+  /* Efecto Cristal (Glassmorphism) */
+  background: rgba(15, 23, 42, 0.8); 
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 24px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+  text-align: center;
+  /* Agregar brillo al fondo del contenedor azul brillante */
+  filter: drop-shadow(0 0 20px rgba(6, 182, 212, 0.4));
+  color: white;
+
 }
 
 .menu-logo {
-  width: 180px;
+  width: 140px;           /* Ajusta según tu preferencia */
+  height: auto;
+  display: block;
+  /* El drop-shadow ayuda a que el logo "flote" sobre el fondo oscuro */
+  filter: drop-shadow(0 0 15px rgba(6, 182, 212, 0.4));
+  margin-bottom: 15px;    /* Espacio entre logo y título */
+}
+
+.menu-title {
+  font-size: 32px;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: -1px;
+  margin-bottom: 5px;
+}
+
+.menu-subtitle {
+  color: #94a3b8;
+  font-size: 14px;
+  margin-bottom: 35px;
+}
+
+.menu-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
 }
 
 .menu-btn {
-  width: 100%;
-  padding: 14px;
-  margin-bottom: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 16px;
   border: none;
-  background: #e0e0e0;
-  border-radius: 10px;
-  font-size: 18px;
+  border-radius: 14px;
+  font-size: 16px;
+  font-weight: 600;
   cursor: pointer;
-  transition: 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  color: white;
+}
+
+/* Estilo específico por rol */
+.user-btn {
+  background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%);
+  box-shadow: 0 4px 15px rgba(6, 182, 212, 0.3);
+}
+
+.admin-btn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .menu-btn:hover {
-  background: #c7c7c7;
-  transform: scale(1.03);
+  transform: translateY(-3px);
+  filter: brightness(1.1);
+}
+
+.user-btn:hover {
+  background: linear-gradient(135deg, #0891b2 0%, #06b6d4 100%);
+  box-shadow: 0 6px 20px rgba(6, 182, 212, 0.5);
+}
+
+.admin-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #06b6d4;
 }
