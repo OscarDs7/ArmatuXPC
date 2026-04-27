@@ -13,6 +13,26 @@ export default function ComponentesAdmin({ onBack }) {
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [loading, setLoading] = useState(true);
 
+  // Mapeo de los datos para que suenen más naturales para el admin
+  const MAPEO_NOMBRES_TIPO = {
+  "cpu": "Procesador",
+  "gpu": "Tarjeta Gráfica",
+  "memoriaram": "Memoria RAM",
+  "almacenamiento": "Almacenamiento",
+  "fuentepoder": "Fuente de Poder",
+  "placabase": "Placa Base",
+  "gabinete": "Gabinete",
+  "refrigeracion": "Refrigeración"
+};
+
+// Función de formato para mostrar el nombre amigable del tipo en la tabla, pero sin modificar el valor real que se guarda en la BD
+const formatearTipo = (tipo) => {
+  if (!tipo) return "N/A";
+    const tipoNormalizado = tipo.toLowerCase().trim();
+    return MAPEO_NOMBRES_TIPO[tipoNormalizado] || tipo;
+};
+
+
   // Función para cargar la lista de componentes desde el backend
   const cargarComponentes = async () => {
     try {
@@ -359,7 +379,7 @@ export default function ComponentesAdmin({ onBack }) {
                 )}
               </td>
               {renderCeldaEditable(c, "nombre")}
-              <td className="text-center">{c.tipo}</td>
+              <td className="text-center">{formatearTipo(c.tipo)}</td>
               {renderCeldaEditable(c, "marca")}
               {renderCeldaEditable(c, "modelo")}
               {renderCeldaEditable(c, "precio", "number")}
@@ -409,7 +429,7 @@ export default function ComponentesAdmin({ onBack }) {
      <span className="mt-6 text-sm text-slate-400 text-center block">
         {filtroTipo === "todos" 
           ? `${componentesFiltrados.length} componentes en total` 
-          : `${componentesFiltrados.length} componentes de tipo "${filtroTipo.toUpperCase()}"`}
+          : `${componentesFiltrados.length} componentes de tipo "${formatearTipo(filtroTipo)}"`}
         
         {busqueda && ` (filtrados por: "${busqueda}")`}
       </span>
