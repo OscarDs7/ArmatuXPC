@@ -6,6 +6,7 @@ import oscar from "../assets/integrantes/Oscar.jpg";
 import eduardo from "../assets/integrantes/yayo.jpeg";
 import bryan from "../assets/integrantes/bryan.jpeg";
 import diego from "../assets/integrantes/diego.jpeg";
+import logoProyecto from "../assets/Armatuxpc.png"; 
 
 export default function QuienesSomos() {
   const navigate = useNavigate();
@@ -58,16 +59,29 @@ export default function QuienesSomos() {
       
       {/* HEADER REUTILIZADO */}
       <header className="max-w-7xl mx-auto bg-slate-900/50 backdrop-blur-md p-6 rounded-3xl border border-white/10 shadow-2xl flex items-center justify-between mb-12">
-        <button 
-          onClick={() => navigate("/dashboard-user")}
-          className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
-        >
-          <ArrowLeft size={18} /> Volver
-        </button>
-        <h1 className="text-3xl font-black bg-clip-text text-transparent bg-linear-to-r from-blue-400 to-cyan-300">
+        
+        {/* Contenedor Izquierdo: Botón */}
+        <div className="flex-1 flex justify-start">
+          <button 
+            onClick={() => navigate("/dashboard-user")}
+            className="flex items-center gap-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl transition-all"
+          >
+            <ArrowLeft size={18} /> Volver
+          </button>
+        </div>
+
+        {/* Contenedor Central: Título */}
+        <h1 className="text-3xl font-black bg-clip-text text-transparent bg-linear-to-r from-blue-400 to-cyan-300 whitespace-nowrap">
           ArmatuXPC Team
         </h1>
-        <div className="hidden md:block w-20"></div>
+
+        {/* Contenedor Derecho: Logo */}
+        <div className="flex-1 flex justify-end">
+          <div className="w-14 h-14 rounded-full overflow-hidden">
+            <img src={logoProyecto} alt="Logo del proyecto" className="w-full h-full object-cover" />
+          </div>
+        </div>
+
       </header>
 
       {/* INTRO SECTION */}
@@ -84,7 +98,7 @@ export default function QuienesSomos() {
         {integrantes.map((persona, index) => (
           <div 
             key={index}
-            className="group h-105 [perspective:1000px] cursor-pointer"
+            className="group h-105 perspective-1000px cursor-pointer"
             onClick={() => setFlippedIndex(flippedIndex === index ? null : index)}
           >
             <div className={`relative h-full w-full rounded-4xl transition-all duration-700 [transform-style:preserve-3d] ${flippedIndex === index ? '[transform:rotateY(180deg)]' : ''}`}>
