@@ -32,4 +32,6 @@ export function MenuRoles() {
       </div>
     </div>
   );
-}
+};
+
+export default MenuRoles;
