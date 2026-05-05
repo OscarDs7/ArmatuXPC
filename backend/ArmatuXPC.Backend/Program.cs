@@ -10,7 +10,7 @@ using Stripe;
 // 1. Cargar el archivo .env ANTES de cualquier otra cosa
 Env.Load(); 
 
-var builder = WebApplication.CreateBuilder(args);
+var builder = WebApplication.CreateBuilder(args); // Crear el builder de la aplicación
 
 // 2. FORZAR a builder.Configuration a reconocer las variables que acabamos de cargar en el Environment
 builder.Configuration.AddEnvironmentVariables();
@@ -69,10 +69,17 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowReact",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173") 
+            policy.WithOrigins("http://localhost:5173", "http://10.191.176.243:5173") 
                   .AllowAnyHeader()
-                  .AllowAnyMethod(); // Esto permite GET, POST, DELETE, etc.
+                  .AllowAnyMethod() // Esto permite GET, POST, DELETE, etc.
+                  .AllowCredentials(); // Si tu frontend necesita enviar cookies o usar autenticación basada en credenciales
         });
+});
+
+// Registrar HttpClient apuntando a Ollama
+builder.Services.AddHttpClient("OllamaClient", client =>
+{
+    client.BaseAddress = new Uri("http://ollama:11434"); 
 });
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
