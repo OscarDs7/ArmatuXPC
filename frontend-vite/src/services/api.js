@@ -543,10 +543,9 @@ export const eliminarFeedback = async (id) => {
   }
 };
 
-// --- MÉTODO PARA CHATBOT --- //
-// Método para enviar un mensaje al chatbot y obtener la respuesta del backend
+// -- SERVICIOS PARA CHATBOT -- //
 export const enviarMensajeChatbot = async (mensaje) => {
-  const response = await fetch(`${API_URL}/chatbot`, {  // 🔥 sin /api
+  const response = await fetch(`${API_URL}/chatbot`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ mensaje })
@@ -558,7 +557,3 @@ export const enviarMensajeChatbot = async (mensaje) => {
 
   return await response.json();
 };
-
-
-
-
