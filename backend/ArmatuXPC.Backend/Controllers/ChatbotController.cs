@@ -1,6 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
+using System.IO;
 using System.Text;
 using System.Text.Json;
+using ArmatuXPC.Backend.Data;
+using Microsoft.EntityFrameworkCore;
+using ArmatuXPC.Backend.Models;
+
 
 namespace ArmatuXPC.Backend.Controllers
 {
@@ -9,18 +14,78 @@ namespace ArmatuXPC.Backend.Controllers
     public class ChatbotController : ControllerBase
     {
         private readonly HttpClient _httpClient;
+        private readonly AppDbContext _context;
 
-        public ChatbotController(IHttpClientFactory httpClientFactory)
+
+        public ChatbotController(IHttpClientFactory httpClientFactory, AppDbContext context)
         {
+            _context = context;
             _httpClient = httpClientFactory.CreateClient("OllamaClient");
         }
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] ChatRequest request)
         {
-           // Simplificamos la instrucción para que sea una orden directa, no una descripción
-           string systemInstruction = "Eres el asistente técnico de ArmatuXPC. Tu objetivo es ayudar a armar PCs. Responde de forma amable, breve y siempre en español.";
+            // Variables necesarias para el mensaje de usuario y el contexto del stock del negocio
+            string mensajeUsuario = request.Mensaje.ToLower(); // Convertimos a minúsculas para facilitar la detección de palabras clave
+            string contextoInventario = ""; // Aquí construiremos un resumen del stock relevante para el mensaje del usuario
 
+            // 1. Detección de intención para consultar la base de datos del negocio
+            // Diccionario de sinónimos para mapear palabras del usuario a tus Enums
+            if (mensajeUsuario.Contains("procesador") || mensajeUsuario.Contains("cpu"))
+            {
+                contextoInventario = await ConsultarInventarioInterno("CPU");
+            }
+            else if (mensajeUsuario.Contains("memoria ram") || mensajeUsuario.Contains("ram"))
+            {
+                contextoInventario = await ConsultarInventarioInterno("MemoriaRAM");
+            }
+            else if (mensajeUsuario.Contains("tarjeta gráfica") || mensajeUsuario.Contains("gpu"))
+            {
+                contextoInventario = await ConsultarInventarioInterno("GPU");
+            }
+            else if (mensajeUsuario.Contains("disco duro") || mensajeUsuario.Contains("ssd") || mensajeUsuario.Contains("hdd"))
+            {
+                contextoInventario = await ConsultarInventarioInterno("Almacenamiento");
+            }
+            else if (mensajeUsuario.Contains("placa base") || mensajeUsuario.Contains("motherboard") || mensajeUsuario.Contains("tarjeta madre"))
+            {
+                contextoInventario = await ConsultarInventarioInterno("PlacaBase");
+            }
+            else if (mensajeUsuario.Contains("fuente de alimentación")  || mensajeUsuario.Contains("fuente de poder") || mensajeUsuario.Contains("fuente") || mensajeUsuario.Contains("psu"))
+            {
+                contextoInventario = await ConsultarInventarioInterno("FuentePoder");
+            }
+            else if (mensajeUsuario.Contains("refrigeración") || mensajeUsuario.Contains("cooler") || mensajeUsuario.Contains("ventilador") || mensajeUsuario.Contains("disipador"))
+            {
+                contextoInventario = await ConsultarInventarioInterno("Refrigeracion");
+            }
+            else if (mensajeUsuario.Contains("caja") || mensajeUsuario.Contains("gabinete") || mensajeUsuario.Contains("case"))
+            {
+                contextoInventario = await ConsultarInventarioInterno("Gabinete");
+            }
+
+            // 2. Construcción del mensaje para Ollama, incluyendo el contexto del inventario si se detectó una intención relevante
+            // Definir la instrucción con jerarquía de datos
+           string systemInstruction =
+                "Eres el experto técnico de ArmatuXPC.\n\n" +
+
+                "REGLAS:\n" +
+                "1. Prioriza productos del inventario.\n" +
+                "2. Si no hay stock, sugiere alternativas externas.\n" +
+                "3. Responde en español, técnico y amigable.\n" +
+                "4. Máximo 3-5 oraciones.\n" +
+                "5. No repitas palabras ni cortes términos.\n\n" +
+
+                "FORMATO DE RESPUESTA:\n" +
+                "Recomendación 1:\n- Nombre:\n- Precio:\n- Descripción:\n\n" +
+                "Recomendación 2:\n- Nombre:\n- Precio:\n- Descripción:\n\n" +
+
+                "INVENTARIO DISPONIBLE:\n" +
+                (string.IsNullOrEmpty(contextoInventario)
+                    ? "SIN STOCK"
+                    : contextoInventario);
+                        
             // Construimos el payload para Ollama, incluyendo el contexto del sistema
             var payload = new
             {
@@ -29,53 +94,77 @@ namespace ArmatuXPC.Backend.Controllers
                 prompt = $"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{systemInstruction}<|eot_id|>" +
                         $"<|start_header_id|>user<|end_header_id|>\n\n{request.Mensaje}<|eot_id|>" +
                         $"<|start_header_id|>assistant<|end_header_id|>\n\n",
-                options = new {
-                    temperature = 0.5, // Un poco más de calidez
-                    num_predict = 200,
-                    // Esto es CLAVE: Evita que el modelo siga escribiendo etiquetas
-                    stop = new[] { "<|eot_id|>", "<|start_header_id|>", "Usuario:" }
-                },
-                stream = true
+                options = new { temperature = 0.2, num_predict = 400, top_p = 0.9, stop = new[] { "<|eot_id|>", "<|start_header_id|>" } },
+                stream = false
             };
-
+            
+            // Enviamos la solicitud a Ollama para generar la respuesta, usando PostAsJsonAsync para enviar el payload como JSON
             var response = await _httpClient.PostAsJsonAsync("/api/generate", payload);
 
+            // Verificamos si la respuesta de Ollama fue exitosa antes de intentar leer el json. Si no fue exitosa, respondemos con un error al cliente.
             if (!response.IsSuccessStatusCode)
-                return StatusCode((int)response.StatusCode, "Error al comunicarse con Ollama");
-            
-            // Leer la respuesta como string directamente para evitar problemas de deserialización
-            using var stream = await response.Content.ReadAsStreamAsync();
-            using var reader = new StreamReader(stream);
+                return StatusCode((int)response.StatusCode, "Error con Ollama");
 
-            var finalText = new StringBuilder(); // Usamos StringBuilder para construir la respuesta completa
+            var json = await response.Content.ReadFromJsonAsync<JsonElement>();
 
-            var result = await response.Content.ReadAsStringAsync();
+            var texto = json.GetProperty("response").GetString();
 
-            while (!reader.EndOfStream)
+            // --- LÓGICA DE BOTONES ---
+                var opcionesBotones = new List<string>(); // Lista para almacenar las opciones de botones que se extraerán del contexto del inventario
+                if (!string.IsNullOrEmpty(contextoInventario) && contextoInventario.Contains("Precio:"))
+                {
+                    opcionesBotones = contextoInventario
+                        .Split('\n')
+                        .Where(line => line.StartsWith("- "))
+                        .Select(line => line.Replace("- ", "").Split('(')[0].Trim())
+                        .ToList();
+                }
+            // --- FIN LÓGICA DE BOTONES ---
+
+            // Respondemos al cliente con la respuesta generada por Ollama y las opciones de botones si las hay
+            return Ok(new
             {
-                var line = await reader.ReadLineAsync();
-                if (string.IsNullOrWhiteSpace(line)) continue;
+                texto,
+                opciones = opcionesBotones
+            });
+                
+        } // Fin del método POST
 
-                    try
-                    {
-                        using var doc = JsonDocument.Parse(line);
-                        if (doc.RootElement.TryGetProperty("response", out var resp))
-                        {
-                            finalText.Append(resp.GetString());
-                        }
-                    }
-                    catch (JsonException)
-                    {
-                        // Ignorar líneas que no sean JSON válido
-                    }
+        // -- MÉTODO AUXILIAR PARA CONSULTAR EL INVENTARIO INTERNO --
+        private async Task<string> ConsultarInventarioInterno(string tipoStr)
+        {
+            try 
+            {
+                // 1. Intentar convertir el string recibido al Enum 'TipoComponente'
+                if (!Enum.TryParse(tipoStr, out TipoComponente tipoEnum))
+                {
+                    return "Categoría no reconocida.";
+                }
+
+                // 2. Realizar la consulta usando el valor del Enum directamente
+                var componentes = await _context.Componentes
+                    .AsNoTracking() // Mejora el rendimiento para consultas de solo lectura
+                    .Where(c => c.Tipo == tipoEnum) 
+                    .Take(5)
+                    .Select(c => $"{c.Nombre} (Precio: ${c.Precio})")
+                    .ToListAsync();
+                
+                // 3. Formatear la respuesta para que la IA la identifique claramente
+                return string.Join("\n", componentes.Select(c => $"- {c}"));
             }
-
-                return Ok(new { texto = finalText.ToString() });
+            catch(Exception ex)
+            {
+                // Log del error para que puedas verlo en la consola de depuración
+                Console.WriteLine($"[ERROR BD]: {ex.Message}");
+                return "Error técnico al acceder al catálogo.";
+            }
         }
-    }
+    } // Fin del controlador
 
+    // DTO para recibir el mensaje del usuario
     public class ChatRequest
     {
         public required string Mensaje { get; set; }
     }
+    
 }
