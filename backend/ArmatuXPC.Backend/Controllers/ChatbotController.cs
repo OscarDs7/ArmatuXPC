@@ -77,9 +77,19 @@ namespace ArmatuXPC.Backend.Controllers
                 "4. Máximo 3-5 oraciones.\n" +
                 "5. No repitas palabras ni cortes términos.\n\n" +
 
-                "FORMATO DE RESPUESTA:\n" +
+                "FORMATO DE RESPUESTA ANTE RECOMENDACIONES:\n" +
                 "Recomendación 1:\n- Nombre:\n- Precio:\n- Descripción:\n\n" +
                 "Recomendación 2:\n- Nombre:\n- Precio:\n- Descripción:\n\n" +
+
+                "FORMATO DE RESPUESTA ANTE PREGUNTAS DE DESCRIPCIÓN O FUNCIONALIDAD:\n" +
+                "Respuesta:\n- Descripción:\n- Funcionalidad:\n\n" +
+
+                "FORMATO DE RESPUESTA ANTE PREGUNTAS NO RELACIONADAS CON LO TÉCNICO:\n" +
+                "Respuesta:\nNo estoy programado para responder preguntas externas de lo relacionado con la platforma.\n\n" +
+
+                "FORMATO DE RESPUESTA COMPATIBILIDAD:\n" +
+                "Componente 1:\n- Nombre:\n- Precio:\n- Descripción:\n -Compatibilidad:\n" +
+                "Componente 2:\n- Nombre:\n- Precio:\n- Descripción:\n -Compatibilidad:\n\n" +
 
                 "INVENTARIO DISPONIBLE:\n" +
                 (string.IsNullOrEmpty(contextoInventario)
