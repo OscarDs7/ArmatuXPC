@@ -12,8 +12,8 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ArmatuXPC.Backend.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260329235059_AddEsPublicadoToArmado")]
-    partial class AddEsPublicadoToArmado
+    [Migration("20260426163912_FixCapacidadWattsToDecimal")]
+    partial class FixCapacidadWattsToDecimal
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -33,11 +33,15 @@ namespace ArmatuXPC.Backend.Migrations
 
                     NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("ArmadoId"));
 
+                    b.Property<string>("AutorNombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<bool>("EsPublicado")
                         .HasColumnType("boolean");
 
                     b.Property<DateTime>("FechaCreacion")
-                        .HasColumnType("timestamp with time zone");
+                        .HasColumnType("timestamp without time zone");
 
                     b.Property<string>("NombreArmado")
                         .IsRequired()
@@ -114,6 +118,9 @@ namespace ArmatuXPC.Backend.Migrations
                     b.Property<decimal?>("ConsumoWatts")
                         .HasColumnType("decimal(10,2)");
 
+                    b.Property<bool>("EstaActivo")
+                        .HasColumnType("boolean");
+
                     b.Property<string>("ImagenUrl")
                         .HasColumnType("text");
 
@@ -140,6 +147,68 @@ namespace ArmatuXPC.Backend.Migrations
                     b.ToTable("Componentes");
                 });
 
+            modelBuilder.Entity("ArmatuXPC.Backend.Models.Usuario", b =>
+                {
+                    b.Property<string>("Uid")
+                        .HasColumnType("text");
+
+                    b.Property<string>("Correo")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<DateTime?>("FechaRegistro")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<string>("Nombre")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("Rol")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<int>("TokensDisponibles")
+                        .HasColumnType("integer");
+
+                    b.HasKey("Uid");
+
+                    b.ToTable("Usuarios");
+                });
+
+            modelBuilder.Entity("FeedbackUsuario", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Comentario")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<bool?>("CompletoSinAyuda")
+                        .HasColumnType("boolean");
+
+                    b.Property<DateTime>("Fecha")
+                        .HasColumnType("timestamp without time zone");
+
+                    b.Property<int>("Rating")
+                        .HasColumnType("integer");
+
+                    b.Property<string>("TipoHito")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.Property<string>("UsuarioUid")
+                        .IsRequired()
+                        .HasColumnType("text");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Feedbacks");
+                });
+
             modelBuilder.Entity("ArmatuXPC.Backend.Models.ArmadoComponente", b =>
                 {
                     b.HasOne("ArmatuXPC.Backend.Models.Armado", "Armado")
@@ -151,8 +220,7 @@ namespace ArmatuXPC.Backend.Migrations
                     b.HasOne("ArmatuXPC.Backend.Models.Componente", "Componente")
                         .WithMany("Armados")
                         .HasForeignKey("ComponenteId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("Armado");
 
@@ -164,14 +232,12 @@ namespace ArmatuXPC.Backend.Migrations
                     b.HasOne("ArmatuXPC.Backend.Models.Componente", "ComponenteA")
                         .WithMany()
                         .HasForeignKey("ComponenteAId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.HasOne("ArmatuXPC.Backend.Models.Componente", "ComponenteB")
                         .WithMany()
                         .HasForeignKey("ComponenteBId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.Restrict);
 
                     b.Navigation("ComponenteA");
 

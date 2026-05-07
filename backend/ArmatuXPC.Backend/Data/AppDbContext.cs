@@ -14,10 +14,16 @@ namespace ArmatuXPC.Backend.Data
         public DbSet<Compatibilidad> Compatibilidades { get; set; }
         public DbSet<ArmadoComponente> ArmadoComponentes { get; set; } // Tabla de unión para relación muchos a muchos entre Armado y Componente
         public DbSet<Usuario> Usuarios {get; set;}
+        public DbSet<FeedbackUsuario> Feedbacks { get; set; }
         
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            // BORRADO LÓGICO GLOBAL
+            // =========================
+            // Filtro global para componentes activos
+            modelBuilder.Entity<Componente>().HasQueryFilter(c => c.EstaActivo);
 
             // =========================
             // ARMADO - COMPONENTE (Many to Many)
@@ -35,7 +41,8 @@ namespace ArmatuXPC.Backend.Data
                 .HasOne(ac => ac.Componente)
                 .WithMany(c => c.Armados)
                 .HasForeignKey(ac => ac.ComponenteId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false); // 👈 SOLUCIÓN: Hacer la navegación opcional para evitar conflictos con el filtro
 
             // =========================
             // COMPATIBILIDAD
@@ -44,13 +51,16 @@ namespace ArmatuXPC.Backend.Data
                 .HasOne(c => c.ComponenteA)
                 .WithMany()
                 .HasForeignKey(c => c.ComponenteAId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false); // 👈 SOLUCIÓN
 
             modelBuilder.Entity<Compatibilidad>()
                 .HasOne(c => c.ComponenteB)
                 .WithMany()
                 .HasForeignKey(c => c.ComponenteBId)
-                .OnDelete(DeleteBehavior.Restrict);
+                .OnDelete(DeleteBehavior.Restrict)
+                .IsRequired(false); // 👈 SOLUCIÓN
+
         }
     }
 }

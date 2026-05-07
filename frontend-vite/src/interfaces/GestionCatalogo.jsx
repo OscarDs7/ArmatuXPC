@@ -39,19 +39,24 @@ export default function AgregarComponenteAdmin() {
   };
 
   // Construimos el objeto componente a enviar al backend, asegurándonos de convertir los campos numéricos a números y asignar la URL de la imagen si se ha subido correctamente
-  const buildComponente = (imagenUrl) => ({
-    nombre: nombre.trim(),
-    marca: marca.trim(),
-    modelo: modelo.trim(),
-    precio: parseFloat(precio),
-    tipo: tipo,
-    consumoWatts: parseFloat(consumoWatts),
-    capacidadWatts: capacidadWatts
-        ? Number(capacidadWatts)
-        : undefined,
-    ...(imagenUrl && { imagenUrl })
+  const buildComponente = (imagenUrl) => {
+    // 1. Validamos si es fuente de poder
+    const esFuente = tipo === "FuentePoder";
 
-    });
+    // 2. Retornamos todo el JSON de los atributos del nuevo componente a la BD
+    return {
+      nombre: nombre.trim(),
+      marca: marca.trim(),
+      modelo: modelo.trim(),
+      precio: Number(precio),
+      tipo: tipo,
+      consumoWatts: consumoWatts ? Number(consumoWatts) : 0,
+      // 2. Si es fuente, enviamos el número. Si NO, enviamos NULL obligatoriamente.
+      capacidadWatts: esFuente ? Number(capacidadWatts) : null,
+      imagenUrl: imagenUrl || "",
+      estaActivo: true 
+    };
+  };
 
     // Función que se ejecuta al enviar el formulario para agregar un nuevo componente. 
     // Se encarga de subir la imagen a Firebase Storage si se ha seleccionado un archivo, obtener la URL de la imagen y 
@@ -143,7 +148,7 @@ export default function AgregarComponenteAdmin() {
             <option value="Almacenamiento">Almacenamiento</option>
             <option value="FuentePoder">Fuente de poder</option>
             <option value="PlacaBase">Placa base</option>
-            <option valur="Refrigeracion">Refrigeracion</option>
+            <option value="Refrigeracion">Refrigeracion</option>
             <option value="Gabinete">Gabinete</option>
             </select>
 

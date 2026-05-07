@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Cpu, Users, Link, ArrowLeft } from "lucide-react";
+import { Cpu, Users, Link, ArrowLeft, MessageSquare} from "lucide-react";
 
 import ComponentesAdmin from "./monitoreo/ComponentesAdmin";
 import ArmadosUsuarios from "./monitoreo/ArmadosUsuarios";
 import CompatibilidadesAdmin from "./monitoreo/CompatibilidadesAdmin";
+import ComentariosUsuarios from "./monitoreo/ComentariosUsuarios";
 
 export default function MonitoreoLogistica({ onBack }) {
 
@@ -60,13 +61,25 @@ export default function MonitoreoLogistica({ onBack }) {
             </p>
           </div>
 
+          {/* COMENTARIOS (FEEDBACK) */}
+          <div 
+            onClick={() => setVista("comentarios")} 
+            className={`${cardStyle} bg-linear-to-br from-pink-500 to-pink-700`}
+          >
+            <MessageSquare size={40} />
+            <h2 className="text-xl font-semibold">Feedback de Usuarios</h2>
+            <p className="text-sm opacity-80">
+              Lee las opiniones y valoraciones de la plataforma
+            </p>
+          </div>
+
           {/* REGRESAR */}
           <div
             onClick={() => {
               if (onBack) onBack();
               else navigate("/dashboard-admin");
             }}
-            className={`${cardStyle} bg-slate-700 hover:bg-slate-600`}
+            className={`${cardStyle} bg-slate-700 hover:bg-slate-600 md:col-span-2 mx-auto w-full md:w-1/2 flex items-center text-center`}
           >
             <ArrowLeft size={40} />
             <h2 className="text-xl font-semibold">Regresar</h2>
@@ -89,6 +102,11 @@ export default function MonitoreoLogistica({ onBack }) {
       {vista === "compatibilidades" && (
         <CompatibilidadesAdmin onBack={() => setVista("menu")} />
       )}
+
+      {vista === "comentarios" && (
+        <ComentariosUsuarios onBack={() => setVista("menu")} />
+      )}
+
 
     </div>
   );

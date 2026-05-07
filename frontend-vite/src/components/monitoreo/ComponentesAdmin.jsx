@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { getComponentes, eliminarComponente, actualizarComponente } from "../../services/api";
+import { obtenerTodosLosComponentesAdmin, eliminarComponente, actualizarComponente, restaurarComponente } from "../../services/api";
 import "../../estilos/ComponentesAdmin.css";
 
 export default function ComponentesAdmin({ onBack }) {
@@ -13,11 +13,31 @@ export default function ComponentesAdmin({ onBack }) {
   const [filtroTipo, setFiltroTipo] = useState("todos");
   const [loading, setLoading] = useState(true);
 
+  // Mapeo de los datos para que suenen más naturales para el admin
+  const MAPEO_NOMBRES_TIPO = {
+  "cpu": "Procesador",
+  "gpu": "Tarjeta Gráfica",
+  "memoriaram": "Memoria RAM",
+  "almacenamiento": "Almacenamiento",
+  "fuentepoder": "Fuente de Poder",
+  "placabase": "Placa Base",
+  "gabinete": "Gabinete",
+  "refrigeracion": "Refrigeración"
+};
+
+// Función de formato para mostrar el nombre amigable del tipo en la tabla, pero sin modificar el valor real que se guarda en la BD
+const formatearTipo = (tipo) => {
+  if (!tipo) return "N/A";
+    const tipoNormalizado = tipo.toLowerCase().trim();
+    return MAPEO_NOMBRES_TIPO[tipoNormalizado] || tipo;
+};
+
+
   // Función para cargar la lista de componentes desde el backend
   const cargarComponentes = async () => {
     try {
       setLoading(true); // Iniciamos carga 
-      const data = await getComponentes();
+      const data = await obtenerTodosLosComponentesAdmin();
       setComponentes(data);
     } catch (error) {
       console.error("Error cargando componentes", error);
@@ -41,18 +61,44 @@ export default function ComponentesAdmin({ onBack }) {
     }
   }, [imagenSeleccionada]);
 
-    // Función para eliminar un componente por su ID
-    const handleEliminar = async (id) => {
-
-    if (!confirm("¿Eliminar componente?")) return;
+  // Función para dar de baja lógica a un componente
+  const handleEliminar = async (id) => {
+    if (!confirm("¿Estás seguro de desactivar este componente? No se borrará de la base de datos, pero no aparecerá en la tienda.")) return;
 
     try {
-        await eliminarComponente(id);
-        setComponentes(prev => prev.filter(c => c.componenteId !== id));
+      await eliminarComponente(id); // Llama a tu función de api.js (DELETE)
+      
+      // IMPORTANTE: En lugar de filtrar y quitarlo, actualizamos el estado local
+      setComponentes(prev => 
+        prev.map(c => c.componenteId === id ? { ...c, estaActivo: false } : c)
+      );
+      
+      alert("Componente desactivado con éxito.");
     } catch (error) {
-        console.error(error);
+      console.error("Error al desactivar:", error);
+      alert("No se pudo desactivar el componente.");
     }
-    }; // Fin handleEliminar
+  };
+
+  // Función para reactivar un componente
+  const handleRestaurar = async (id) => {
+    if (!confirm("¿Deseas activar este componente nuevamente para la tienda?")) return;
+
+    try {
+      // Necesitaremos crear esta función en api.js o usar un PUT genérico
+      await restaurarComponente(id); 
+      
+      // Actualizamos el estado local para que cambie a verde/Activo
+      setComponentes(prev => 
+        prev.map(c => c.componenteId === id ? { ...c, estaActivo: true } : c)
+      );
+      
+      alert("Componente restaurado con éxito.");
+    } catch (error) {
+      console.error("Error al restaurar:", error);
+      alert("Ocurrió un error al intentar restaurar.");
+    }
+  };
 
     // Función para iniciar la edición de una celda específica
     const iniciarEdicion = (componente, campo) => {
@@ -309,6 +355,7 @@ export default function ComponentesAdmin({ onBack }) {
             <th className="text-center">Modelo</th>
             <th className="text-center">Precio</th>
             <th className="text-center"> Energía (W)</th>
+            <th className="text-center">Estado</th>
             <th className="text-center">Acciones</th>
           </tr>
         </thead>
@@ -332,22 +379,36 @@ export default function ComponentesAdmin({ onBack }) {
                 )}
               </td>
               {renderCeldaEditable(c, "nombre")}
-              <td className="text-center">{c.tipo}</td>
+              <td className="text-center">{formatearTipo(c.tipo)}</td>
               {renderCeldaEditable(c, "marca")}
               {renderCeldaEditable(c, "modelo")}
               {renderCeldaEditable(c, "precio", "number")}
               {renderCeldaEditable(c, "energia", "number")} {/* "energia" activa la lógica especial */}
 
-            <td className="flex justify-center p-2">
+            {/* COLUMNA ESTADO 👈 */}
+            <td className="text-center">
+              <span className={`px-2 py-1 rounded text-xs font-bold ${c.estaActivo ? 'bg-green-900 text-green-300' : 'bg-red-900 text-red-300'}`}>
+                {c.estaActivo ? "Activo" : "Inactivo"}
+              </span>
+            </td>
 
-            <button
-              onClick={() => handleEliminar(c.componenteId)}
-              className="bg-red-600 px-3 py-1 rounded hover:bg-red-700 transition"
-            >
-              Eliminar
-            </button>
-
-          </td>
+            <td className="flex justify-center p-2 gap-2">
+                {c.estaActivo ? (
+                  <button
+                    onClick={() => handleEliminar(c.componenteId)}
+                    className="bg-red-600 px-3 py-1 rounded hover:bg-red-700 transition"
+                  >
+                    Desactivar
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleRestaurar(c.componenteId)} // Crearías esta función similar a eliminar pero poniendo true
+                    className="bg-green-600 px-3 py-1 rounded hover:bg-green-700 transition"
+                  >
+                    Activar
+                  </button>
+                )}
+            </td>
 
           </tr> 
 
@@ -368,7 +429,7 @@ export default function ComponentesAdmin({ onBack }) {
      <span className="mt-6 text-sm text-slate-400 text-center block">
         {filtroTipo === "todos" 
           ? `${componentesFiltrados.length} componentes en total` 
-          : `${componentesFiltrados.length} componentes de tipo "${filtroTipo.toUpperCase()}"`}
+          : `${componentesFiltrados.length} componentes de tipo "${formatearTipo(filtroTipo)}"`}
         
         {busqueda && ` (filtrados por: "${busqueda}")`}
       </span>

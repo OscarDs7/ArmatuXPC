@@ -1,6 +1,7 @@
 import { Routes, Route } from "react-router-dom";
 import { useState } from "react";
 import { Toaster } from "react-hot-toast";
+<<<<<<< HEAD
 
 import Chatbot from "./components/Chatbot";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -9,23 +10,37 @@ import MonitoreoLogistica from "./components/MonitoreoLogistica";
 
 import { MenuRoles } from "./interfaces/MenuRoles";
 import LoginUsuario from "./interfaces/LoginUser";
+=======
+import { MenuRoles } from "./interfaces/MenuRoles";
+
+/* Componentes para el funcionamiento completo y seguro de las interfaces */
+import Chatbot from "./components/Chatbot";
+import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
+
+/* Interfaces de Admin */
+import MonitoreoLogistica from "./components/MonitoreoLogistica";
+>>>>>>> origin/main
 import LoginAdmin from "./interfaces/LoginAdmin";
-import DashBoardAdmin from "./interfaces/DashBoardAdmin";
-import DashBoardUser from "./interfaces/DashBoardUser";
-import TestBackendBasico from "./interfaces/TestBackendBasico";
-import TestBackendMedio from "./interfaces/TestBackendMedio";
-import TestBackendCompleto from "./interfaces/TestBackendCompleto";
+import DashBoardAdmin from "./interfaces/DashBoardAdmin";;
 import GestionCuentasAdmin from "./interfaces/GestionCuentasAdmin";
 import AgregarComponenteAdmin from "./interfaces/GestionCatalogo";
 import CrearCuentaAdmin from "./interfaces/CrearCuentaAdmin";
 import AdministrarCuentas from "./interfaces/AdministrarCuentas";
 import MetricasReportes from "./interfaces/MetricasReportes";
-import PruebaThree from "./interfaces/PruebaThree";
+
+/* Interfaces de Usuario */
+import LoginUsuario from "./interfaces/LoginUser";
+import DashBoardUser from "./interfaces/DashBoardUser";
 import NuevoProyecto from "./interfaces/NuevoProyecto";
 import ProyectosExistentes from "./interfaces/ProyectosExistentes";
 import Comunidad from "./interfaces/Comunidad";
 import ComprarTokens from "./interfaces/ComprarTokens";
 import PagoExitoso from "./interfaces/PagoExitoso";
+<<<<<<< HEAD
+=======
+import QuienesSomos from "./interfaces/QuienesSomos";
+>>>>>>> origin/main
 
 import Memorias from "./interfaces/Memorias";
 import Placa from "./interfaces/Placa";
@@ -168,6 +183,7 @@ function App() {
           }
         />
 
+<<<<<<< HEAD
         {/* Backend tests */}
         <Route path="/test-backend-basico" element={<TestBackendBasico />} />
         <Route path="/test-backend-medio" element={<TestBackendMedio />} />
@@ -175,6 +191,16 @@ function App() {
 
         {/* Otros */}
         <Route path="/prueba-three" element={<PruebaThree />} />
+=======
+        <Route 
+          path="/quienes-somos"
+          element={
+            <ProtectedRoute>
+              <QuienesSomos />
+            </ProtectedRoute>
+          }
+        />
+>>>>>>> origin/main
 
         {/* Modelado */}
         <Route path="/Indice" element={<Indice />} />
@@ -187,12 +213,16 @@ function App() {
         <Route path="/Placa" element={<Placa />} />
       </Routes>
 
+<<<<<<< HEAD
       {/* 🔥 CHATBOT GLOBAL */}
       <Chatbot
         abierto={chatAbierto}
         setAbierto={setChatAbierto}
         endpoint="http://127.0.0.1:8000/chatbot"
       />
+=======
+      <Chatbot abierto={chatAbierto} setAbierto={setChatAbierto} />
+>>>>>>> origin/main
     </>
   );
 }
