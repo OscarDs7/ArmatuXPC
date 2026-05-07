@@ -12,3 +12,9 @@ backend/ArmatuXPC.Backend/bin/
 # Ignore configuration and secret files
 docker-compose*.yml
 docker-compose-development*.yml
+
+__pycache__/
+*.pyc
+node_modules/
+dist/
+.env
