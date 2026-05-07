@@ -187,7 +187,12 @@ function App() {
         <Route path="/Placa" element={<Placa />} />
       </Routes>
 
-      <Chatbot abierto={chatAbierto} setAbierto={setChatAbierto} />
+      {/* 🔥 CHATBOT GLOBAL */}
+      <Chatbot
+        abierto={chatAbierto}
+        setAbierto={setChatAbierto}
+        endpoint="http://127.0.0.1:8000/chatbot"
+      />
     </>
   );
 }
