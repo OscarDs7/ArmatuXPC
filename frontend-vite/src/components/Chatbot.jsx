@@ -56,9 +56,14 @@ export default function Chatbot({ abierto, setAbierto }) {
       { tipo: "bot", texto: "", id: botId }
     ]);
 
+    const historial = chat.map(msg => ({
+      rol: msg.tipo === "user" ? "user" : "assistant",
+      contenido: msg.texto
+    }));
+
     try {
       // Esperamos la respuesta completa del chatbot (con simulación de streaming)
-      const data = await enviarMensajeChatbot(textoAEnviar);
+      const data = await enviarMensajeChatbot(textoAEnviar, historial);
 
       // EFECTO TYPEWRITER (tipo ChatGPT)
       await escribirTexto(data.texto, botId);
