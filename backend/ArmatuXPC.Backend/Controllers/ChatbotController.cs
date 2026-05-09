@@ -76,6 +76,14 @@ namespace ArmatuXPC.Backend.Controllers
                 "3. Responde en español, técnico y amigable.\n" +
                 "4. Máximo 3-5 oraciones.\n" +
                 "5. No repitas palabras ni cortes términos.\n\n" +
+                "6. Explica por qué recomiendas cada opción.\n" +
+                "7. Considera compatibilidad entre componentes.\n" +
+                "8. Pregunta el uso del usuario si falta contexto.\n\n" +
+
+                "IMPORTANTE:\n" +
+                " No inventes productos, habla de los productos disponibles. Si no hay stock, sugiere alternativas externas.\n" +
+                " Si el usuario menciona una motherboard, analiza compatibilidad.\n" +
+                " Mantén contexto de mensajes anteriores.\n\n" +
 
                 "FORMATO DE RESPUESTA ANTE RECOMENDACIONES:\n" +
                 "Recomendación 1:\n- Nombre:\n- Precio:\n- Descripción:\n\n" +
@@ -95,15 +103,44 @@ namespace ArmatuXPC.Backend.Controllers
                 (string.IsNullOrEmpty(contextoInventario)
                     ? "SIN STOCK"
                     : contextoInventario);
+            
+            // Construir historial conversacional
+            var historialBuilder = new StringBuilder();
+            
+            // Agregar el historial de la conversación al mensaje para que Ollama tenga contexto de lo que se ha hablado antes. El formato es el mismo que el que se le da a Ollama, con los roles y delimitadores.
+            if (request.Historial != null)
+            {
+                // Recorremos cada mensaje del historial y lo formateamos para que Ollama lo entienda, usando los mismos delimitadores que en el prompt principal
+                foreach (var msg in request.Historial)
+                {
+                    historialBuilder.Append(
+                        $"<|start_header_id|>{msg.Rol}<|end_header_id|>\n\n" +
+                        $"{msg.Contenido}<|eot_id|>"
+                    );
+                }
+            }
                         
             // Construimos el payload para Ollama, incluyendo el contexto del sistema
             var payload = new
             {
                 model = "llama3.2",
                 // El formato exacto que Llama 3.2 reconoce:
-                prompt = $"<|begin_of_text|><|start_header_id|>system<|end_header_id|>\n\n{systemInstruction}<|eot_id|>" +
-                        $"<|start_header_id|>user<|end_header_id|>\n\n{request.Mensaje}<|eot_id|>" +
-                        $"<|start_header_id|>assistant<|end_header_id|>\n\n",
+               prompt =
+                    $"<|begin_of_text|>" +
+
+                    // SYSTEM
+                    $"<|start_header_id|>system<|end_header_id|>\n\n" +
+                    $"{systemInstruction}<|eot_id|>" +
+
+                    // HISTORIAL COMPLETO
+                    historialBuilder.ToString() +
+
+                    // NUEVO MENSAJE
+                    $"<|start_header_id|>user<|end_header_id|>\n\n" +
+                    $"{request.Mensaje}<|eot_id|>" +
+
+                    // RESPUESTA DEL ASSISTANT
+                    $"<|start_header_id|>assistant<|end_header_id|>\n\n",
                 options = new { temperature = 0.2, num_predict = 400, top_p = 0.9, stop = new[] { "<|eot_id|>", "<|start_header_id|>" } },
                 stream = false
             };
@@ -174,7 +211,16 @@ namespace ArmatuXPC.Backend.Controllers
     // DTO para recibir el mensaje del usuario
     public class ChatRequest
     {
-        public required string Mensaje { get; set; }
+        public required string Mensaje { get; set; } // El mensaje que el usuario envía al chatbot
+
+        public List<MensajeChat>? Historial { get; set; }
+
+    }
+    // DTO para representar cada mensaje en el historial de la conversación, con su rol (usuario o asistente) y su contenido
+    public class MensajeChat
+    {
+        public string Rol { get; set; } = "";
+        public string Contenido { get; set; } = "";
     }
     
 }
