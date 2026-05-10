@@ -437,7 +437,7 @@ export default function ProyectosExistentes() {
             <button className="btn-cerrar" onClick={cerrarModal}>X</button>
 
             <div className="modal-header">
-              <h2>{proyectoSeleccionado.nombreArmado}</h2>
+              <h2 className="name-project">{proyectoSeleccionado.nombreArmado}</h2>
             </div>
 
             <table className="tabla-detalles">
