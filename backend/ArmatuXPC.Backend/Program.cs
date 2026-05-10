@@ -6,6 +6,7 @@ using System.Text.Json.Serialization;
 using ArmatuXPC.Backend.Services.Armados;
 using Google.Cloud.Firestore;
 using Stripe;
+using ArmatuXPC.Backend.Services;
 
 // 1. Cargar el archivo .env ANTES de cualquier otra cosa
 Env.Load(); 
@@ -57,6 +58,7 @@ builder.Services.AddSwaggerGen();
 // --- SERVICIOS DE NEGOCIO ---
 builder.Services.AddScoped<IArmadoValidationService, ArmadoValidationService>();
 builder.Services.AddScoped<IArmadoEnergiaService, ArmadoEnergiaService>();
+builder.Services.AddScoped<CompatibilidadService>();
 
 // --- BASE DE DATOS (PostgreSQL) ---
 builder.Services.AddDbContext<AppDbContext>(options =>
