@@ -58,7 +58,7 @@ namespace ArmatuXPC.Backend.Controllers
                 c.ComponenteBId == dto.ComponenteAId));
 
             if (existe)
-                return BadRequest("Ya existe una regla entre estos componentes.");
+                 return BadRequest(new { message = "Ya existe una regla de compatibilidad definida entre estos dos componentes." });
 
             var compatibilidad = new Compatibilidad
             {
@@ -199,6 +199,19 @@ namespace ArmatuXPC.Backend.Controllers
                 System.Diagnostics.Debug.WriteLine($"Fallo en buscar-tipo: {ex.Message}");
                 return StatusCode(500, new { mensaje = "Error interno", detalle = ex.Message });
             }
+        }
+
+        [HttpGet("buscarReglas/{componenteId}")]
+        public async Task<ActionResult<IEnumerable<Compatibilidad>>> GetRelacionesPorComponente(int componenteId)
+        {
+            // Buscamos reglas donde el componente sea A o B para obtener la conexión completa
+            var reglas = await _context.Compatibilidades
+                .Include(c => c.ComponenteA)
+                .Include(c => c.ComponenteB)
+                .Where(c => c.ComponenteAId == componenteId || c.ComponenteBId == componenteId)
+                .ToListAsync();
+
+            return Ok(reglas);
         }
     }
 }
