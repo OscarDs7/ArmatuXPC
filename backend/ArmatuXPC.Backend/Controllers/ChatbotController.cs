@@ -51,222 +51,101 @@ namespace ArmatuXPC.Backend.Controllers
                 contextoInventario = await ObtenerTodoElInventario();
             }
 
-            // 1. Detección de intención para consultar la base de datos del negocio
-            // Diccionario de sinónimos para mapear palabras del usuario a tus Enums
-            if (mensajeUsuario.Contains("procesador") || mensajeUsuario.Contains("cpu"))
-            {
-                contextoInventario = await ConsultarInventarioInterno("CPU");
-            }
-            else if (mensajeUsuario.Contains("memoria ram") || mensajeUsuario.Contains("ram"))
-            {
-                contextoInventario = await ConsultarInventarioInterno("MemoriaRAM");
-            }
-            else if (mensajeUsuario.Contains("tarjeta gráfica") || mensajeUsuario.Contains("gpu"))
-            {
-                contextoInventario = await ConsultarInventarioInterno("GPU");
-            }
-            else if (mensajeUsuario.Contains("disco duro") || mensajeUsuario.Contains("ssd") || mensajeUsuario.Contains("hdd"))
-            {
-                contextoInventario = await ConsultarInventarioInterno("Almacenamiento");
-            }
-            else if (mensajeUsuario.Contains("placa base") || mensajeUsuario.Contains("motherboard") || mensajeUsuario.Contains("tarjeta madre"))
-            {
-                contextoInventario = await ConsultarInventarioInterno("PlacaBase");
-            }
-            else if (mensajeUsuario.Contains("fuente de alimentación")  || mensajeUsuario.Contains("fuente de poder") || mensajeUsuario.Contains("fuente") || mensajeUsuario.Contains("psu"))
-            {
-                contextoInventario = await ConsultarInventarioInterno("FuentePoder");
-            }
-            else if (mensajeUsuario.Contains("refrigeración") || mensajeUsuario.Contains("cooler") || mensajeUsuario.Contains("ventilador") || mensajeUsuario.Contains("disipador"))
-            {
-                contextoInventario = await ConsultarInventarioInterno("Refrigeracion");
-            }
-            else if (mensajeUsuario.Contains("caja") || mensajeUsuario.Contains("gabinete") || mensajeUsuario.Contains("case"))
-            {
-                contextoInventario = await ConsultarInventarioInterno("Gabinete");
-            }
+            // --- LÓGICA DE DETECCIÓN DE INTENCIÓN Y CONSTRUCCIÓN DE CONTEXTO ---
 
-            //  Buscar si el usuario mencionó un componente exacto
-           string mensajeNormalizado = mensajeUsuario
-                .ToLower()
-                .Replace("-", " ")
-                .Trim();
+            // 1. Detectar el componente "Ancla" (¿De qué pieza estamos hablando?)
+            var componentesDetectados = await DetectarComponenteDesdeHistorial(request.Mensaje, request.Historial);
+            var componenteAncla = componentesDetectados.FirstOrDefault();
 
-            var componentesDetectados =
-                await DetectarComponenteDesdeHistorial(
-                    request.Mensaje,
-                    request.Historial);
-
+            // 2. Detectar qué categoría de producto está buscando el usuario
+            string? categoriaBuscada = DetectarCategoriaBuscada(mensajeUsuario);
 
             // --- LÓGICA AL PRESIONAR UN BOTÓN DE OPCIONES -- //
-            bool esSeleccionBoton = false;
-            if (componentesDetectados.Any())
-            {
-                esSeleccionBoton =
-                    componentesDetectados.Any(c =>
-                        Normalizar(c.Nombre) ==
-                        Normalizar(request.Mensaje));
-            }
-
+            bool esSeleccionBoton = componenteAncla != null && Normalizar(componenteAncla.Nombre) == Normalizar(request.Mensaje);
             if (esSeleccionBoton)
             {
-                var componente = componentesDetectados.First();
-
                 return Ok(new
                 {
-                    texto =
-                        $"{componente.Nombre} | Precio: ${componente.Precio}",
+                    texto = $"{componenteAncla?.Nombre} | Precio: ${componenteAncla?.Precio}",
                     opciones = new List<string>()
                 });
             }
-            // FIN DE LÓGICA //
+            // FIN DE LÓGICA DE BOTONES //
 
-            // Si se detectó un componente específico, consultamos su compatibilidad para enriquecer el contexto
-            if (componentesDetectados.Any())
+            // 3. Construcción inteligente del Inventario (Filtrado por BD)
+            if (mensajeUsuario.Contains("stock") || mensajeUsuario.Contains("catálogo") || mensajeUsuario.Contains("inventario"))
             {
-                contextoCompatibilidad = "";
-                componentesBotones.Clear();
+                // Consulta general de todo el catálogo
+                contextoInventario = await ObtenerTodoElInventario();
+            }
+            else if (componenteAncla != null && categoriaBuscada != null)
+            {   
+                Console.WriteLine($"DEBUG: Buscando compatibles para ID: {componenteAncla.ComponenteId} - Tipo: {categoriaBuscada}");
+                Console.WriteLine($"DEBUG - Inventario enviado a IA: {contextoInventario}");
+                // CASO IDEAL: El usuario tiene una pieza (ej. i7 14700k) y busca otra (ej. PlacaBase)
+                var compatibles = await _compatibilidadService.ObtenerCompatibles(componenteAncla.ComponenteId, categoriaBuscada);
 
-                contextoInventario =
-                    string.Join("\n",
-                        componentesDetectados.Select(c =>
-                            $"- {c.Nombre} | Tipo: {c.Tipo} | Precio: ${c.Precio}"
-                        ));
-
-                string? tipoDestino = null;
-
-                if (mensajeUsuario.Contains("placa") ||
-                    mensajeUsuario.Contains("motherboard") ||
-                    mensajeUsuario.Contains("tarjeta madre"))
+                if (compatibles.Any())
                 {
-                    tipoDestino = "PlacaBase";
+                    // Le damos a Ollama SOLO lo que sirve
+                    contextoInventario = string.Join("\n", compatibles.Select(c => 
+                        $"- {c.Nombre} | Tipo: {c.Tipo} | Precio: ${c.Precio} | Motivo: {c.Motivo}"));
+                    contextoCompatibilidad = $"Estos componentes son estrictamente compatibles con {componenteAncla.Nombre}.";
+                    
+                    componentesBotones.AddRange(compatibles.Select(c => c.Nombre).Take(5));
                 }
-                else if (mensajeUsuario.Contains("ram"))
+                else
                 {
-                    tipoDestino = "MemoriaRAM";
+                    contextoInventario = "SIN STOCK";
+                    contextoCompatibilidad = $"No existen {categoriaBuscada} compatibles con {componenteAncla.Nombre} en nuestro catálogo actual.";
                 }
-                else if (mensajeUsuario.Contains("gpu"))
-                {
-                    tipoDestino = "GPU";
-                }
-                else if (mensajeUsuario.Contains("cpu") ||
-                        mensajeUsuario.Contains("procesador"))
-                {
-                    tipoDestino = "CPU";
-                }
-                else if (mensajeUsuario.Contains("disco") ||
-                        mensajeUsuario.Contains("ssd") ||
-                        mensajeUsuario.Contains("hdd"))
-                {
-                    tipoDestino = "Almacenamiento";
-                }
-                else if (mensajeUsuario.Contains("fuente") ||
-                        mensajeUsuario.Contains("psu"))
-                {
-                    tipoDestino = "FuentePoder";
-                }
-                else if (mensajeUsuario.Contains("cooler") ||
-                        mensajeUsuario.Contains("refrigeración"))
-                {
-                    tipoDestino = "Refrigeracion";
-                }
-                else if (mensajeUsuario.Contains("gabinete") ||
-                        mensajeUsuario.Contains("case"))
-                {
-                    tipoDestino = "Gabinete";
-                }
-
-                if (tipoDestino != null)
-                {
-                    foreach (var componenteDetectado in componentesDetectados)
-                    {
-                        var compatibles =
-                            await _compatibilidadService.ObtenerCompatibles(
-                                componenteDetectado.ComponenteId,
-                                tipoDestino);
-
-                        if (compatibles.Any())
-                        {
-                            contextoCompatibilidad +=
-                                $"\nCOMPATIBLES PARA {componenteDetectado.Nombre}:\n";
-
-                            contextoCompatibilidad +=
-                                string.Join("\n",
-                                    compatibles.Select(c =>
-                                        $"- {c.Nombre} (${c.Precio}) | {c.Motivo}"
-                                    ));
-
-                            contextoCompatibilidad += "\n";
-
-                            componentesBotones.AddRange(
-                                compatibles.Select(c => c.Nombre));
-                        }
-                    }
-
-                    componentesBotones = componentesBotones
-                        .Distinct()
-                        .Take(5)
-                        .ToList();
-
-                    if (string.IsNullOrWhiteSpace(contextoCompatibilidad))
-                    {
-                        contextoCompatibilidad =
-                            "No existen componentes compatibles registrados.";
-                    }
-                }
-            } // Fin de la detección de componentes específicos y enriquecimiento del contexto de compatibilidad
+            }
+            else if (categoriaBuscada != null)
+            {
+                // El usuario pregunta por una categoría ("¿qué motherboards tienes?") pero no ha elegido procesador aún
+                contextoInventario = await ConsultarInventarioInterno(categoriaBuscada);
+                contextoCompatibilidad = "El usuario está explorando. Sugiérele que elija un procesador primero para garantizar la compatibilidad.";
+            }
+            else if (componenteAncla != null)
+            {
+                // El usuario solo mencionó una pieza sin pedir otra cosa específica
+                contextoInventario = $"- {componenteAncla.Nombre} | Tipo: {componenteAncla.Tipo} | Precio: ${componenteAncla.Precio}";
+            }
 
             // 2. Construcción del mensaje para Ollama, incluyendo el contexto del inventario si se detectó una intención relevante
             // Definir la instrucción con jerarquía de datos
            string systemInstruction =
-                "Eres el experto técnico de ArmatuXPC.\n\n" +
+                "Eres el experto técnico de ArmatuXPC. Tu objetivo es asesorar con precisión sobre hardware de PC y guiar paso a paso en el armado del usuario de manera personalizada.\n\n" +
 
-                "REGLAS:\n" +
-                "1. Prioriza productos del inventario.\n" +
-                "2. Si no hay stock, sugiere alternativas externas.\n" +
-                "3. Responde en español, técnico y amigable.\n" +
-                "4. Máximo 3-5 oraciones.\n" +
-                "5. No repitas palabras ni cortes términos.\n\n" +
-                "6. Explica por qué recomiendas cada opción.\n" +
-                "7. Considera compatibilidad real entre componentes.\n" +
-                "8. Pregunta el uso del usuario si falta contexto.\n\n" +
+                // 1. REGLA DE ORO para que sea más limitante:
+                "Tu regla de oro es: PROHIBIDO INVENTAR COMPONENTES. Si un componente no está en la lista de 'INVENTARIO DISPONIBLE', para ti NO EXISTE.\n" +
 
-                "IMPORTANTE:\n" +
-                "SOLO puedes responder usando información presente en INVENTARIO DISPONIBLE y COMPATIBILIDADES REALES.\n" +
-                "NO inventes componentes.\n" +
-                "NO uses conocimiento externo salvo que el usuario lo solicite explícitamente.\n" +
-                "Si un producto no existe en INVENTARIO DISPONIBLE, di claramente que no existe en el catálogo.\n\n" +
-                "Si COMPATIBILIDADES REALES está vacío, responde exactamente: 'No hay compatibilidades registradas en el catálogo.'\n" +
-                "No inventes motherboards, sockets, chipsets ni compatibilidades.\n" +
-                "SI EXISTEN COMPONENTES COMPATIBLES:\n" +
-                "RESPONDE ÚNICAMENTE CON LOS COMPONENTES COMPATIBLES ENTREGADOS."+
-                "SI NO EXISTEN:" +
-                "RESPONDE:" +
-                "No existen componentes compatibles registrados.\n\n" +
+                // 2. Modifica las REGLAS CRÍTICAS DE CONTROL (Elimina la opción de sugerir externos por defecto):
+                "- SOBRE COMPONENTES EXTERNOS: PROHIBIDO sugerir componentes externos de forma proactiva. Solo si el usuario pregunta explícitamente '¿Qué me recomiendas que no tengas en stock?', puedes mencionar uno, advirtiendo que NO está en la tienda.\n" +
+                "- RIGIDEZ DE LISTADO: Si en 'COMPATIBILIDADES REALES' solo hay 1 producto, muestra SOLO 1 recomendación. No intentes completar una lista de 3 o 4 opciones si no están en los datos proporcionados.\n" +
 
-                "FORMATO DE RESPUESTA ANTE RECOMENDACIONES:\n" +
-                "Recomendación 1:\n- Nombre:\n- Precio:\n- Descripción:\n\n" +
-                "Recomendación 2:\n- Nombre:\n- Precio:\n- Descripción:\n\n" +
+                // 3. Añade una instrucción de "Verdad de Fuente":
+                "- COMPARACIÓN DE DATOS: Si el nombre de un componente en 'INVENTARIO DISPONIBLE' no tiene una regla que diga 'esCompatible: true' en 'COMPATIBILIDADES REALES' respecto al componente seleccionado, IGNÓRALO.\n" +
 
-                "FORMATO DE RESPUESTA ANTE PREGUNTAS DE DESCRIPCIÓN O FUNCIONALIDAD:\n" +
-                "Respuesta:\n- Descripción:\n- Funcionalidad:\n\n" +
+                "ORDEN DE PRIORIDAD PARA RESPONDER:\n" +
+                "1. COMPATIBILIDAD TÉCNICA (SOCKET/CHIPSET): Antes de recomendar, verifica que el componente sea físicamente compatible (ej. No mezclar Intel LGA1700 con AMD AM5). Si no estás seguro, no lo afirmes.\n" +
+                "2. INVENTARIO INTERNO: Recomienda SOLO productos que aparezcan en 'INVENTARIO DISPONIBLE'.\n" +
+                "3. COMPATIBILIDADES REALES: Si esta sección contiene datos, úsalos como verdad absoluta para validar el inventario.\n\n" +
 
-                "FORMATO DE RESPUESTA ANTE PREGUNTAS NO RELACIONADAS CON LO TÉCNICO:\n" +
-                "Respuesta:\nNo estoy programado para responder preguntas externas de lo relacionado con la platforma.\n\n" +
+                "REGLAS CRÍTICAS DE CONTROL:\n" +
+                "- SI HAY COMPONENTES EN EL INVENTARIO PERO NO SON COMPATIBLES: No los menciones. Di: 'Actualmente no tenemos stock en nuestro catálogo que sea compatible con ese componente'.\n" +
+                "- SI NO HAY DATOS EN 'COMPATIBILIDADES REALES': No asumas compatibilidad por tu cuenta con productos del inventario. Limítate a decir que no hay compatibilidades registradas.\n" +
 
-                "FORMATO DE RESPUESTA COMPATIBILIDAD:\n" +
-                "Componente 1:\n- Nombre:\n- Precio:\n- Descripción:\n -Compatibilidad:\n" +
-                "Componente 2:\n- Nombre:\n- Precio:\n- Descripción:\n -Compatibilidad:\n\n" +
+                "FORMATO DE RESPUESTA (OBLIGATORIO):\n" +
+                "Para productos del catálogo:\n" +
+                "Recomendación [Número]:\n- Nombre: [Nombre exacto]\n- Precio: [Precio]\n- Descripción: [Breve explicación técnica]\n\n" +
+                
+                "Para productos externos (Solo si es necesario):\n" +
+                "Alternativa Externa (No disponible en stock):\n- Nombre:\n- Descripción: [Por qué es compatible]\n\n" +
 
-                "INVENTARIO DISPONIBLE:\n" +
-                (string.IsNullOrEmpty(contextoInventario)
-                    ? "SIN STOCK"
-                    : contextoInventario) +
-                "\n\n" +
-                "\n\nCOMPATIBILIDADES REALES:\n" +
-                (string.IsNullOrEmpty(contextoCompatibilidad)
-                    ? "Sin datos de compatibilidad."
-                    : contextoCompatibilidad) ;
+                "CONTEXTO ACTUAL:\n" +
+                "INVENTARIO DISPONIBLE:\n" + (string.IsNullOrEmpty(contextoInventario) ? "SIN STOCK" : contextoInventario) + "\n" +
+                "COMPATIBILIDADES REALES:\n" + (string.IsNullOrEmpty(contextoCompatibilidad) ? "Sin datos de compatibilidad registrados." : contextoCompatibilidad);
                 
             
             // Construir historial conversacional
@@ -357,6 +236,8 @@ namespace ArmatuXPC.Backend.Controllers
                 return "Error al consultar inventario.";
             }
         }
+
+        // Método para consultar los componentes del inventario
         private async Task<string> ConsultarInventarioInterno(string tipoStr)
         {
             try 
@@ -384,6 +265,29 @@ namespace ArmatuXPC.Backend.Controllers
                 Console.WriteLine($"[ERROR BD]: {ex.Message}");
                 return "Error técnico al acceder al catálogo.";
             }
+        }
+
+        // Método auxiliar para detección inteligente de categorías de componentes
+        private string? DetectarCategoriaBuscada(string mensaje)
+        {
+            if (mensaje.Contains("placa") || mensaje.Contains("motherboard") || mensaje.Contains("tarjeta madre"))
+                return "PlacaBase";
+            if (mensaje.Contains("procesador") || mensaje.Contains("cpu"))
+                return "CPU";
+            if (mensaje.Contains("memoria ram") || mensaje.Contains("ram"))
+                return "MemoriaRAM";
+            if (mensaje.Contains("tarjeta gráfica") || mensaje.Contains("gpu") || mensaje.Contains("video"))
+                return "GPU";
+            if (mensaje.Contains("disco") || mensaje.Contains("ssd") || mensaje.Contains("hdd") || mensaje.Contains("almacenamiento"))
+                return "Almacenamiento";
+            if (mensaje.Contains("fuente") || mensaje.Contains("psu") || mensaje.Contains("poder"))
+                return "FuentePoder";
+            if (mensaje.Contains("refrigeración") || mensaje.Contains("cooler") || mensaje.Contains("ventilador") || mensaje.Contains("disipador"))
+                return "Refrigeracion";
+            if (mensaje.Contains("caja") || mensaje.Contains("gabinete") || mensaje.Contains("case"))
+                return "Gabinete";
+
+            return null;
         }
 
         // -- MÉTODOS AUXILIARES PARA DETECCIÓN DE COMPONENTES EN EL MENSAJE --
