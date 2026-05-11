@@ -131,7 +131,6 @@ export const getCompatiblesComponente = async (id) => {
   return await response.json();
 };
 
-// Añade esto a tu archivo api.js
 export const guardarCompatibilidad = async (compatibilidad) => {
   const response = await fetch(`${API_URL}/Compatibilidades`, {
     method: "POST",
@@ -140,9 +139,16 @@ export const guardarCompatibilidad = async (compatibilidad) => {
   });
 
   if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData || "Error al guardar la regla de compatibilidad");
+    // 1. Intentamos obtener el JSON de error
+    const errorData = await response.json().catch(() => null);
+    
+    // 2. Extraemos el mensaje (ajusta 'message' o 'title' según tu backend de .NET)
+    const mensajeLimpio = errorData?.message || errorData?.title || "Error al guardar la regla";
+    
+    // 3. Lanzamos el error con un STRING, no con el objeto completo
+    throw new Error(mensajeLimpio);
   }
+  
   return response.json();
 };
 
@@ -162,13 +168,30 @@ export const actualizarCompatibilidad = async (id, compatibilidad) => {
   });
 
   if (!response.ok) {
-    const errorText = await response.text();
-    throw new Error(errorText || "Error al actualizar la regla");
+    let errorMsg = "Error al actualizar la regla";
+    try {
+      const errorData = await response.json();
+      // ASP.NET suele mandar los errores en errorData.title o errorData.errors
+      errorMsg = errorData.message || errorData.title || JSON.stringify(errorData);
+    } catch {
+      // Si no es JSON, intentamos leerlo como texto plano
+      const text = await response.text();
+      errorMsg = text || errorMsg;
+    }
+    throw new Error(errorMsg);
   }
   
   // El controlador devuelve NoContent (204), así que no intentamos parsear JSON
   return true; 
 };
+
+export const buscarReglasPorComponente = async (id) => {
+  const response = await fetch(`${API_URL}/Compatibilidades/buscarReglas/${id}`);
+  if (!response.ok) throw new Error("Error al filtrar las reglas");
+  return await response.json();
+};
+
+// FIN-MÉTODOS-COMPATIBILIDADES
 
 // Método para obtener sugerencias de componentes compatibles con el componente que tuvo incompatibilidad con otro
 export const obtenerSugerenciasParaError = async (id) => {
