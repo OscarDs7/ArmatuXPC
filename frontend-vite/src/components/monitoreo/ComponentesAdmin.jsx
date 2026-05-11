@@ -307,7 +307,7 @@ const formatearTipo = (tipo) => {
         onClick={() => setFiltroTipo("almacenamiento")}
         className={`px-3 py-1 rounded ${filtroTipo === "almacenamiento" ? "bg-blue-600" : "bg-slate-700"}`}
       >
-        SSD
+        Almacenamiento
       </button>
 
       <button
