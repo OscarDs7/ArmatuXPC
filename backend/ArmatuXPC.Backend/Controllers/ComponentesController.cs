@@ -57,6 +57,10 @@ namespace ArmatuXPC.Backend.Controllers
                 Tipo = c.Tipo,
                 ConsumoWatts = c.ConsumoWatts,
                 CapacidadWatts = c.CapacidadWatts,
+                Socket = c.Socket,
+                TipoMemoria = c.TipoMemoria,
+                Chipset = c.Chipset,
+                FactorForma = c.FactorForma,
                 ImagenUrl = c.ImagenUrl,
                 EstaActivo = c.EstaActivo
             });
@@ -78,6 +82,10 @@ namespace ArmatuXPC.Backend.Controllers
                     Tipo = c.Tipo,
                     ConsumoWatts = c.ConsumoWatts,
                     CapacidadWatts = c.CapacidadWatts,
+                    Socket = c.Socket,
+                    TipoMemoria = c.TipoMemoria,
+                    Chipset = c.Chipset,
+                    FactorForma = c.FactorForma,
                     ImagenUrl = c.ImagenUrl
                 })
                 .FirstOrDefaultAsync();
@@ -107,6 +115,10 @@ namespace ArmatuXPC.Backend.Controllers
                 Tipo = dto.Tipo,
                 ConsumoWatts = dto.ConsumoWatts,
                 CapacidadWatts = dto.CapacidadWatts,
+                Socket = dto.Socket,
+                TipoMemoria = dto.TipoMemoria,
+                Chipset = dto.Chipset,
+                FactorForma = dto.FactorForma,
                 ImagenUrl = dto.ImagenUrl,
                 EstaActivo = dto.EstaActivo
             };
@@ -141,6 +153,10 @@ namespace ArmatuXPC.Backend.Controllers
             componente.Tipo = dto.Tipo;
             componente.ConsumoWatts = dto.ConsumoWatts;
             componente.CapacidadWatts = dto.CapacidadWatts;
+            componente.Socket = dto.Socket;
+            componente.TipoMemoria = dto.TipoMemoria;
+            componente.Chipset = dto.Chipset;
+            componente.FactorForma = dto.FactorForma;
 
             await _context.SaveChangesAsync();
 

@@ -97,6 +97,10 @@ namespace ArmatuXPC.Backend.Controllers
                             Precio = ac.Componente.Precio,
                             ConsumoWatts = ac.Componente.ConsumoWatts,
                             CapacidadWatts = ac.Componente.CapacidadWatts,
+                            Socket = ac.Componente.Socket,
+                            TipoMemoria = ac.Componente.TipoMemoria,
+                            Chipset = ac.Componente.Chipset,
+                            FactorForma = ac.Componente.FactorForma,
                             Cantidad = ac.Cantidad,
                             ImagenUrl = ac.Componente.ImagenUrl
                         })
@@ -132,7 +136,11 @@ namespace ArmatuXPC.Backend.Controllers
                             Cantidad = ac.Cantidad,
                             ImagenUrl = ac.Componente.ImagenUrl,
                             ConsumoWatts = ac.Componente.ConsumoWatts,
-                            CapacidadWatts = ac.Componente.CapacidadWatts
+                            CapacidadWatts = ac.Componente.CapacidadWatts,
+                            Socket = ac.Componente.Socket,
+                            TipoMemoria = ac.Componente.TipoMemoria,
+                            Chipset = ac.Componente.Chipset,
+                            FactorForma = ac.Componente.FactorForma,
                         })
                     })
                     .ToListAsync();
@@ -419,6 +427,10 @@ namespace ArmatuXPC.Backend.Controllers
                         // Usamos el operador de coalescencia para manejar nulos
                         ConsumoWatts = c.Componente.ConsumoWatts ?? 0,
                         CapacidadWatts = c.Componente.CapacidadWatts ?? 0, 
+                        Socket = c.Componente.Socket,
+                        TipoMemoria = c.Componente.TipoMemoria,
+                        Chipset = c.Componente.Chipset,
+                        FactorForma = c.Componente.FactorForma,
                         Cantidad = c.Cantidad,
                         ImagenUrl = c.Componente.ImagenUrl ?? ""
                     }).ToList()
