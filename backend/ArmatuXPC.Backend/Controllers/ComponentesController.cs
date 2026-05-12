@@ -45,7 +45,7 @@ namespace ArmatuXPC.Backend.Controllers
         }
 
         // Método auxiliar para no repetir el código del 'Select'
-        private IQueryable<ComponenteDto> ProyectarADto(IQueryable<Componente> query)
+        private static IQueryable<ComponenteDto> ProyectarADto(IQueryable<Componente> query)
         {
             return query.Select(c => new ComponenteDto
             {
@@ -66,29 +66,13 @@ namespace ArmatuXPC.Backend.Controllers
             });
         }
         
-        // GET: api/Componentes/5 -> Recibe un 'Componente' específico por su ID
+        // GET: api/Componentes/5 -> Recibe un 'Componente' específico por su ID reutilizando método auxiliar
         [HttpGet("{id}")]
         public async Task<ActionResult<ComponenteDto>> GetComponente(int id)
         {
-            var componente = await _context.Componentes
-                .Where(c => c.ComponenteId == id)
-                .Select(c => new ComponenteDto
-                {
-                    ComponenteId = c.ComponenteId,
-                    Nombre = c.Nombre,
-                    Marca = c.Marca,
-                    Modelo = c.Modelo,
-                    Precio = c.Precio,
-                    Tipo = c.Tipo,
-                    ConsumoWatts = c.ConsumoWatts,
-                    CapacidadWatts = c.CapacidadWatts,
-                    Socket = c.Socket,
-                    TipoMemoria = c.TipoMemoria,
-                    Chipset = c.Chipset,
-                    FactorForma = c.FactorForma,
-                    ImagenUrl = c.ImagenUrl
-                })
-                .FirstOrDefaultAsync();
+            // Usamos ProyectarADto para garantizar que ConsumoWatts y CapacidadWatts siempre viajen
+            var query = _context.Componentes.Where(c => c.ComponenteId == id);
+            var componente = await ProyectarADto(query).FirstOrDefaultAsync();
 
             if (componente == null)
                 return NotFound();
