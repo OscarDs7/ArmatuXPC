@@ -11,6 +11,20 @@ export const getComponentes = async (tipo = null) => {
   return await response.json();
 };
 
+// Obtener datos de un componente en específico por su ID
+export const getComponenteById = async (id) => {
+  try {
+    const response = await fetch(`${API_URL}/Componentes/${id}`);
+    if (!response.ok) {
+        throw new Error(`Error al obtener el componente ${id}`);
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error en getComponenteById:", error);
+    throw error;
+  }
+};
+
 // EXCLUSIVO PARA ADMIN
 export const obtenerTodosLosComponentesAdmin = async () => {
   const response = await fetch(`${API_URL}/Componentes/admin/todos`);
