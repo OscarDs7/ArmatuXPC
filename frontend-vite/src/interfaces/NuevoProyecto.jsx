@@ -1,11 +1,12 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { doc, onSnapshot } from "firebase/firestore";
 import { db } from "../utilidades/firebase";
 import { toast } from 'react-hot-toast';
 import gabinete from "../assets/gabinete.png"; 
 import { filtroComponente, guardarArmado, evaluarCompatibilidadTiempoReal, 
-         actualizarArmado, obtenerSugerenciasParaError, obtenerSugerenciasPorTipo } from "../services/api"; 
+         actualizarArmado, obtenerSugerenciasParaError, obtenerSugerenciasPorTipo, getComponenteById
+         } from "../services/api"; 
 import "../estilos/NuevoProyecto.css";
 
 export default function NuevoProyecto() {
@@ -394,17 +395,40 @@ const estaDesbloqueado = (comp) => {
 
   // Función para agregar un componente al armado actual
   const agregarComponente = (componente) => {
-    setPcActual({ ...pcActual, [selectedComponent]: componente });
+    // Creamos una copia limpia y estandarizamos las propiedades críticas
+    const componenteNormalizado = {
+      ...componente,
+      // Nos aseguramos de que siempre existan estas llaves como números
+    consumoWatts: Number(
+      componente.consumoWatts || 
+      componente.ConsumoWatts || 
+      componente.consumo || 0
+    ),
+    capacidadWatts: Number(
+      componente.capacidadWatts || 
+      componente.CapacidadWatts || 
+      componente.capacidad ||  0
+    ),
+      precio: Number(componente.precio || componente.Precio || 0)
+    };
+
+    // Actualización de estado
+    setPcActual(prev => ({ 
+      ...prev, 
+      [selectedComponent]: componenteNormalizado 
+    }));
+    
+    setSugerencias({}); 
     setExpandidoId(null);
   };
 
   // Función para quitar un componente del armado actual
   const quitarComponente = () => {
-  setPcActual({
-    ...pcActual,
-    [selectedComponent]: null
-  });
-};
+    setPcActual(prev => ({
+      ...prev,
+      [selectedComponent]: null
+    }));
+  };
 
   // Movimos la lógica de Watts dentro de una función simple para usarla en el render
   const renderWatts = (comp) => {
@@ -416,27 +440,40 @@ const estaDesbloqueado = (comp) => {
     );
   };
 
-  // Cálculos de precio total y consumo energético total del armado
-  const total = Object.values(pcActual)
-    .filter(Boolean)
-    .reduce((acc, comp) => acc + (Number(comp.precio) || 0), 0);
+  // Este cálculo se ejecutará automáticamente CADA VEZ que pcActual cambie
+  const infoEnergeticaCosto = useMemo(() => {
+  const piezas = Object.values(pcActual).filter(Boolean);
 
-  const watts = Object.values(pcActual)
-    .filter(Boolean)
-    .reduce((acc, comp) => acc + (Number(comp.consumoWatts) || 0), 0);
+  const total = piezas.reduce((acc, c) => acc + (Number(c.precio) || 0), 0);
+  
+  // Usamos la llave exacta de tu esquema: consumoWatts
+  const wattsReales = piezas.reduce((acc, c) => acc + (Number(c.consumoWatts) || 0), 0);
+  const wattsConMargen = Math.round(wattsReales * 1.2);
 
-  // Definimos el margen de seguridad de consumo de los componentes (1.2 = +20%)
-  const margen_seguridad = 1.2;
-
-  // Calculamos si la fuente es suficiente considerando el margen
   const fuente = pcActual["Fuente de poder"];
-  const wattsConMargen = watts * margen_seguridad
+  // Usamos la llave exacta de tu esquema: capacidadWatts
+  const capacidadFuente = Number(fuente?.capacidadWatts) || 0;
 
-  // Validamos la energía con un fallback para evitar el rojo por defecto
-  const energiaValida = (fuente && fuente.capacidadWatts > 0)
-    ? fuente.capacidadWatts >= wattsConMargen
-    : true; // Si no hay fuente o está cargando, asumimos true para no mostrar error falso
+  return {
+    total,
+    wattsReales,
+    wattsConMargen,
+    capacidadFuente,
+    energiaValida: capacidadFuente > 0 ? capacidadFuente >= wattsConMargen : true
+  };
+}, [pcActual]);
 
+useEffect(() => {
+  /*
+  if (pcActual["Fuente de poder"]) {
+    console.log("✅ Fuente en estado:", pcActual["Fuente de poder"].nombre);
+    console.log("📊 Capacidad detectada:", infoEnergeticaCosto.capacidadFuente);
+  }*/
+  if(pcActual["CPU"]){
+    console.log("✅ Componente:", pcActual["CPU"].nombre);
+    console.log("📊 Consumo detectada:", infoEnergeticaCosto.wattsReales);
+  }
+}, [pcActual, infoEnergeticaCosto]);
 
   // --- FUNCIÓN PARA GUARDAR UN ARMADO NUEVO O ACTUALIZAR UN ARMADO EXISTENTE --- //
   const handleGuardarArmado = async () => {
@@ -445,7 +482,7 @@ const estaDesbloqueado = (comp) => {
     alert("No puedes guardar: Existen piezas incompatibles.");
     return;
   }
-  if (!energiaValida) {
+  if (!infoEnergeticaCosto.energiaValida) {
     alert("No puedes guardar: Exceso de consumo energético.");
     return;
   }
@@ -522,7 +559,7 @@ const estaDesbloqueado = (comp) => {
   // 1. Hay incompatibilidades en el array
   // 2. La energía no es válida
   // 3. Está cargando
-  const tieneErrores = incompatibilidades.length > 0 || !energiaValida;
+  const tieneErrores = incompatibilidades.length > 0 || !infoEnergeticaCosto.energiaValida;
   const puedeGuardar = !tieneErrores && !loading;
 
   
@@ -563,50 +600,65 @@ const estaDesbloqueado = (comp) => {
 }, [location]);
   // FIN de la lógica de carga automática desde la comunidad (esto permite que al hacer click en "Usar esta plantilla" en la comunidad, se abra el configurador con esa plantilla ya cargada y lista para editar)
 
-  
-  // Función para reemplazar una pieza de componente por uno que si sea compatible
-const reemplazarPieza = (sug) => {
-  // 1. Traductor de categorías (Normalización Robusta)
-  const mapeoCategorias = {
-    "PlacaBase": "Motherboard",
-    "CPU": "CPU",
-    "GPU": "GPU",
-    "Refrigeracion": "Refrigeración",
-    "MemoriaRAM": "RAM",
-    "FuentePoder": "Fuente de poder",
-    "Gabinete": "Gabinete",
-    "Almacenamiento": "Almacenamiento"
-  };
+  // Función para el reemplazo de un componente o pieza del armado ante alguna incompatibilidad
+  const reemplazarPieza = async (sug) => {
+  try {
+    // 1. Identificar la categoría y el componente que YA ESTÁ en el PC
+    const mapeoCategorias = {
+      "PlacaBase": "Motherboard",
+      "CPU": "CPU",
+      "GPU": "GPU",
+      "Refrigeracion": "Refrigeración",
+      "MemoriaRAM": "RAM",
+      "FuentePoder": "Fuente de poder",
+      "Gabinete": "Gabinete",
+      "Almacenamiento": "Almacenamiento"
+    };
 
-  const categoriaOriginal = sug.tipo || sug.Tipo;
-  const categoriaDestino = mapeoCategorias[categoriaOriginal] || categoriaOriginal;
+    const categoriaOriginal = sug.tipo || sug.Tipo;
+    const categoriaDestino = mapeoCategorias[categoriaOriginal] || categoriaOriginal;
 
-  // 2. Actualización de PC y Limpieza de Estados
-  setPcActual(prev => ({
-    ...prev,
-    [categoriaDestino]: {
-      ...sug,
-      nombre: sug.nombre || sug.Nombre, // Soporte para PascalCase del Backend
-      precio: sug.precio || sug.Precio,
-      imagenUrl: sug.imagenUrl || sug.ImagenUrl,
-      tipo: categoriaDestino
-    }
-  }));
+    // CAPTURAMOS EL NOMBRE DE LA PIEZA ANTERIOR
+    // Buscamos en pcActual[categoriaDestino] si ya había algo puesto
+    const piezaAnterior = pcActual[categoriaDestino]?.nombre || "un espacio vacío";
 
-  // 3. IMPORTANTE: Limpiar sugerencias y errores específicos
-  setSugerencias({}); 
+    // 2. Obtener los datos reales del nuevo componente
+    const componenteCompleto = await getComponenteById(sug.componenteId);
 
-  // Scroll suave hacia el resumen para mostrar que la pieza cambió
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-  
-  // Notificación de éxito en el reemplazo del componente
-  toast.success(`¡${sug.nombre} añadido con éxito!`);
-  
-  // Si tienes un estado de 'incompatibilidades', podrías forzar una limpieza
-  // o dejar que el useEffect de validación haga su trabajo.
-  console.log(`✅ Éxito: ${sug.nombre} ahora ocupa el lugar de ${categoriaDestino}`);
+    const piezaNormalizada = {
+      ...componenteCompleto,
+      tipo: categoriaDestino,
+      precio: Number(componenteCompleto.precio),
+      // Aseguramos los nombres de propiedades del DTO de C#
+      consumoWatts: Number(componenteCompleto.consumoWatts || 0),
+      capacidadWatts: Number(componenteCompleto.capacidadWatts || 0)
+    };
+
+    // 3. Actualizar el estado
+    setPcActual(prev => ({
+      ...prev,
+      [categoriaDestino]: piezaNormalizada
+    }));
+
+    // 4. EL TOAST PERSONALIZADO
+    // Ejemplo: "¡AMD Ryzen 9 5950X ha reemplazado a Intel i7 14700k!"
+    toast(`¡${piezaNormalizada.nombre} ha reemplazado a ${piezaAnterior}!`, {
+      icon: '🔄',
+      style: {
+        borderRadius: '10px',
+        background: '#333',
+        color: '#fff',
+      },
+    });
+
+    setSugerencias({});
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  } catch (error) {
+    console.error("Fallo al reemplazar:", error);
+    toast.error("Error al obtener los detalles técnicos.");
+  }
 };
-
 
   // Función PRO que unifica a las otras dos funciones de brindar sugerencias de componentes compatibles de manera automática
   const handleSugerenciasPro = async (index, idBase, tipoBuscado = null) => {
@@ -629,6 +681,8 @@ const reemplazarPieza = (sug) => {
       setSugerencias(prev => ({ ...prev, [index]: [] }));
     }
   };
+
+  //console.log("RENDER:", infoEnergeticaCosto)
 
   // Renderizamos el componente //
   return (
@@ -861,19 +915,19 @@ const reemplazarPieza = (sug) => {
                         ))}
                       </ul>
                       {/* Barra de progreso de consumo energético */}
-                      <div className="energy-bar-overlay">
+                      <div className="energy-bar-overlay" key={infoEnergeticaCosto.total}>
                         <div className="energy-text">
-                          <span>Consumo Energético: {Math.round(wattsConMargen)}W / {fuente?.capacidadWatts || 0}W (fuente de poder)</span>
+                          <span>Consumo Energético: {Math.round(infoEnergeticaCosto.wattsConMargen)}W / {infoEnergeticaCosto.capacidadFuente || 0}W (fuente de poder)</span>
                         </div>
                         <div className="energy-progress-bg">
                           <div 
                             className="energy-progress-fill"
                             style={{ 
                               // Si no hay fuente, el ancho es 0. Si hay fuente, calculamos el %
-                              width: `${fuente?.capacidadWatts > 0 
-                                ? Math.min((wattsConMargen / fuente.capacidadWatts) * 100, 100) 
+                              width: `${infoEnergeticaCosto.capacidadFuente > 0 
+                                ? Math.min((infoEnergeticaCosto.wattsConMargen / infoEnergeticaCosto.capacidadFuente) * 100, 100) 
                                 : 0}%`,
-                              backgroundColor: energiaValida ? '#10b981' : '#ef4444',
+                              backgroundColor: infoEnergeticaCosto.energiaValida ? '#10b981' : '#ef4444',
                               transition: 'width 0.5s ease-in-out' // Para que se vea fluido al cargar
                             }}
                           ></div>
@@ -881,19 +935,19 @@ const reemplazarPieza = (sug) => {
                       </div>
                       {/* Detalles adicionales de consumo y validación energética */}
                       <div className="resumen-extra">
-                          <p>Total: <strong>${total}</strong></p>
-                          <p>Consumo Real: <strong>{watts}W</strong></p>
+                          <p>Total: <strong>${infoEnergeticaCosto.total}</strong></p>
+                          <p>Consumo Real: <strong>{infoEnergeticaCosto.wattsReales}W</strong></p>
                           
                           {/* Mostramos el consumo recomendado con el margen del 20% */}
-                          <p>Consumo Recomendado (+20%): <strong style={{ color: energiaValida ? "inherit" : "#dc2626" }}>
-                                {Math.round(watts * 1.2)}W
+                          <p>Consumo Recomendado (+20%): <strong style={{ color: infoEnergeticaCosto.energiaValida ? "inherit" : "#dc2626" }}>
+                                {Math.round(infoEnergeticaCosto.wattsReales * 1.2)}W
                             </strong>
                           </p>
                         </div>
 
                         <div className="mensaje-energetico">
-                          <p style={{ color: energiaValida ? "#059669" : "#dc2626", fontWeight: "bold", marginTop: "10px" }}>
-                            {energiaValida 
+                          <p style={{ color: infoEnergeticaCosto.energiaValida ? "#059669" : "#dc2626", fontWeight: "bold", marginTop: "10px" }}>
+                            {infoEnergeticaCosto.energiaValida 
                               ? "✔ Configuración Energética Segura" 
                               : "⚠ Se recomienda una fuente más potente (Margen de seguridad insuficiente)"}
                           </p>
@@ -910,7 +964,7 @@ const reemplazarPieza = (sug) => {
                           
                           {/* Mensajes de advertencia dinámicos */}
                           <div className="mensajes-validacion"> 
-                            {!energiaValida && (
+                            {!infoEnergeticaCosto.energiaValida && (
                               <p className="error-text">⚠️ El consumo excede la capacidad de la fuente.</p>
                             )}
                             {incompatibilidades.length > 0 && (
