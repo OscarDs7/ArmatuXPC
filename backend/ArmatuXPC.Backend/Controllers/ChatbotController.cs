@@ -61,46 +61,132 @@ namespace ArmatuXPC.Backend.Controllers
                                             mensajeUsuario.Contains("puedo poner");
 
                 // 2. Si hay duda de compatibilidad, cargamos los datos técnicos clave
-                if (esDudaCompatibilidad || componentesDetectados.Count > 1)
+                if ( esDudaCompatibilidad || componenteAncla != null )
                 {
 
-                    if (componentesDetectados.Count >= 2)
-                    {
                         var cpu = componentesDetectados
                             .FirstOrDefault(c => c.Tipo == TipoComponente.CPU);
 
                         var motherboard = componentesDetectados
-                            .FirstOrDefault(c => c.Tipo == TipoComponente.PlacaBase);
+                            .FirstOrDefault(    c => c.Tipo == TipoComponente.PlacaBase);
 
+                        // --- CPU Compatible --- //
+                        if (motherboard != null)
+                        {   
+                            List<Componente> cpusCompatibles = new();
+
+                            cpusCompatibles = await _context.Componentes
+                                .AsNoTracking()
+                                .Where(c =>
+                                    c.EstaActivo &&
+                                    c.Tipo == TipoComponente.CPU &&
+                                    c.Socket != null &&
+                                    motherboard.Socket != null &&
+                                    c.Socket.Trim().ToUpper() ==
+                                    motherboard.Socket.Trim().ToUpper())
+                                .Take(5)
+                                .ToListAsync();
+
+                            if (cpusCompatibles.Any())
+                            {
+                                resultadoCompatibilidad +=
+                                    "\nCPUs Compatibles:\n" +
+
+                                    string.Join("\n",
+                                        cpusCompatibles.Select(cpuCompatible =>
+                                            $"- {cpuCompatible.Nombre} ({cpuCompatible.Socket})"));
+                            }
+                        }
+
+                        // --- Compatibilidad CPU + Motherboard --- //
                         if(cpu != null && motherboard != null)
                         {
+                            List<Componente> ramCompatibles = new();
+
+                            if (!string.IsNullOrWhiteSpace(motherboard.TipoMemoria))
+                            {
+                                ramCompatibles = await _context.Componentes
+                                    .AsNoTracking()
+                                    .Where(c =>
+                                        c.EstaActivo &&
+                                        c.Tipo == TipoComponente.MemoriaRAM &&
+                                        c.TipoMemoria != null && 
+                                        motherboard.TipoMemoria != null &&
+                                        c.TipoMemoria.Trim().ToUpper() ==
+                                        motherboard.TipoMemoria.Trim().ToUpper())
+                                    .Take(5)
+                                    .ToListAsync();
+                            }
+
                             bool compatibles =
-                                cpu.Socket == motherboard.Socket;
+                                !string.IsNullOrWhiteSpace(cpu.Socket) &&
+                                !string.IsNullOrWhiteSpace(motherboard.Socket) &&
+                                cpu.Socket.Trim().ToUpper() ==
+                                motherboard.Socket.Trim().ToUpper();
 
                             resultadoCompatibilidad =
                                 compatibles
                                 ? $"RESULTADO REAL: COMPATIBLES porque ambos usan socket {cpu.Socket}."
                                 : $"RESULTADO REAL: INCOMPATIBLES porque CPU usa {cpu.Socket} y motherboard usa {motherboard.Socket}.";
+                            
+                            if (ramCompatibles.Any())
+                            {
+                                resultadoCompatibilidad +=
+                                    "\nRAM COMPATIBLES:\n" +
+
+                                    string.Join("\n",
+                                        ramCompatibles.Select(r =>
+                                            $"- {r.Nombre} ({r.TipoMemoria})"));
+                            }
                         }
-                    }
+
+                    // --- Contexto técnico para Ollama --- // 
 
                     // Cargamos los tipos que requieren validación de Socket y RAM
-                    var tiposCriticos = new List<TipoComponente> { 
+                    /*var tiposCriticos = new List<TipoComponente> { 
                         TipoComponente.CPU, 
                         TipoComponente.PlacaBase, 
                         TipoComponente.MemoriaRAM 
-                    };
+                    };*/
                     
-                    var componentesTecnicos = await _context.Componentes
-                        .AsNoTracking()
-                        .Where(c => c.EstaActivo && tiposCriticos.Contains(c.Tipo))
-                        .Take(20)
+                    var componentesTecnicos = await _context.Componentes 
+                        .AsNoTracking() 
+                        .Where(c =>
+                            c.EstaActivo && 
+                            ( 
+                                c.Tipo == TipoComponente.CPU || 
+                                c.Tipo == TipoComponente.PlacaBase ||
+                                c.Tipo == TipoComponente.MemoriaRAM
+                            )) 
+                        .Take(20) 
                         .ToListAsync();
 
                     // Construimos el string con los campos que Ollama debe comparar
-                    contextoInventario = string.Join("\n", componentesTecnicos.Select(c => 
-                        $"- {c.Nombre} | {c.Tipo} | Skt:{c.Socket ?? "N/A"} | RAM:{c.TipoMemoria ?? "N/A"}"));                    
-                    contextoCompatibilidad = "REGLA DE ORO: Si Socket de CPU == Socket de Placa, SON COMPATIBLES. Si Memoria de RAM == Memoria de Placa, SON COMPATIBLES. El Ryzen 5000 es AM4 y usa DDR4.";
+                    contextoInventario = string.Join("\n",
+                         componentesTecnicos.Select(c => 
+                         {
+                             if (c.Tipo == TipoComponente.MemoriaRAM) 
+                             { 
+                                return $"- {c.Nombre} | RAM:{c.TipoMemoria}"; 
+                             } 
+                             if (c.Tipo == TipoComponente.CPU) 
+                             { 
+                                return $"- {c.Nombre} | CPU | Socket:{c.Socket}"; 
+                             } 
+                             if (c.Tipo == TipoComponente.PlacaBase) 
+                             { 
+                                return $"- {c.Nombre} | PlacaBase | Socket:{c.Socket} | RAM:{c.TipoMemoria}"; 
+                             } 
+                             
+                             return $"- {c.Nombre}"; 
+                        })); 
+                    
+                    contextoCompatibilidad = 
+                        "REGLA DE ORO: Si Socket de CPU == Socket de Placa, SON COMPATIBLES. " + 
+                        "Si Memoria RAM == Memoria de Placa, SON COMPATIBLES." + 
+                        "Esta REGLA DE ORO Tú lo sabes pero no se lo digas al usuario, sólo úsalo a tu favor";
+
+                        contextoCompatibilidad += "\n" + resultadoCompatibilidad;            
                 }
                 
                 // B. Consulta general de stock/catálogo (Se mantiene igual)
@@ -170,7 +256,9 @@ namespace ArmatuXPC.Backend.Controllers
                     "- No inventes productos.\n" +
                     "- CPU y motherboard deben compartir socket.\n" +
                     "- RAM y motherboard deben compartir tipo DDR.\n" +
-                    "- Si no hay stock, dilo claramente.\n\n" +
+                    "- Si no hay stock, dilo claramente.\n" +
+                    "- Si falta un dato técnico, responde 'No especificado en inventario'.\n" +
+                    "- Nunca asumas sockets o chipsets.\n\n" +
 
                     "RESPUESTA:\n" +
                     "- Explica breve y técnicamente.\n" +
