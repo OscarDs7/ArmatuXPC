@@ -16,11 +16,15 @@ export default function AgregarComponenteAdmin() {
     precio: "",
     tipo: "",
     consumoWatts: "",
-    capacidadWatts: ""
+    capacidadWatts: "",
+    socket: "",
+    tipoMemoria: "",
+    chipset: "",
+    factorForma: ""
   });
   
   // Destructurar fromData para facilitar el acceso a los campos individuales del formulario
-  const { nombre, marca, modelo, precio, tipo, consumoWatts, capacidadWatts } = formData;
+  const { nombre, marca, modelo, precio, tipo, consumoWatts, capacidadWatts, socket, tipoMemoria, chipset, factorForma } = formData;
 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
@@ -53,6 +57,10 @@ export default function AgregarComponenteAdmin() {
       consumoWatts: consumoWatts ? Number(consumoWatts) : 0,
       // 2. Si es fuente, enviamos el número. Si NO, enviamos NULL obligatoriamente.
       capacidadWatts: esFuente ? Number(capacidadWatts) : null,
+      socket: socket.trim(),
+      tipoMemoria: tipoMemoria.trim(),
+      chipset: chipset.trim(),
+      factorForma: factorForma.trim(),
       imagenUrl: imagenUrl || "",
       estaActivo: true 
     };
@@ -100,6 +108,10 @@ export default function AgregarComponenteAdmin() {
         tipo: "",
         consumoWatts: "",
         capacidadWatts: "",
+        socket: "",
+        tipoMemoria: "",
+        chipset: "",
+        factorForma: "",
         imagenUrl: ""
       });
 
@@ -196,6 +208,43 @@ export default function AgregarComponenteAdmin() {
             name="capacidadWatts"
             placeholder="Capacidad watts (solo Fuente de poder)"
             value={capacidadWatts}
+            onChange={handleChange}
+            className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
+          />
+
+          <input
+            type="text"
+            name="socket"
+            placeholder="Socket para CPU y Placa Base (ej: 'LGA1700', 'AM5')"
+            value={socket}
+            onChange={handleChange}
+            className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
+          />
+
+          
+          <input
+            type="text"
+            name="tipoMemoria"
+            placeholder="Tipo de Memoria para Placa Base y RAM (ej: 'DDR4', 'DDR5')"
+            value={tipoMemoria}
+            onChange={handleChange}
+            className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
+          />
+
+          <input
+            type="text"
+            name="chipset"
+            placeholder="Chipset para Placa Base (ej: 'Z690', 'B650') o GPUs (PCIe 4.0)"
+            value={chipset}
+            onChange={handleChange}
+            className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
+          />
+
+         <input
+            type="text"
+            name="factorForma"
+            placeholder="Factor forma para Gabinetes y Placas (ej: 'ATX', 'Micro-ATX', 'Mini-ITX')"
+            value={factorForma}
             onChange={handleChange}
             className="w-full p-3 rounded bg-slate-800 border border-slate-700 focus:outline-none focus:border-indigo-500"
           />

@@ -112,21 +112,20 @@ const formatearTipo = (tipo) => {
     };
 
     /// ---- Función para guardar la edición de una celda específica ---- ///
-
     const guardarEdicion = async (componente, campo) => {
       if (guardando || componente[campo] === valorTemporal) {
         setCeldaEditando(null);
         return;
       }
 
-      // Guardamos el valor anterior por si hay que revertir (en caso de error real)
       const valorAnterior = componente[campo];
-      // Si el campo es numérico, convertimos el valor temporal a número antes de actualizar el estado
+      
+      // Mantenemos tu lógica de conversión numérica
       let valorFinal = (campo === "precio" || campo === "consumoWatts" || campo === "capacidadWatts") 
-                   ? Number(valorTemporal) 
-                   : valorTemporal;
+                      ? Number(valorTemporal) 
+                      : valorTemporal;
 
-      // 1. ACTUALIZACIÓN OPTIMISTA (El usuario ve el cambio ya)
+      // 1. ACTUALIZACIÓN OPTIMISTA
       setComponentes(prev =>
         prev.map(c => c.componenteId === componente.componenteId 
           ? { ...c, [campo]: valorFinal } 
@@ -139,17 +138,18 @@ const formatearTipo = (tipo) => {
         setGuardando(true);
         
         // 2. Llamada al backend
+        // USAMOS EL SPREAD (...) para enviar TODO el objeto, 
+        // pero sobreescribimos específicamente el campo que cambió.
         await actualizarComponente(componente.componenteId, {
           ...componente,
-          [campo]: valorFinal
+          [campo]: valorFinal 
         });
         
-        // Si llegamos aquí, todo bien (aunque el JSON sea vacío, el await ya pasó)
       } catch (error) {
         console.error("Error al sincronizar con el servidor:", error);
+        alert("Error de conexión. El cambio no se guardó.");
         
-        // 3. REVERSIÓN en caso de error de red o servidor caído
-        alert("Error de conexión. El cambio no se guardó en el servidor.");
+        // 3. REVERSIÓN
         setComponentes(prev =>
           prev.map(c => c.componenteId === componente.componenteId 
             ? { ...c, [campo]: valorAnterior } 
@@ -160,7 +160,6 @@ const formatearTipo = (tipo) => {
         setGuardando(false);
       }
     };
-  // fin guardarEdicion
 
   // Función para renderizar una celda editable para reducir código repetido en el renderizado de la tabla
   const renderCeldaEditable = (c, campoOriginal, type = "text") => {
@@ -307,7 +306,7 @@ const formatearTipo = (tipo) => {
         onClick={() => setFiltroTipo("almacenamiento")}
         className={`px-3 py-1 rounded ${filtroTipo === "almacenamiento" ? "bg-blue-600" : "bg-slate-700"}`}
       >
-        SSD
+        Almacenamiento
       </button>
 
       <button
@@ -351,6 +350,8 @@ const formatearTipo = (tipo) => {
             <th className="p-3">Imagen</th>
             <th className="text-center">Nombre</th>
             <th className="text-center">Tipo</th>
+            <th className="text-center">Socket</th>
+            <th className="text-center">Memoria</th> 
             <th className="text-center">Marca</th>
             <th className="text-center">Modelo</th>
             <th className="text-center">Precio</th>
@@ -380,6 +381,9 @@ const formatearTipo = (tipo) => {
               </td>
               {renderCeldaEditable(c, "nombre")}
               <td className="text-center">{formatearTipo(c.tipo)}</td>
+              {/* Nuevos campos técnicos editables */}
+              {renderCeldaEditable(c, "socket")}
+              {renderCeldaEditable(c, "tipoMemoria")}
               {renderCeldaEditable(c, "marca")}
               {renderCeldaEditable(c, "modelo")}
               {renderCeldaEditable(c, "precio", "number")}

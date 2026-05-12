@@ -1,5 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ArmatuXPC.Backend.Data;
+// Asegúrate de importar el namespace donde tengas tu Enum TipoComponente
+using ArmatuXPC.Backend.Models; 
 
 namespace ArmatuXPC.Backend.Services
 {
@@ -12,57 +14,49 @@ namespace ArmatuXPC.Backend.Services
             _context = context;
         }
 
-        // 🔥 Método principal reutilizable
-       public async Task<List<CompatibilidadResultadoDto>> ObtenerCompatibles(
-            int id,
-            string? tipoDestino = null)
+        public async Task<List<CompatibilidadResultadoDto>> ObtenerCompatibles(int id, string? tipoDestino = null)
         {
-            var reglas = await _context.Compatibilidades
-                .Where(r =>
-                    (r.ComponenteAId == id || r.ComponenteBId == id)
-                    && r.EsCompatible)
-                .ToListAsync();
-
-            if (!reglas.Any())
-                return new List<CompatibilidadResultadoDto>();
-
-            var idsCompatibles = reglas
-                .Select(r =>
-                    r.ComponenteAId == id
-                        ? r.ComponenteBId
-                        : r.ComponenteAId)
-                .ToList();
-
-            var componentes = await _context.Componentes
-                .Where(c => idsCompatibles.Contains(c.ComponenteId))
-                .ToListAsync();
-
-            if (!string.IsNullOrEmpty(tipoDestino))
+            // 1. Intentar convertir el string a tu Enum ANTES de consultar la BD.
+            // Esto permite que EF Core traduzca la comparación correctamente a SQL.
+            TipoComponente? tipoEnum = null;
+            if (!string.IsNullOrEmpty(tipoDestino) && Enum.TryParse<TipoComponente>(tipoDestino, true, out var parsedEnum))
             {
-                componentes = componentes
-                    .Where(c =>
-                        c.Tipo.ToString()
-                        .Equals(tipoDestino,
-                            StringComparison.OrdinalIgnoreCase))
-                    .ToList();
+                tipoEnum = parsedEnum;
             }
 
-            return componentes.Select(c =>
-            {
-                var regla = reglas.FirstOrDefault(r =>
-                    r.ComponenteAId == c.ComponenteId
-                    || r.ComponenteBId == c.ComponenteId);
+            // 2. Construir la consulta en un solo viaje a la base de datos (Queryable)
+            var query = from r in _context.Compatibilidades
+                        // Filtramos las reglas válidas para este ID
+                        where (r.ComponenteAId == id || r.ComponenteBId == id) && r.EsCompatible == true
+                        
+                        // Determinamos cuál es el ID del componente "pareja"
+                        let idCompatible = r.ComponenteAId == id ? r.ComponenteBId : r.ComponenteAId
+                        
+                        // Hacemos Join directo con la tabla de componentes
+                        join c in _context.Componentes on idCompatible equals c.ComponenteId
+                        
+                        // Aplicamos el filtro de tipo AQUÍ (se ejecutará en el motor SQL)
+                        where (tipoEnum == null || c.Tipo == tipoEnum)
+                             && c.EstaActivo
 
-                return new CompatibilidadResultadoDto
-                {
-                    ComponenteId = c.ComponenteId,
-                    Nombre = c.Nombre,
-                    Precio = c.Precio,
-                    Tipo = c.Tipo.ToString(),
-                    ImagenUrl = c.ImagenUrl ?? "",
-                    Motivo = regla?.Motivo ?? "Compatible"
-                };
-            }).ToList();
+                        orderby c.Nombre
+
+                        // Proyectamos directamente al DTO
+                        select new CompatibilidadResultadoDto
+                        {
+                            ComponenteId = c.ComponenteId,
+                            Nombre = c.Nombre,
+                            Precio = c.Precio,
+                            Tipo = tipoDestino ?? c.Tipo.ToString(),
+                            ImagenUrl = c.ImagenUrl ?? "",
+                            Motivo = r.Motivo ?? "Compatible"
+                        };
+
+            // 3. Ejecutamos la consulta final
+            return await query
+                .GroupBy(c => c.ComponenteId)
+                .Select(g => g.OrderByDescending(x => x.Motivo.Length).First()) // O una lógica que asegure el compatible
+                .ToListAsync();
         }
     }
 }

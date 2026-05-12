@@ -59,6 +59,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IArmadoValidationService, ArmadoValidationService>();
 builder.Services.AddScoped<IArmadoEnergiaService, ArmadoEnergiaService>();
 builder.Services.AddScoped<CompatibilidadService>();
+builder.Services.AddScoped<OllamaService>();
 
 // --- BASE DE DATOS (PostgreSQL) ---
 builder.Services.AddDbContext<AppDbContext>(options =>
@@ -82,6 +83,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpClient("OllamaClient", client =>
 {
     client.BaseAddress = new Uri("http://ollama:11434"); 
+    client.Timeout = TimeSpan.FromMinutes(3); // 3 minutos de gracia antes de morir
 });
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
