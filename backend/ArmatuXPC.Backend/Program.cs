@@ -82,6 +82,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddHttpClient("OllamaClient", client =>
 {
     client.BaseAddress = new Uri("http://ollama:11434"); 
+    client.Timeout = TimeSpan.FromMinutes(3); // 3 minutos de gracia antes de morir
 });
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
