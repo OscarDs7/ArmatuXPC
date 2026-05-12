@@ -59,6 +59,7 @@ builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<IArmadoValidationService, ArmadoValidationService>();
 builder.Services.AddScoped<IArmadoEnergiaService, ArmadoEnergiaService>();
 builder.Services.AddScoped<CompatibilidadService>();
+builder.Services.AddScoped<OllamaService>();
 
 // --- BASE DE DATOS (PostgreSQL) ---
 builder.Services.AddDbContext<AppDbContext>(options =>
