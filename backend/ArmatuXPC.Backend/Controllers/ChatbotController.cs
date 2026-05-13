@@ -59,9 +59,13 @@ namespace ArmatuXPC.Backend.Controllers
                                             mensajeUsuario.Contains("queda") || 
                                             mensajeUsuario.Contains("sirve") || 
                                             mensajeUsuario.Contains("puedo poner");
+                
+                // Listas de componentes compatible 
+                List<Componente> cpusCompatibles = new();
+                List<Componente> ramCompatibles = new();
 
                 // 2. Si hay duda de compatibilidad, cargamos los datos técnicos clave
-                if ( esDudaCompatibilidad || componenteAncla != null )
+                if ( esDudaCompatibilidad || componenteAncla != null)
                 {
 
                         var cpu = componentesDetectados
@@ -70,11 +74,15 @@ namespace ArmatuXPC.Backend.Controllers
                         var motherboard = componentesDetectados
                             .FirstOrDefault(    c => c.Tipo == TipoComponente.PlacaBase);
 
-                        // --- CPU Compatible --- //
-                        if (motherboard != null)
-                        {   
-                            List<Componente> cpusCompatibles = new();
-
+                       // --- CPU Compatible --- //
+                        if (
+                            motherboard != null &&
+                            (
+                                mensajeUsuario.Contains("cpu") ||
+                                mensajeUsuario.Contains("procesador")
+                            )
+                        )
+                        {
                             cpusCompatibles = await _context.Componentes
                                 .AsNoTracking()
                                 .Where(c =>
@@ -89,21 +97,55 @@ namespace ArmatuXPC.Backend.Controllers
 
                             if (cpusCompatibles.Any())
                             {
-                                resultadoCompatibilidad +=
-                                    "\nCPUs Compatibles:\n" +
+                                return Ok(new
+                                {
+                                    texto =
+                                        $"La motherboard {motherboard.Nombre} utiliza socket {motherboard.Socket}.\n\n" +
 
-                                    string.Join("\n",
-                                        cpusCompatibles.Select(cpuCompatible =>
-                                            $"- {cpuCompatible.Nombre} ({cpuCompatible.Socket})"));
+                                        "CPUs compatibles disponibles:\n\n" +
+
+                                        string.Join("\n",
+                                            cpusCompatibles.Select(c =>
+                                                $"- {c.Nombre} | Socket: {c.Socket} | Precio: ${c.Precio}"
+                                            )
+                                        ),
+
+                                    opciones = cpusCompatibles
+                                        .Select(c => c.Nombre)
+                                        .Take(5)
+                                        .ToList()
+                                });
                             }
+                        }
+
+                        string? tipoRamCompatible = null;
+
+                        if (motherboard != null)
+                        {
+                            tipoRamCompatible = motherboard.TipoMemoria;
+                        }
+                        else if (cpu != null)
+                        {
+                            // AM4 => DDR4
+                            // AM5 => DDR5
+
+                            if (cpu.Socket?.ToUpper() == "AM4")
+                                tipoRamCompatible = "DDR4";
+
+                            if (cpu.Socket?.ToUpper() == "AM5")
+                                tipoRamCompatible = "DDR5";
+
+                            if (cpu.Socket?.ToUpper() == "LGA1700")
+                                tipoRamCompatible = "DDR5";
+
+                            if (cpu.Socket?.ToUpper() == "LGA1851")
+                                tipoRamCompatible = "DDR5";
                         }
 
                         // --- Compatibilidad CPU + Motherboard --- //
                         if(cpu != null && motherboard != null)
                         {
-                            List<Componente> ramCompatibles = new();
-
-                            if (!string.IsNullOrWhiteSpace(motherboard.TipoMemoria))
+                            if (!string.IsNullOrWhiteSpace(tipoRamCompatible))
                             {
                                 ramCompatibles = await _context.Componentes
                                     .AsNoTracking()
@@ -124,7 +166,7 @@ namespace ArmatuXPC.Backend.Controllers
                                 cpu.Socket.Trim().ToUpper() ==
                                 motherboard.Socket.Trim().ToUpper();
 
-                            resultadoCompatibilidad =
+                            resultadoCompatibilidad +=
                                 compatibles
                                 ? $"RESULTADO REAL: COMPATIBLES porque ambos usan socket {cpu.Socket}."
                                 : $"RESULTADO REAL: INCOMPATIBLES porque CPU usa {cpu.Socket} y motherboard usa {motherboard.Socket}.";
@@ -140,6 +182,50 @@ namespace ArmatuXPC.Backend.Controllers
                             }
                         }
 
+                        // --- RAM Compatible --- //
+                        if (
+                            motherboard != null &&
+                            (
+                                mensajeUsuario.Contains("ram") ||
+                                mensajeUsuario.Contains("memoria")
+                            )
+                        )
+                        {
+                            ramCompatibles = await _context.Componentes
+                                .AsNoTracking()
+                                .Where(c =>
+                                    c.EstaActivo &&
+                                    c.Tipo == TipoComponente.MemoriaRAM &&
+                                    c.TipoMemoria != null &&
+                                    motherboard.TipoMemoria != null &&
+                                    c.TipoMemoria.Trim().ToUpper() ==
+                                    motherboard.TipoMemoria.Trim().ToUpper())
+                                .Take(5)
+                                .ToListAsync();
+
+                            if (ramCompatibles.Any())
+                            {
+                                return Ok(new
+                                {
+                                    texto =
+                                        $"La motherboard {motherboard.Nombre} utiliza memoria {motherboard.TipoMemoria}.\n\n" +
+
+                                        "RAM compatibles disponibles:\n\n" +
+
+                                        string.Join("\n",
+                                            ramCompatibles.Select(r =>
+                                                $"- {r.Nombre} | Tipo: {r.TipoMemoria} | Precio: ${r.Precio}"
+                                            )
+                                        ),
+
+                                    opciones = ramCompatibles
+                                        .Select(r => r.Nombre)
+                                        .Take(5)
+                                        .ToList()
+                                });
+                            }
+                        }
+
                     // --- Contexto técnico para Ollama --- // 
 
                     // Cargamos los tipos que requieren validación de Socket y RAM
@@ -149,17 +235,24 @@ namespace ArmatuXPC.Backend.Controllers
                         TipoComponente.MemoriaRAM 
                     };*/
                     
-                    var componentesTecnicos = await _context.Componentes 
-                        .AsNoTracking() 
-                        .Where(c =>
-                            c.EstaActivo && 
-                            ( 
-                                c.Tipo == TipoComponente.CPU || 
-                                c.Tipo == TipoComponente.PlacaBase ||
-                                c.Tipo == TipoComponente.MemoriaRAM
-                            )) 
-                        .Take(20) 
-                        .ToListAsync();
+                    // Si hay componentes técnicos detectados
+                    var componentesTecnicos = componentesDetectados;
+
+                    // Si no hay componentes 
+                    if(!componentesTecnicos.Any())
+                    {
+                        componentesTecnicos = await _context.Componentes 
+                            .AsNoTracking() 
+                            .Where(c =>
+                                c.EstaActivo && 
+                                ( 
+                                    c.Tipo == TipoComponente.CPU || 
+                                    c.Tipo == TipoComponente.PlacaBase ||
+                                    c.Tipo == TipoComponente.MemoriaRAM
+                                )) 
+                            .Take(20) 
+                            .ToListAsync();
+                    }
 
                     // Construimos el string con los campos que Ollama debe comparar
                     contextoInventario = string.Join("\n",
@@ -231,21 +324,30 @@ namespace ArmatuXPC.Backend.Controllers
                 // F. Ancla sola
                 else if (componenteAncla != null)
                 {
-                    contextoInventario = $"- {componenteAncla.Nombre} | Tipo: {componenteAncla.Tipo} | Precio: ${componenteAncla.Precio}";
+                    contextoInventario = 
+                    $"- {componenteAncla.Nombre} | " + 
+                    $"Tipo: {componenteAncla.Tipo} | " + 
+                    $"Socket: {componenteAncla.Socket} | " +
+                    $"RAM: {componenteAncla.TipoMemoria}";
                 }
 
                 // --- LÓGICA AL PRESIONAR UN BOTÓN DE OPCIONES -- //
-                bool esSeleccionBoton = componenteAncla != null && Normalizar(componenteAncla.Nombre) == Normalizar(request.Mensaje);
+                bool esSeleccionBoton = 
+                    componenteAncla != null && 
+                    Normalizar(componenteAncla.Nombre) == Normalizar(request.Mensaje);
+                
                 if (esSeleccionBoton)
                 {
                     return Ok(new
                     {
-                        texto = $"{componenteAncla?.Nombre} | Precio: ${componenteAncla?.Precio}",
+                        texto = 
+                        $"{componenteAncla?.Nombre} | Precio: ${componenteAncla?.Precio}",
                         opciones = new List<string>()
                     });
                 }
                 // FIN DE LÓGICA DE BOTONES //
 
+                
             
                 // 2. Construcción del mensaje para Ollama, incluyendo el contexto del inventario si se detectó una intención relevante
                 string systemInstruction =
@@ -258,12 +360,23 @@ namespace ArmatuXPC.Backend.Controllers
                     "- RAM y motherboard deben compartir tipo DDR.\n" +
                     "- Si no hay stock, dilo claramente.\n" +
                     "- Si falta un dato técnico, responde 'No especificado en inventario'.\n" +
+                    "- No confundas socket AM4 con AM5 en los componentes\n" +
                     "- Nunca asumas sockets o chipsets.\n\n" +
 
                     "RESPUESTA:\n" +
                     "- Explica breve y técnicamente.\n" +
                     "- Sé directo.\n" +
-                    "- No respondas temas no técnicos.\n\n" +
+                    "- No respondas temas no técnicos.\n" +
+                    "- Tu respuesta debe sonar natural y conversacional.\n" +
+                    "- NO respondas como sistema automatizado.\n" +
+                    "- Explica compatibilidades de forma sencilla y profesional.\n" +
+                    "- Ejemplo:\n" +
+                        "'Sí, ambos componentes son compatibles porque utilizan socket AM5.'\n" +
+                    "- Evita frases como:\n"+
+                        "'RESULTADO REAL'\n"+
+                        "'REGLA DE ORO'\n"+
+                        "'SISTEMA'\n"+
+                    "- Habla como un asesor técnico experto.\n\n" +
 
                     "CONTEXTO:\n" +
                     "INVENTARIO:\n" +
