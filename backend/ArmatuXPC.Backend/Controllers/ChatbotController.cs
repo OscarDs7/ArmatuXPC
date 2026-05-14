@@ -12,7 +12,6 @@ namespace ArmatuXPC.Backend.Controllers
     public class ChatbotController : ControllerBase
     {
         private readonly AppDbContext _context;
-        private readonly CompatibilidadService _compatibilidadService;
         private readonly OllamaService _ollamaService;
         private readonly BuildCompatibilityService _buildCompatibilityService;
 
@@ -24,7 +23,6 @@ namespace ArmatuXPC.Backend.Controllers
             BuildCompatibilityService buildCompatibilityService)
         {
             _context = context;
-            _compatibilidadService = compatibilidadService;
             _ollamaService = ollamaService;
             _buildCompatibilityService = buildCompatibilityService;
         }
