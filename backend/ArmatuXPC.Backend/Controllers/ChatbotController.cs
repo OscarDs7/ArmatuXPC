@@ -18,7 +18,6 @@ namespace ArmatuXPC.Backend.Controllers
 
         public ChatbotController(
             AppDbContext context,
-            CompatibilidadService compatibilidadService,
             OllamaService ollamaService,
             BuildCompatibilityService buildCompatibilityService)
         {
