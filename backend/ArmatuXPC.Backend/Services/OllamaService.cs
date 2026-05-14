@@ -26,7 +26,7 @@ namespace ArmatuXPC.Backend.Services
                 options = new
                 {
                     temperature = 0.05,
-                    num_predict = 250,
+                    num_predict = 350,
                     top_p = 0.9,
                     stop = new[]
                     {
