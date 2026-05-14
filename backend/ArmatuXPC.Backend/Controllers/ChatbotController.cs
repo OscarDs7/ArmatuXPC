@@ -14,13 +14,19 @@ namespace ArmatuXPC.Backend.Controllers
         private readonly AppDbContext _context;
         private readonly CompatibilidadService _compatibilidadService;
         private readonly OllamaService _ollamaService;
+        private readonly BuildCompatibilityService _buildCompatibilityService;
 
 
-        public ChatbotController(AppDbContext context, CompatibilidadService compatibilidadService, OllamaService ollamaService)
+        public ChatbotController(
+            AppDbContext context,
+            CompatibilidadService compatibilidadService,
+            OllamaService ollamaService,
+            BuildCompatibilityService buildCompatibilityService)
         {
             _context = context;
             _compatibilidadService = compatibilidadService;
             _ollamaService = ollamaService;
+            _buildCompatibilityService = buildCompatibilityService;
         }
 
         [HttpPost]
@@ -28,7 +34,6 @@ namespace ArmatuXPC.Backend.Controllers
         {
             try
             {
-                
                 
                 // Variables necesarias para el mensaje de usuario y el contexto del stock del negocio
                 string mensajeUsuario = request.Mensaje.ToLower(); // Convertimos a minúsculas para facilitar la detección de palabras clave
@@ -38,16 +43,82 @@ namespace ArmatuXPC.Backend.Controllers
 
                 // --- LÓGICA DE DETECCIÓN DE INTENCIÓN Y CONSTRUCCIÓN DE CONTEXTO ---
 
-                // 1. Detectar el componente "Ancla" (¿De qué pieza estamos hablando?)
-                var componentesDetectados = await DetectarComponenteDesdeHistorial(request.Mensaje, request.Historial);
-                var componenteAncla = componentesDetectados.FirstOrDefault();
+                // 1. Obtener todos los componentes activos
+                var todosLosComponentes = await _context.Componentes
+                    .AsNoTracking()
+                    .Where(c => c.EstaActivo)
+                    .ToListAsync();
 
-                // 2. Detectar categoría y marca
-                string? categoriaBuscada = DetectarCategoriaBuscada(mensajeUsuario);
+                // 2. Buscar primero en el mensaje ACTUAL
+                var componentesMensajeActual =
+                    BuscarComponenteFlexible(
+                        todosLosComponentes,
+                        request.Mensaje);
+
+                // 3. Buscar en historial SOLO si no encontró nada
+                var componentesHistorial =
+                    await DetectarComponenteDesdeHistorial(
+                        request.Mensaje,
+                        request.Historial);
+
+                // 4. Prioridad:
+                // mensaje actual > historial
+                var componentesDetectados =
+                    componentesMensajeActual.Any()
+                    ? componentesMensajeActual
+                    : componentesHistorial;
+
+                // 5. Componente ancla
+                var componenteAncla =
+                    componentesDetectados.FirstOrDefault();
+
+                // 2. Detectar categoría, marca y tipo de socket del componente
+                string? categoriaBuscada =
+                    DetectarCategoriaDesdeHistorial(
+                        request.Mensaje,
+                        request.Historial);
                 string? marcaBuscada = null;
                 if (mensajeUsuario.ToLower().Contains("intel")) marcaBuscada = "Intel";
                 if (mensajeUsuario.ToLower().Contains("amd")) marcaBuscada = "AMD";
                 if (mensajeUsuario.ToLower().Contains("nvidia")) marcaBuscada = "NVIDIA";
+
+                // Detectar socket
+                string? socketBuscado = null;
+
+                var socketsValidos = new[]
+                {   
+                    "AM4",
+                    "AM5",
+                    "LGA1700",
+                    "LGA1851"
+                };
+
+                foreach (var socket in socketsValidos)
+                {
+                    if (mensajeUsuario.ToUpper().Contains(socket))
+                    {
+                        socketBuscado = socket;
+                        break;
+                    }
+                }
+
+                // Detectar tipo de RAM
+                string? ramBuscada = null;
+
+                var tiposRamValidos = new[]
+                {
+                    "DDR4",
+                    "DDR5"
+                };
+
+                foreach (var ram in tiposRamValidos)
+                {
+                    if (mensajeUsuario.ToUpper().Contains(ram))
+                    {
+                        ramBuscada = ram;
+                        break;
+                    }
+                }
 
                 // 3. Construcción inteligente del Inventario (Filtrado por BD)
                 // --- ORDEN DE PRIORIDAD CORREGIDO ---
@@ -55,24 +126,85 @@ namespace ArmatuXPC.Backend.Controllers
                 string resultadoCompatibilidad = "";
 
                 // A. Detectar intención de compatibilidad
-                bool esDudaCompatibilidad = mensajeUsuario.Contains("compatible") || 
-                                            mensajeUsuario.Contains("queda") || 
-                                            mensajeUsuario.Contains("sirve") || 
-                                            mensajeUsuario.Contains("puedo poner");
+                bool esDudaCompatibilidad =
+                    mensajeUsuario.Contains("compatible") ||
+                    mensajeUsuario.Contains("compatibilidad") ||
+                    mensajeUsuario.Contains("sirve") ||
+                    mensajeUsuario.Contains("queda") ||
+                    mensajeUsuario.Contains("puedo poner") ||
+                    mensajeUsuario.Contains("funciona con") ||
+                    mensajeUsuario.Contains("soporta") ||
+                    mensajeUsuario.Contains("combinar") ||
+                    mensajeUsuario.Contains("usar con") || 
+                    mensajeUsuario.Contains("combina") || 
+                    mensajeUsuario.Contains("funciona") || 
+                    mensajeUsuario.Contains("va con");
+                
+                // B. Detectar intención de educación
+                bool esPreguntaEducativa =
+                    mensajeUsuario.Contains("que es") ||
+                    mensajeUsuario.Contains("qué es") ||
+                    mensajeUsuario.Contains("para que sirve") ||
+                    mensajeUsuario.Contains("cómo funciona");
                 
                 // Listas de componentes compatible 
                 List<Componente> cpusCompatibles = new();
                 List<Componente> ramCompatibles = new();
 
-                // 2. Si hay duda de compatibilidad, cargamos los datos técnicos clave
-                if ( esDudaCompatibilidad || componenteAncla != null)
+                // 4. Compatibilidad Avanzada
+                // Si hay duda de compatibilidad, cargamos los datos técnicos clave
+                if ( esDudaCompatibilidad)
                 {
-
                         var cpu = componentesDetectados
                             .FirstOrDefault(c => c.Tipo == TipoComponente.CPU);
 
                         var motherboard = componentesDetectados
                             .FirstOrDefault(    c => c.Tipo == TipoComponente.PlacaBase);
+                        
+                        var ram = componentesDetectados
+                            .FirstOrDefault(c => c.Tipo == TipoComponente.MemoriaRAM);
+
+                        // NUEVO SISTEMA DE BUILD con nuevo modelo y servicio creado
+                        var build = new BuildPC
+                        {
+                            CPU = cpu,
+                            Motherboard = motherboard,
+                            RAM = ram
+                        };
+
+                        var errores =
+                            _buildCompatibilityService
+                                .ValidarBuild(build);
+
+                        // Si hay errores de compatibilidad
+                        if (errores.Any())
+                        {
+                            return Ok(new
+                            {
+                                texto =
+                                    "Encontré problemas de compatibilidad:\n\n" +
+                                    string.Join("\n", errores),
+
+                                opciones = new List<string>()
+                            });
+                        }
+
+                        // Validación de compatibilidad correcta
+                        if (
+                                cpu != null &&
+                                motherboard != null &&
+                                mensajeUsuario.Contains("compatible")
+
+                            )
+                            {
+                                return Ok(new
+                                {
+                                    texto =
+                                        $"Sí, el {cpu.Nombre} es compatible con la {motherboard.Nombre} porque ambos utilizan socket {cpu.Socket}.",
+
+                                    opciones = new List<string>()
+                                });
+                            }
 
                        // --- CPU Compatible --- //
                         if (
@@ -83,17 +215,14 @@ namespace ArmatuXPC.Backend.Controllers
                             )
                         )
                         {
-                            cpusCompatibles = await _context.Componentes
-                                .AsNoTracking()
-                                .Where(c =>
-                                    c.EstaActivo &&
-                                    c.Tipo == TipoComponente.CPU &&
-                                    c.Socket != null &&
-                                    motherboard.Socket != null &&
-                                    c.Socket.Trim().ToUpper() ==
-                                    motherboard.Socket.Trim().ToUpper())
-                                .Take(5)
-                                .ToListAsync();
+                            cpusCompatibles =
+                                _buildCompatibilityService
+                                    .FiltrarCompatibles(
+                                        motherboard,
+                                        todosLosComponentes)
+                                    .Where(c => c.Tipo == TipoComponente.CPU)
+                                    .Take(5)
+                                    .ToList();
 
                             if (cpusCompatibles.Any())
                             {
@@ -118,53 +247,21 @@ namespace ArmatuXPC.Backend.Controllers
                             }
                         }
 
-                        string? tipoRamCompatible = null;
-
-                        if (motherboard != null)
-                        {
-                            tipoRamCompatible = motherboard.TipoMemoria;
-                        }
-                        else if (cpu != null)
-                        {
-                            // AM4 => DDR4
-                            // AM5 => DDR5
-
-                            if (cpu.Socket?.ToUpper() == "AM4")
-                                tipoRamCompatible = "DDR4";
-
-                            if (cpu.Socket?.ToUpper() == "AM5")
-                                tipoRamCompatible = "DDR5";
-
-                            if (cpu.Socket?.ToUpper() == "LGA1700")
-                                tipoRamCompatible = "DDR5";
-
-                            if (cpu.Socket?.ToUpper() == "LGA1851")
-                                tipoRamCompatible = "DDR5";
-                        }
-
                         // --- Compatibilidad CPU + Motherboard --- //
                         if(cpu != null && motherboard != null)
                         {
-                            if (!string.IsNullOrWhiteSpace(tipoRamCompatible))
-                            {
-                                ramCompatibles = await _context.Componentes
-                                    .AsNoTracking()
-                                    .Where(c =>
-                                        c.EstaActivo &&
-                                        c.Tipo == TipoComponente.MemoriaRAM &&
-                                        c.TipoMemoria != null && 
-                                        motherboard.TipoMemoria != null &&
-                                        c.TipoMemoria.Trim().ToUpper() ==
-                                        motherboard.TipoMemoria.Trim().ToUpper())
-                                    .Take(5)
-                                    .ToListAsync();
-                            }
+                                ramCompatibles =
+                                        _buildCompatibilityService
+                                        .FiltrarCompatibles(
+                                            motherboard,
+                                            todosLosComponentes)
+                                        .Where(c => c.Tipo == TipoComponente.MemoriaRAM)
+                                        .Take(5)
+                                        .ToList();
 
                             bool compatibles =
-                                !string.IsNullOrWhiteSpace(cpu.Socket) &&
-                                !string.IsNullOrWhiteSpace(motherboard.Socket) &&
-                                cpu.Socket.Trim().ToUpper() ==
-                                motherboard.Socket.Trim().ToUpper();
+                                _buildCompatibilityService
+                                .CPUCompatibleMotherboard(cpu, motherboard);
 
                             resultadoCompatibilidad +=
                                 compatibles
@@ -191,17 +288,14 @@ namespace ArmatuXPC.Backend.Controllers
                             )
                         )
                         {
-                            ramCompatibles = await _context.Componentes
-                                .AsNoTracking()
-                                .Where(c =>
-                                    c.EstaActivo &&
-                                    c.Tipo == TipoComponente.MemoriaRAM &&
-                                    c.TipoMemoria != null &&
-                                    motherboard.TipoMemoria != null &&
-                                    c.TipoMemoria.Trim().ToUpper() ==
-                                    motherboard.TipoMemoria.Trim().ToUpper())
-                                .Take(5)
-                                .ToListAsync();
+                            ramCompatibles =
+                                _buildCompatibilityService
+                                    .FiltrarCompatibles(
+                                        motherboard,
+                                        todosLosComponentes)
+                                    .Where(c => c.Tipo == TipoComponente.MemoriaRAM)
+                                    .Take(5)
+                                    .ToList();
 
                             if (ramCompatibles.Any())
                             {
@@ -226,15 +320,90 @@ namespace ArmatuXPC.Backend.Controllers
                             }
                         }
 
-                    // --- Contexto técnico para Ollama --- // 
+                        // --- Motherboards compatibles con RAM --- //
+                        if (
+                            ram != null &&
+                            (
+                                mensajeUsuario.Contains("motherboard") ||
+                                mensajeUsuario.Contains("placa") ||
+                                mensajeUsuario.Contains("tarjeta madre")
+                            )
+                        )
+                        {
+                            var motherboardsCompatibles =
+                                _buildCompatibilityService
+                                    .FiltrarCompatibles(
+                                        ram,
+                                       todosLosComponentes)
+                                    .Where(c => c.Tipo == TipoComponente.PlacaBase)
+                                    .Take(5)
+                                    .ToList();
 
-                    // Cargamos los tipos que requieren validación de Socket y RAM
-                    /*var tiposCriticos = new List<TipoComponente> { 
-                        TipoComponente.CPU, 
-                        TipoComponente.PlacaBase, 
-                        TipoComponente.MemoriaRAM 
-                    };*/
-                    
+                            if (motherboardsCompatibles.Any())
+                            {
+                                return Ok(new
+                                {
+                                    texto =
+                                        $"La RAM {ram.Nombre} utiliza memoria {ram.TipoMemoria}.\n\n" +
+
+                                        "Motherboards compatibles disponibles:\n\n" +
+
+                                        string.Join("\n",
+                                            motherboardsCompatibles.Select(m =>
+                                                $"- {m.Nombre} | Socket: {m.Socket} | RAM: {m.TipoMemoria} | Precio: ${m.Precio}"
+                                            )
+                                        ),
+
+                                    opciones = motherboardsCompatibles
+                                        .Select(m => m.Nombre)
+                                        .Take(5)
+                                        .ToList()
+                                });
+                            }
+                        }
+
+                        // --- Motherboards compatibles con CPU --- //
+                        if (
+                            cpu != null &&
+                            (
+                                mensajeUsuario.Contains("motherboard") ||
+                                mensajeUsuario.Contains("placa")
+                            )
+                        )
+                        {
+                           var motherboardsCompatibles =
+                                _buildCompatibilityService
+                                    .FiltrarCompatibles(
+                                        cpu,
+                                        todosLosComponentes)
+                                    .Where(c => c.Tipo == TipoComponente.PlacaBase)
+                                    .Take(5)
+                                    .ToList();
+
+                            if (motherboardsCompatibles.Any())
+                            {
+                                return Ok(new
+                                {
+                                    texto =
+                                        $"El procesador {cpu.Nombre} utiliza socket {cpu.Socket}.\n\n" +
+
+                                        "Motherboards compatibles disponibles:\n\n" +
+
+                                        string.Join("\n",
+                                            motherboardsCompatibles.Select(m =>
+                                                $"- {m.Nombre} | Socket: {m.Socket} | RAM: {m.TipoMemoria} | Precio: ${m.Precio}"
+                                            )
+                                        ),
+
+                                    opciones = motherboardsCompatibles
+                                        .Select(m => m.Nombre)
+                                        .Take(5)
+                                        .ToList()
+                                });
+                            }
+                        }
+
+
                     // Si hay componentes técnicos detectados
                     var componentesTecnicos = componentesDetectados;
 
@@ -279,46 +448,111 @@ namespace ArmatuXPC.Backend.Controllers
                         "Si Memoria RAM == Memoria de Placa, SON COMPATIBLES." + 
                         "Esta REGLA DE ORO Tú lo sabes pero no se lo digas al usuario, sólo úsalo a tu favor";
 
-                        contextoCompatibilidad += "\n" + resultadoCompatibilidad;            
-                }
+                        contextoCompatibilidad += "\n" + resultadoCompatibilidad;   
+
+                } // Fin de if(esDudaCompatibilidad)
+
                 
-                // B. Consulta general de stock/catálogo (Se mantiene igual)
-                else if (mensajeUsuario.Contains("stock") || mensajeUsuario.Contains("catálogo") || mensajeUsuario.Contains("catalogo"))
+                // B. Consulta general de stock/catálogo
+                else if (
+                    mensajeUsuario.Contains("stock") ||
+                    mensajeUsuario.Contains("catálogo") ||
+                    mensajeUsuario.Contains("catalogo"))
                 {
-                    contextoInventario = await ObtenerTodoElInventario();
+                    return Ok(new
+                    {
+                        texto = await ObtenerTodoElInventario(),
+                        opciones = new List<string>()
+                    });
                 }
-                
+                                
                 // C. Búsqueda por Marca + Categoría 
                 else if (categoriaBuscada != null && marcaBuscada != null)
                 {
-                    contextoInventario = await ConsultarInventarioInterno(categoriaBuscada, marcaBuscada);
+                    contextoInventario = await ConsultarInventarioInterno(categoriaBuscada, marcaBuscada, socketBuscado, ramBuscada);
                 }
 
                 // D. Compatibilidad Ancla + Categoría 
-                // (Solo si no hay una marca específica que "rompa" el contexto)
-                else if (componenteAncla != null && categoriaBuscada != null)
+                else if (
+                    componenteAncla != null &&
+                    categoriaBuscada != null
+                )
                 {
-                    var compatibles = await _compatibilidadService.ObtenerCompatibles(componenteAncla.ComponenteId, categoriaBuscada);
+                    // Filtrar sólo la categoría que el usuario pidió
+                    var candidatos = todosLosComponentes
+                        .Where(c =>
+                            c.Tipo.ToString().Equals(
+                                categoriaBuscada,
+                                StringComparison.OrdinalIgnoreCase))
+                        .ToList();
+
+                    // Compatibles reales
+                    var compatibles =
+                        _buildCompatibilityService
+                            .FiltrarCompatibles(
+                                componenteAncla,
+                                candidatos);
 
                     if (compatibles.Any())
-                    {   
-                        contextoInventario = string.Join("\n", compatibles.Select(c => 
-                            $"- {c.Nombre} | Tipo: {c.Tipo} | Precio: ${c.Precio} | Motivo: {c.Motivo}"));
-                        contextoCompatibilidad = $"Estos componentes son estrictamente compatibles con {componenteAncla.Nombre}.";
-                        componentesBotones.AddRange(compatibles.Select(c => c.Nombre).Take(5));
+                    {
+                        contextoInventario =
+                            string.Join("\n",
+                                compatibles.Select(c =>
+                                    $"- {c.Nombre} | Tipo: {c.Tipo} | Precio: ${c.Precio}"
+                                ));
+
+                        contextoCompatibilidad =
+                            $"Estos componentes son compatibles con {componenteAncla.Nombre}.";
+
+                        componentesBotones.AddRange(
+                            compatibles
+                                .Select(c => c.Nombre)
+                                .Take(5));
                     }
                     else
                     {
-                        contextoInventario = "CATÁLOGO LOCAL: VACÍO";
-                        contextoCompatibilidad = "ALERTA CRÍTICA: No existen motherboards compatibles con este procesador en nuestra base de datos. PROHIBIDO sugerir modelos externos o chipsets de AMD para procesadores Intel.";
+                        contextoInventario = "SIN STOCK";
                     }
                 }
 
-                // E. Categoría sola (Exploración)
-                else if (categoriaBuscada != null)
+                // E. Categoría sola (Exploración) 
+                else if (categoriaBuscada != null && !esPreguntaEducativa)
                 {
-                    contextoInventario = await ConsultarInventarioInterno(categoriaBuscada);
-                    contextoCompatibilidad = "El usuario explora la categoría. Sugiérele un componente base.";
+                    var inventario =
+                        await ConsultarInventarioInterno(
+                            categoriaBuscada,
+                            marcaBuscada, socketBuscado,
+                            ramBuscada);
+
+                    if (
+                        inventario == "SIN STOCK" ||
+                        inventario == "Categoría no reconocida.")
+                    {
+                        return Ok(new
+                        {
+                            texto =
+                                "Actualmente no tengo componentes disponibles de esa categoría.",
+                            opciones = new List<string>()
+                        });
+                    }
+
+                    string categoriaTexto = categoriaBuscada switch
+                    {
+                        "PlacaBase" => "motherboards",
+                        "CPU" => "procesadores",
+                        "MemoriaRAM" => "memorias RAM",
+                        "GPU" => "tarjetas gráficas",
+                        _ => "componentes"
+                    };
+
+                    return Ok(new
+                    {
+                        texto =
+                            $"Actualmente tengo estos {categoriaTexto} disponibles:\n\n" +
+                            inventario,
+
+                        opciones = new List<string>()
+                    });
                 }
 
                 // F. Ancla sola
@@ -347,7 +581,6 @@ namespace ArmatuXPC.Backend.Controllers
                 }
                 // FIN DE LÓGICA DE BOTONES //
 
-                
             
                 // 2. Construcción del mensaje para Ollama, incluyendo el contexto del inventario si se detectó una intención relevante
                 string systemInstruction =
@@ -361,7 +594,9 @@ namespace ArmatuXPC.Backend.Controllers
                     "- Si no hay stock, dilo claramente.\n" +
                     "- Si falta un dato técnico, responde 'No especificado en inventario'.\n" +
                     "- No confundas socket AM4 con AM5 en los componentes\n" +
-                    "- Nunca asumas sockets o chipsets.\n\n" +
+                    "- Nunca asumas sockets o chipsets.\n" +
+                    "- Para preguntas educativas puedes explicar conceptos técnicos de forma sencilla.\n" +
+                    "- Cuando menciones productos, usa únicamente componentes del inventario.\n\n" +
 
                     "RESPUESTA:\n" +
                     "- Explica breve y técnicamente.\n" +
@@ -411,7 +646,7 @@ namespace ArmatuXPC.Backend.Controllers
 
                 // Si el usuario pregunta por algo específico y detectamos que NO existe en absoluto
                 // protección de envía a enviar a la IA y de recursos innecesarios
-                if (string.IsNullOrEmpty(contextoInventario) && !string.IsNullOrEmpty(categoriaBuscada))
+                if (string.IsNullOrEmpty(contextoInventario) && !string.IsNullOrEmpty(categoriaBuscada) && !esPreguntaEducativa)
                 {
                     return Ok(new { 
                         texto = "Actualmente no cuento con ese componente en mi catálogo de ArmatuXPC.", 
@@ -486,7 +721,11 @@ namespace ArmatuXPC.Backend.Controllers
         }
 
         // Método para consultar los componentes del inventario
-        private async Task<string> ConsultarInventarioInterno(string tipoStr, string? marca = null)
+        private async Task<string> ConsultarInventarioInterno(
+            string tipoStr, 
+            string? marca = null, 
+            string? socket = null, 
+            string? ram = null)
         {
             if (!Enum.TryParse(tipoStr, true, out TipoComponente tipoEnum)) return "Categoría no reconocida.";
 
@@ -496,6 +735,20 @@ namespace ArmatuXPC.Backend.Controllers
 
             if (!string.IsNullOrEmpty(marca))
                 query = query.Where(c => EF.Functions.ILike(c.Nombre, $"%{marca}%"));
+            
+            if (!string.IsNullOrWhiteSpace(socket))
+            {
+                query = query.Where(c =>
+                    c.Socket != null &&
+                    c.Socket.ToUpper() == socket.ToUpper());
+            }
+
+            if (!string.IsNullOrWhiteSpace(ram))
+            {
+                query = query.Where(c =>
+                    c.TipoMemoria != null &&
+                    c.TipoMemoria.ToUpper() == ram.ToUpper());
+            }
 
             var componentes = await query
                 .OrderBy(c => c.Nombre)
@@ -567,6 +820,14 @@ namespace ArmatuXPC.Backend.Controllers
 
             var resultados = new List<Componente>();
 
+            string? ddrDetectado = null;
+
+            if (texto.Contains("ddr5"))
+                ddrDetectado = "DDR5";
+
+            if (texto.Contains("ddr4"))
+                ddrDetectado = "DDR4";
+
             foreach (var componente in componentes)
             {
                 var nombre = Normalizar(componente.Nombre);
@@ -600,10 +861,30 @@ namespace ArmatuXPC.Backend.Controllers
                 {
                     resultados.Add(componente);
                 }
+
+                // Detección del tipo de memoria del componente
+                if (
+                    componente.Tipo == TipoComponente.MemoriaRAM &&
+                    ddrDetectado != null
+                )
+                {
+                    if (
+                        componente.TipoMemoria?.ToUpper() !=
+                        ddrDetectado.ToUpper()
+                    )
+                    {
+                        continue;
+                    }
+}
             }
 
             return resultados
                 .DistinctBy(c => c.ComponenteId)
+                .OrderByDescending(c =>
+                    Normalizar(textoUsuario)
+                        .Split(' ')
+                        .Count(p =>
+                            Normalizar(c.Nombre).Contains(p)))
                 .ToList();
         }
 
@@ -621,7 +902,17 @@ namespace ArmatuXPC.Backend.Controllers
                 BuscarComponenteFlexible(componentes, mensajeActual);
 
             if (encontrados.Any())
+            {
+                Console.WriteLine("=== COMPONENTES DETECTADOS (mensaje actual) ===");
+
+                foreach (var c in encontrados)
+                {
+                    Console.WriteLine(
+                        $"{c.Nombre} | {c.Tipo} | {c.TipoMemoria}");
+                }
+
                 return encontrados;
+            }
 
             // Buscar en historial
             if (historial != null)
@@ -634,11 +925,51 @@ namespace ArmatuXPC.Backend.Controllers
                             msg.Contenido);
 
                     if (encontrados.Any())
+                    {
+                        Console.WriteLine("=== COMPONENTES DETECTADOS (historial) ===");
+
+                        foreach (var c in encontrados)
+                        {
+                            Console.WriteLine(
+                                $"{c.Nombre} | {c.Tipo} | {c.TipoMemoria}");
+                        }
+
                         return encontrados;
+                    }
                 }
             }
 
+            Console.WriteLine("=== NO SE DETECTARON COMPONENTES ===");
+
             return new List<Componente>();
+        }
+
+        // Este método detecta una categoría de componente desde el historial de la conversación
+        private string? DetectarCategoriaDesdeHistorial(
+            string mensajeActual,
+            List<MensajeChat>? historial)
+        {
+            // Intentar detectar en mensaje actual
+            var categoria =
+                DetectarCategoriaBuscada(mensajeActual);
+
+            if (categoria != null)
+                return categoria;
+
+            // Buscar hacia atrás en historial
+            if (historial != null)
+            {
+                foreach (var msg in historial.AsEnumerable().Reverse())
+                {
+                    categoria =
+                        DetectarCategoriaBuscada(msg.Contenido);
+
+                    if (categoria != null)
+                        return categoria;
+                }
+            }
+
+            return null;
         }
 
     // DTO para recibir el mensaje del usuario
