@@ -630,6 +630,7 @@ namespace ArmatuXPC.Backend.Controllers
                 }
                 // FIN DE LÓGICA DE BOTONES //
 
+                
             
                 // 2. Construcción del mensaje para Ollama, incluyendo el contexto del inventario si se detectó una intención relevante
                 string systemInstruction =
