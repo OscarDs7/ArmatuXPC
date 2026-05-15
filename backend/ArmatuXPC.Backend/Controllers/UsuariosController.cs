@@ -82,8 +82,8 @@ namespace ArmatuXPC.Backend.Controllers
                         },
                     },
                     Mode = "payment",
-                    SuccessUrl = $"http://localhost:5173/pago-exitoso?session_id={{CHECKOUT_SESSION_ID}}&uid={request.UsuarioUid}&tokens={request.CantidadComprada}",
-                    CancelUrl = "http://localhost:5173/comprar-tokens",
+                    SuccessUrl = $"https://armatuxpc26.vercel.app/pago-exitoso?session_id={{CHECKOUT_SESSION_ID}}&uid={request.UsuarioUid}&tokens={request.CantidadComprada}",
+                    CancelUrl = "https://armatuxpc26.vercel.app//comprar-tokens",
                     Metadata = new Dictionary<string, string>
                     {
                         { "usuarioUid", request.UsuarioUid },
