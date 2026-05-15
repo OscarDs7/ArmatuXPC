@@ -2,7 +2,7 @@
 // Servicio para interactuar con el backend desde el frontend.
 // Este archivo define funciones para realizar solicitudes HTTP al backend, como obtener la lista de componentes, armados y compatibilidades, así como agregar un nuevo componente a la base de datos u otras funciones. 
 
-const API_URL = import.meta.env.VITE_BACKEND_URL || import.meta.env.VITE_BACKEND_URL_LOCAL;
+const API_URL = import.meta.env.VITE_BACKEND_URL_PRODUCTION || import.meta.env.VITE_BACKEND_URL_LOCAL;
 
 // Para la tienda normal
 export const getComponentes = async (tipo = null) => {
