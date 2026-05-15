@@ -109,6 +109,8 @@ if (app.Environment.IsDevelopment())
 app.UseAuthorization(); // Añade esto si planeas usar [Authorize] en el futuro
 app.MapControllers();
 
+app.MapGet("/", () => Results.Ok("ArmatuXPC Backend is running"));
+
 app.MapGet("/healthz", () => Results.Ok("Healthy"));
 
 app.Run();
