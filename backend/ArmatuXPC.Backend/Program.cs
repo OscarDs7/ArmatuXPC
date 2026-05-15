@@ -96,6 +96,13 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var app = builder.Build();
 
+// Creamos nuevamente tablas, relaciones, índices y constraints (sin datos sólo estructura)
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.Migrate();
+}
+
 // --- PIPELINE HTTP ---
 app.UseCors("AllowReact");
 
