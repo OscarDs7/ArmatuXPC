@@ -32,7 +32,8 @@ else
 }
 
 // --- CONFIGURACIÓN DE FIREBASE ---
-string rutaFirebase = Path.Combine(Directory.GetCurrentDirectory(), "firebase-adminsdk.json");
+var rutaFirebase = builder.Configuration["GOOGLE_APPLICATION_CREDENTIALS"]
+                   ?? Path.Combine(Directory.GetCurrentDirectory(), "firebase-adminsdk.json");
 Environment.SetEnvironmentVariable("GOOGLE_APPLICATION_CREDENTIALS", rutaFirebase);
 
 builder.Services.AddSingleton(s => {
@@ -67,13 +68,17 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
+// Alternación de rutas hacia el frontend (producción / local o desarrollo)
+var frontendUrl = builder.Configuration["FRONTEND_URL"] 
+                  ?? "http://localhost:5173";
+
 // --- CORS ---
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowReact",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5173", "http://10.191.176.243:5173") 
+            policy.WithOrigins("http://localhost:5173", frontendUrl) 
                   .AllowAnyHeader()
                   .AllowAnyMethod() // Esto permite GET, POST, DELETE, etc.
                   .AllowCredentials(); // Si tu frontend necesita enviar cookies o usar autenticación basada en credenciales
@@ -103,5 +108,7 @@ if (app.Environment.IsDevelopment())
 //app.UseHttpsRedirection();
 app.UseAuthorization(); // Añade esto si planeas usar [Authorize] en el futuro
 app.MapControllers();
+
+app.MapGet("/healthz", () => Results.Ok("Healthy"));
 
 app.Run();
