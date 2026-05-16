@@ -92,8 +92,8 @@ var ollamaUrl = builder.Configuration["OLLAMA_URL"]
 // Registrar HttpClient apuntando a Ollama
 builder.Services.AddHttpClient("OllamaClient", client =>
 {
-    client.BaseAddress = new Uri("ollamaUrl"); 
-    client.Timeout = TimeSpan.FromMinutes(3); // 3 minutos de gracia antes de morir
+    client.BaseAddress = new Uri(ollamaUrl); 
+    client.Timeout = TimeSpan.FromMinutes(3); // 3 minutos de gracia antes de cerrar conexión si no responde
 });
 
 
