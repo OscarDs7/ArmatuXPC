@@ -68,7 +68,7 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"))
 );
 
-// Alternación de rutas hacia el frontend (producción / local o desarrollo)
+// Alternación de rutas hacia el frontend (producción / local)
 var frontendUrl = builder.Configuration["FRONTEND_URL"] 
                   ?? "http://localhost:5173";
 
@@ -85,12 +85,17 @@ builder.Services.AddCors(options =>
         });
 });
 
+// Configuración de ruta de ollamaUrl
+var ollamaUrl = builder.Configuration["OLLAMA_URL"] 
+                ?? "http://localhost:11434";
+
 // Registrar HttpClient apuntando a Ollama
 builder.Services.AddHttpClient("OllamaClient", client =>
 {
-    client.BaseAddress = new Uri("http://ollama:11434"); 
+    client.BaseAddress = new Uri("ollamaUrl"); 
     client.Timeout = TimeSpan.FromMinutes(3); // 3 minutos de gracia antes de morir
 });
+
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
