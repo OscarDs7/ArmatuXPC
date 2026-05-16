@@ -20,7 +20,7 @@ namespace ArmatuXPC.Backend.Services
         {
             var payload = new
             {
-                model = "llama3.2",
+                model = "llama3.2:3b",
                 prompt = prompt,
                 stream = false,
                 options = new
