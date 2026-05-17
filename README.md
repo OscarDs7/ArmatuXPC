@@ -119,13 +119,13 @@ ArmatuXPC/
 - IA: Docker + ngrok
 
 **Checklist de tareas realizadas con el despliegue:**
-✅ Frontend React + Vite en Vercel
-✅ Backend ASP.NET Core en Render
-✅ PostgreSQL desplegado
-✅ Firebase
-✅ Stripe
-✅ Docker
-✅ EF Core migrations automáticas
-✅ Chatbot híbrido
-✅ Ollama conectado remotamente con ngrok
-✅ llama3.2 funcionando en producción
+- ✅ Frontend React + Vite en Vercel
+- ✅ Backend ASP.NET Core en Render
+- ✅ PostgreSQL desplegado
+- ✅ Firebase
+- ✅ Stripe
+- ✅ Docker
+- ✅ EF Core migrations automáticas
+- ✅ Chatbot híbrido
+- ✅ Ollama conectado remotamente con ngrok
+- ✅ llama3.2 funcionando en producción
