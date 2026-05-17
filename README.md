@@ -107,7 +107,7 @@ ArmatuXPC/
 - Backend: http://localhost:5031/api
 - Frontend: http://localhost:5173
 - Docker: http://localhost:5000/api
-- 
+  
 [Producción]
 - Backend: https://armatuxpc-backend.onrender.com/
 - Frontend: https://armatuxpc26.vercel.app/
@@ -117,3 +117,15 @@ ArmatuXPC/
 - Frontend: Vercel
 - Backend: Render
 - IA: Docker + ngrok
+
+**Checklist de tareas realizadas con el despliegue:**
+✅ Frontend React + Vite en Vercel
+✅ Backend ASP.NET Core en Render
+✅ PostgreSQL desplegado
+✅ Firebase
+✅ Stripe
+✅ Docker
+✅ EF Core migrations automáticas
+✅ Chatbot híbrido
+✅ Ollama conectado remotamente con ngrok
+✅ llama3.2 funcionando en producción
