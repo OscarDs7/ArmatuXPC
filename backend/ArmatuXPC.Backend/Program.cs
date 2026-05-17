@@ -86,8 +86,8 @@ builder.Services.AddCors(options =>
 });
 
 // Configuración de ruta de ollamaUrl
-var ollamaUrl = builder.Configuration["OLLAMA_URL"] 
-                ?? "http://localhost:11434";
+var ollamaUrl = builder.Configuration["OLLAMA_URL"] // variable de entorno en Render
+                ?? "http://ollama:11434"; // conexión local en modo desarrollo/prueba
 
 // Registrar HttpClient apuntando a Ollama
 builder.Services.AddHttpClient("OllamaClient", client =>
