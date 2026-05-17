@@ -103,11 +103,16 @@ ArmatuXPC/
 - docker compose up --build
 
 **🌐 Puertos**
-[Locales (de momento)]
+[Locales]
 - Backend: http://localhost:5031/api
 - Frontend: http://localhost:5173
 - Docker: http://localhost:5000/api
+[Producción]
+- Backend: https://armatuxpc-backend.onrender.com/
+- Frontend: https://armatuxpc26.vercel.app/
+- IA: https://vacancy-impulse-sixtyfold.ngrok-free.dev
 
 **🚀 Despliegue**
 - Frontend: Vercel
 - Backend: Render
+- IA: Docker + ngrok
