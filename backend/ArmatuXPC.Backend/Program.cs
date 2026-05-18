@@ -101,7 +101,8 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var app = builder.Build();
 
-// Creamos nuevamente tablas, relaciones, índices y constraints (sin datos sólo estructura)
+// Creamos nuevamente tablas, relaciones, índices y constraints (sin datos sólo estructura) si faltaran
+// Aplica nuevas migraciones automáticas a Render si faltara alguna 
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();

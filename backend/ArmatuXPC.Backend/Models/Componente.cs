@@ -18,13 +18,10 @@ namespace ArmatuXPC.Backend.Models
         
         // --- ATRIBUTOS DE ENERGÍA ---
 
-        // Consumo en watts del componente (CPU, RAM, GPU, Almacenamiento, Placa Base), para calcular el consumo total del armado
-        [Column(TypeName = "decimal(10,2)")]       
-        public decimal? ConsumoWatts { get; set; }
+        // Consumo en watts del componente (CPU, RAM, GPU, Almacenamiento, Placa Base), para calcular el consumo total del armado   
+        public int? ConsumoWatts { get; set; }
 
-        // Solo para fuente de poder
-        [Column(TypeName = "decimal(10,2)")]
-        public decimal? CapacidadWatts { get; set; } // Potencia total en watts que puede suministrar la fuente de poder, para validar que sea suficiente para el armado
+        public int? CapacidadWatts { get; set; } // Potencia total en watts que puede suministrar la fuente de poder, para validar que sea suficiente para el armado
 
         // --- NUEVOS ATRIBUTOS TÉCNICOS PARA EL CHATBOT ---
         
