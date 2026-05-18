@@ -69,16 +69,48 @@ namespace ArmatuXPC.Backend.Controllers
                 var componenteAncla =
                     componentesDetectados.FirstOrDefault();
 
-                // 2. Detectar categoría, marca y tipo de socket del componente
+                // Detección de categoria del mensaje actual del usuario
+                string? categoriaMensajeActual =
+                    DetectarCategoriaBuscada(mensajeUsuario);
+
+                // Detección de categoría del historial de mensajes del usuario
                 string? categoriaBuscada =
+                    categoriaMensajeActual ??
                     DetectarCategoriaDesdeHistorial(
                         request.Mensaje,
                         request.Historial);
 
-                string? marcaBuscada = null;
-                if (mensajeUsuario.ToLower().Contains("intel")) marcaBuscada = "Intel";
-                if (mensajeUsuario.ToLower().Contains("amd")) marcaBuscada = "AMD";
-                if (mensajeUsuario.ToLower().Contains("nvidia")) marcaBuscada = "NVIDIA";
+                string? marcaBuscada = null; 
+            
+                // Detección de marcas comunes
+                if (mensajeUsuario.Contains("intel")){
+                    marcaBuscada = "Intel";
+                    categoriaBuscada = "CPU";
+                }
+                if (mensajeUsuario.Contains("amd")){
+                    marcaBuscada = "AMD";
+                    categoriaBuscada = "CPU";
+                }
+                if (mensajeUsuario.Contains("nvidia")){
+                    marcaBuscada = "NVIDIA";
+                    categoriaBuscada = "GPU";
+                }
+
+                // Inferencia automática
+                if (categoriaBuscada == null && marcaBuscada == "Intel")
+                {
+                    categoriaBuscada = "CPU";
+                }
+
+                if (categoriaBuscada == null && marcaBuscada == "AMD")
+                {
+                    categoriaBuscada = "CPU";
+                }
+
+                if (categoriaBuscada == null && marcaBuscada == "NVIDIA")
+                {
+                    categoriaBuscada = "GPU";
+                }
 
                 // Detectar socket
                 string? socketBuscado = null;
@@ -144,6 +176,20 @@ namespace ArmatuXPC.Backend.Controllers
                     mensajeUsuario.Contains("qué es") ||
                     mensajeUsuario.Contains("para que sirve") ||
                     mensajeUsuario.Contains("cómo funciona");
+                
+                // C. Es consulta disponibilidad
+                bool esConsultaDisponibilidad =
+                    mensajeUsuario.Contains("tienes") ||
+                    mensajeUsuario.Contains("disponible") ||
+                    mensajeUsuario.Contains("disponibles") ||
+                    mensajeUsuario.Contains("están disponibles") ||
+                    mensajeUsuario.Contains("estan disponibles") ||
+                    mensajeUsuario.Contains("stock") ||
+                    mensajeUsuario.Contains("inventario") ||
+                    mensajeUsuario.Contains("catálogo") ||
+                    mensajeUsuario.Contains("catalogo") ||
+                    mensajeUsuario.Contains("manejas") ||
+                    mensajeUsuario.Contains("hay");
                 
                 // Listas de componentes compatible 
                 List<Componente> cpusCompatibles = new();
@@ -548,9 +594,35 @@ namespace ArmatuXPC.Backend.Controllers
                 }
                                 
                 // C. Búsqueda por Marca + Categoría 
-                else if (categoriaBuscada != null && marcaBuscada != null)
+                else if (
+                    categoriaBuscada != null &&
+                    marcaBuscada != null &&
+                    esConsultaDisponibilidad &&
+                    !esPreguntaEducativa
+                )
                 {
-                    contextoInventario = await ConsultarInventarioInterno(categoriaBuscada, marcaBuscada, socketBuscado, ramBuscada);
+                    var inventario = await ConsultarInventarioInterno(
+                        categoriaBuscada,
+                        marcaBuscada,
+                        socketBuscado,
+                        ramBuscada);
+
+                    if (inventario == "SIN STOCK" || inventario == "Categoría no reconocida.")
+                    {
+                        return Ok(new
+                        {
+                            texto = $"No encontré componentes {marcaBuscada} disponibles en esa categoría.",
+                            opciones = new List<string>()
+                        });
+                    }
+
+                    return Ok(new
+                    {
+                        texto =
+                            $"Actualmente tengo estos componentes {marcaBuscada} disponibles:\n\n" +
+                            inventario,
+                        opciones = new List<string>()
+                    });
                 }
 
                 // D. Compatibilidad Ancla + Categoría 
@@ -596,13 +668,18 @@ namespace ArmatuXPC.Backend.Controllers
                     }
                 }
 
-                // E. Categoría sola (Exploración) 
-                else if (categoriaBuscada != null && !esPreguntaEducativa)
+                // E. Categoría sola / disponibilidad en inventario (Exploración) 
+                else if (
+                    categoriaBuscada != null &&
+                    esConsultaDisponibilidad &&
+                    !esPreguntaEducativa
+                )
                 {
                     var inventario =
                         await ConsultarInventarioInterno(
                             categoriaBuscada,
-                            marcaBuscada, socketBuscado,
+                            marcaBuscada,
+                            socketBuscado,
                             ramBuscada);
 
                     if (
@@ -611,8 +688,7 @@ namespace ArmatuXPC.Backend.Controllers
                     {
                         return Ok(new
                         {
-                            texto =
-                                "Actualmente no tengo componentes disponibles de esa categoría.",
+                            texto = "Actualmente no tengo componentes disponibles de esa categoría.",
                             opciones = new List<string>()
                         });
                     }
@@ -623,6 +699,10 @@ namespace ArmatuXPC.Backend.Controllers
                         "CPU" => "procesadores",
                         "MemoriaRAM" => "memorias RAM",
                         "GPU" => "tarjetas gráficas",
+                        "FuentePoder" => "fuentes de poder",
+                        "Gabinete" => "gabinetes",
+                        "Refrigeracion" => "sistemas de refrigeración",
+                        "Almacenamiento" => "unidades de almacenamiento",
                         _ => "componentes"
                     };
 
@@ -817,7 +897,22 @@ namespace ArmatuXPC.Backend.Controllers
                 .Where(c => c.Tipo == tipoEnum && c.EstaActivo);
 
             if (!string.IsNullOrEmpty(marca))
-                query = query.Where(c => EF.Functions.ILike(c.Nombre, $"%{marca}%"));
+            {
+                query = query.Where(c =>
+                    EF.Functions.ILike(c.Nombre, $"%{marca}%") ||
+                    EF.Functions.ILike(c.Modelo, $"%{marca}%") ||
+
+                    (marca == "AMD" &&
+                        (EF.Functions.ILike(c.Nombre, "%Ryzen%") ||
+                        EF.Functions.ILike(c.Modelo, "%Ryzen%"))) ||
+
+                    (marca == "NVIDIA" &&
+                        (EF.Functions.ILike(c.Nombre, "%RTX%") ||   
+                        EF.Functions.ILike(c.Nombre, "%GeForce%") ||
+                        EF.Functions.ILike(c.Modelo, "%RTX%") ||
+                        EF.Functions.ILike(c.Modelo, "%GeForce%")))
+                );
+            }
             
             if (!string.IsNullOrWhiteSpace(socket))
             {
@@ -836,31 +931,99 @@ namespace ArmatuXPC.Backend.Controllers
             var componentes = await query
                 .OrderBy(c => c.Nombre)
                 .Take(10)
-                .Select(c => $"- {c.Nombre} | Socket: {c.Socket ?? "N/A"} | RAM: {c.TipoMemoria ?? "N/A"} | Precio: ${c.Precio}")
+                .Select(c => $"- {c.Nombre} | Precio: ${c.Precio} | Consumo: {c.ConsumoWatts}W | Socket: {c.Socket ?? "N/A"} | RAM: {c.TipoMemoria ?? "N/A"} ")
                 .ToListAsync();
 
             return componentes.Any() ? string.Join("\n", componentes) : "SIN STOCK";
         }
 
         // Método auxiliar para detección inteligente de categorías de componentes
-        private string? DetectarCategoriaBuscada(string mensaje)
+        private static string? DetectarCategoriaBuscada(string mensaje)
         {
-            // Validaciones de categorías en los componentes
-            if (mensaje.Contains("placa") || mensaje.Contains("motherboard") || mensaje.Contains("tarjeta madre"))
+            mensaje = mensaje.ToLower();
+
+            if (
+                mensaje.Contains("placa") ||
+                mensaje.Contains("placas") ||
+                mensaje.Contains("motherboard") ||
+                mensaje.Contains("motherboards") ||
+                mensaje.Contains("tarjeta madre") ||
+                mensaje.Contains("tarjetas madre") ||
+                mensaje.Contains("mobo")
+            )
                 return "PlacaBase";
-            if (mensaje.Contains("procesador") || mensaje.Contains("cpu"))
+
+            if (
+                mensaje.Contains("procesador") ||
+                mensaje.Contains("procesadores") ||
+                mensaje.Contains("cpu") ||
+                mensaje.Contains("cpus")
+            )
                 return "CPU";
-            if (mensaje.Contains("memoria ram") || mensaje.Contains("ram"))
+
+            if (
+                mensaje.Contains("memoria ram") ||
+                mensaje.Contains("memorias ram") ||
+                mensaje.Contains("ram") ||
+                mensaje.Contains("rams") ||
+                mensaje.Contains("ddr4") ||
+                mensaje.Contains("ddr5")
+            )
                 return "MemoriaRAM";
-            if (mensaje.Contains("tarjeta gráfica") || mensaje.Contains("gpu") || mensaje.Contains("video"))
+
+            if (
+                mensaje.Contains("tarjeta gráfica") ||
+                mensaje.Contains("tarjetas gráficas") ||
+                mensaje.Contains("tarjeta grafica") ||
+                mensaje.Contains("tarjetas graficas") ||
+                mensaje.Contains("gpu") ||
+                mensaje.Contains("gpus") ||
+                mensaje.Contains("video") ||
+                mensaje.Contains("gráfica") ||
+                mensaje.Contains("grafica")
+            )
                 return "GPU";
-            if (mensaje.Contains("disco") || mensaje.Contains("ssd") || mensaje.Contains("hdd") || mensaje.Contains("almacenamiento"))
+
+            if (
+                mensaje.Contains("disco") ||
+                mensaje.Contains("discos") ||
+                mensaje.Contains("ssd") ||
+                mensaje.Contains("hdd") ||
+                mensaje.Contains("nvme") ||
+                mensaje.Contains("m.2") ||
+                mensaje.Contains("almacenamiento")
+            )
                 return "Almacenamiento";
-            if (mensaje.Contains("fuente") || mensaje.Contains("psu") || mensaje.Contains("poder"))
+
+            if (
+                mensaje.Contains("fuente") ||
+                mensaje.Contains("fuentes") ||
+                mensaje.Contains("psu") ||
+                mensaje.Contains("poder") ||
+                mensaje.Contains("fuente de poder")
+            )
                 return "FuentePoder";
-            if (mensaje.Contains("refrigeración") || mensaje.Contains("cooler") || mensaje.Contains("ventilador") || mensaje.Contains("disipador"))
+
+            if (
+                mensaje.Contains("refrigeración") ||
+                mensaje.Contains("refrigeracion") ||
+                mensaje.Contains("cooler") ||
+                mensaje.Contains("coolers") ||
+                mensaje.Contains("ventilador") ||
+                mensaje.Contains("ventiladores") ||
+                mensaje.Contains("disipador") ||
+                mensaje.Contains("disipadores")
+            )
                 return "Refrigeracion";
-            if (mensaje.Contains("caja") || mensaje.Contains("gabinete") || mensaje.Contains("case"))
+
+            if (
+                mensaje.Contains("caja") ||
+                mensaje.Contains("cajas") ||
+                mensaje.Contains("gabinete") ||
+                mensaje.Contains("gabinetes") ||
+                mensaje.Contains("case") ||
+                mensaje.Contains("cases")
+            )
                 return "Gabinete";
 
             return null;
