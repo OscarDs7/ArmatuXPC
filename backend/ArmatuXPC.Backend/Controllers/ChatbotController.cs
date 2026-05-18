@@ -74,6 +74,7 @@ namespace ArmatuXPC.Backend.Controllers
                     DetectarCategoriaDesdeHistorial(
                         request.Mensaje,
                         request.Historial);
+
                 string? marcaBuscada = null;
                 if (mensajeUsuario.ToLower().Contains("intel")) marcaBuscada = "Intel";
                 if (mensajeUsuario.ToLower().Contains("amd")) marcaBuscada = "AMD";
@@ -152,6 +153,7 @@ namespace ArmatuXPC.Backend.Controllers
                 // Si hay duda de compatibilidad, cargamos los datos técnicos clave
                 if ( esDudaCompatibilidad)
                 {
+                        // DETECCIÓN DE COMPONENTES (cpu, motherboard y ram)
                         var cpu = componentesDetectados
                             .FirstOrDefault(c => c.Tipo == TipoComponente.CPU);
 
@@ -160,6 +162,14 @@ namespace ArmatuXPC.Backend.Controllers
                         
                         var ram = componentesDetectados
                             .FirstOrDefault(c => c.Tipo == TipoComponente.MemoriaRAM);
+                        
+                        // Si el usuario menciona explícitamente DDR4/DDR5,
+                        // no reutilices motherboard/RAM del historial.
+                        if (!string.IsNullOrWhiteSpace(ramBuscada))
+                        {
+                            motherboard = null;
+                            ram = null;
+                        }
 
                         // NUEVO SISTEMA DE BUILD con nuevo modelo y servicio creado
                         var build = new BuildPC
@@ -169,34 +179,42 @@ namespace ArmatuXPC.Backend.Controllers
                             RAM = ram
                         };
 
-                        var errores =
-                            _buildCompatibilityService
-                                .ValidarBuild(build);
+                        // Detectar si realmente hay algo que validar
+                        bool hayParesParaValidar =
+                            (cpu != null && motherboard != null) ||
+                            (ram != null && motherboard != null);
 
-                        // Si hay errores de compatibilidad
-                        if (errores.Any())
+                        // Detectar si el usuario pregunta compatibilidad directa
+                        bool preguntaCompatibilidadDirecta =
+                            mensajeUsuario.Contains("compatible") ||
+                            mensajeUsuario.Contains("compatibles") ||
+                            mensajeUsuario.Contains("sirve con") ||
+                            mensajeUsuario.Contains("funciona con");
+
+                        // SOLO validar si:
+                        // 1. hay componentes reales
+                        // 2. el usuario realmente pregunta compatibilidad
+                        if (hayParesParaValidar && preguntaCompatibilidadDirecta)
                         {
-                            return Ok(new
+                            var errores =
+                                _buildCompatibilityService
+                                    .ValidarBuild(build);
+
+                            // ❌ INCOMPATIBLE
+                            if (errores.Any())
                             {
-                                texto =
-                                    "Encontré problemas de compatibilidad:\n\n" +
-                                    string.Join("\n", errores),
+                                return Ok(new
+                                {
+                                    texto =
+                                        "Encontré problemas de compatibilidad:\n\n" +
+                                        string.Join("\n", errores),
 
-                                opciones = new List<string>()
-                            });
-                        }
+                                    opciones = new List<string>()
+                                });
+                            }
 
-                        // Validación de compatibilidad correcta
-                        if (
-                            cpu != null &&
-                            motherboard != null &&
-                            (
-                                mensajeUsuario.Contains("son compatibles") ||
-                                mensajeUsuario.Contains("es compatible") ||
-                                mensajeUsuario.Contains("compatibles entre si") ||
-                                mensajeUsuario.Contains("sirve con")
-                            )
-                        )
+                            // ✅ COMPATIBLE CPU + Motherboard
+                            if (cpu != null && motherboard != null)
                             {
                                 return Ok(new
                                 {
@@ -207,12 +225,70 @@ namespace ArmatuXPC.Backend.Controllers
                                 });
                             }
 
+                            // ✅ COMPATIBLE RAM + Motherboard
+                            if (ram != null && motherboard != null)
+                            {
+                                return Ok(new
+                                {
+                                    texto =
+                                        $"Sí, la RAM {ram.Nombre} es compatible con la {motherboard.Nombre} porque ambas utilizan memoria {ram.TipoMemoria}.",
+
+                                    opciones = new List<string>()
+                                });
+                            }
+                        }
+
+                         // --- Motherboards compatibles con DDR4/DDR5 --- //
+                        if (
+                            ram == null &&
+                            !string.IsNullOrWhiteSpace(ramBuscada) &&
+                            (
+                                mensajeUsuario.Contains("motherboard") ||
+                                mensajeUsuario.Contains("motherboards") ||
+                                mensajeUsuario.Contains("placa") ||
+                                mensajeUsuario.Contains("placas") ||
+                                mensajeUsuario.Contains("tarjeta madre") ||
+                                mensajeUsuario.Contains("tarjetas madre")
+                            )
+                        )
+                        {
+                            var motherboardsCompatibles = todosLosComponentes
+                                .Where(c =>
+                                    c.Tipo == TipoComponente.PlacaBase &&
+                                    c.TipoMemoria != null &&
+                                    c.TipoMemoria.Trim().ToUpper() ==
+                                    ramBuscada.Trim().ToUpper())
+                                .Take(5)
+                                .ToList();
+
+                            if (motherboardsCompatibles.Any())
+                            {
+                                return Ok(new
+                                {
+                                    texto =
+                                        $"Motherboards compatibles con memoria {ramBuscada}:\n\n" +
+
+                                        string.Join("\n",
+                                            motherboardsCompatibles.Select(m =>
+                                                $"- {m.Nombre} | Socket: {m.Socket} | RAM: {m.TipoMemoria} | Precio: ${m.Precio}"
+                                            )
+                                        ),
+
+                                    opciones = motherboardsCompatibles
+                                        .Select(m => m.Nombre)
+                                        .Take(5)
+                                        .ToList()
+                                });
+                            }
+                        }
+
                         // --- RAM Compatible --- //
                         if (
                             motherboard != null &&
                             (
                                 mensajeUsuario.Contains("ram") ||
-                                mensajeUsuario.Contains("memoria")
+                                mensajeUsuario.Contains("memoria") ||
+                                mensajeUsuario.Contains("ddr")
                             )
                         )
                         {
@@ -253,12 +329,18 @@ namespace ArmatuXPC.Backend.Controllers
                             motherboard != null &&
                             (
                                 mensajeUsuario.Contains("cpu") ||
-                                mensajeUsuario.Contains("procesador")
+                                mensajeUsuario.Contains("procesador") ||
+                                mensajeUsuario.Contains("intel") ||
+                                mensajeUsuario.Contains("amd")
                             )
                             &&
                             !mensajeUsuario.Contains("ram")
                             &&
                             !mensajeUsuario.Contains("memoria")
+                            &&
+                            !mensajeUsuario.Contains("placa")
+                            &&
+                            !mensajeUsuario.Contains("ddr")
                         )
                         {
                             cpusCompatibles =
@@ -266,7 +348,11 @@ namespace ArmatuXPC.Backend.Controllers
                                     .FiltrarCompatibles(
                                         motherboard,
                                         todosLosComponentes)
-                                    .Where(c => c.Tipo == TipoComponente.CPU)
+                                    .Where(c =>
+                                        c.Tipo == TipoComponente.CPU)
+                                    .Where(c =>
+                                        marcaBuscada == null ||
+                                        c.Nombre.ToUpper().Contains(marcaBuscada.ToUpper()))
                                     .Take(5)
                                     .ToList();
 
@@ -294,77 +380,26 @@ namespace ArmatuXPC.Backend.Controllers
                         }
 
                         // --- Compatibilidad CPU + Motherboard --- //
-                        if(cpu != null && motherboard != null)
+                        if (cpu != null && motherboard != null)
                         {
-                                ramCompatibles =
-                                        _buildCompatibilityService
-                                        .FiltrarCompatibles(
-                                            motherboard,
-                                            todosLosComponentes)
-                                        .Where(c => c.Tipo == TipoComponente.MemoriaRAM)
-                                        .Take(5)
-                                        .ToList();
-
                             bool compatibles =
                                 _buildCompatibilityService
-                                .CPUCompatibleMotherboard(cpu, motherboard);
+                                    .CPUCompatibleMotherboard(cpu, motherboard);
 
-                            resultadoCompatibilidad +=
-                                compatibles
-                                ? $"RESULTADO REAL: COMPATIBLES porque ambos usan socket {cpu.Socket}."
-                                : $"RESULTADO REAL: INCOMPATIBLES porque CPU usa {cpu.Socket} y motherboard usa {motherboard.Socket}.";
-                            
-                            if (ramCompatibles.Any())
-                            {
-                                resultadoCompatibilidad +=
-                                    "\nRAM COMPATIBLES:\n" +
-
-                                    string.Join("\n",
-                                        ramCompatibles.Select(r =>
-                                            $"- {r.Nombre} ({r.TipoMemoria})"));
-                            }
-                        }
-
-                        // --- Motherboards compatibles con DDR4/DDR5 --- //
-                        if (
-                            ram == null &&
-                            !string.IsNullOrWhiteSpace(ramBuscada) &&
-                            (
-                                mensajeUsuario.Contains("motherboard") ||
-                                mensajeUsuario.Contains("placa") ||
-                                mensajeUsuario.Contains("tarjeta madre")
-                            )
-                        )
-                        {
-                            var motherboardsCompatibles = todosLosComponentes
-                                .Where(c =>
-                                    c.Tipo == TipoComponente.PlacaBase &&
-                                    c.TipoMemoria != null &&
-                                    c.TipoMemoria.Trim().ToUpper() ==
-                                    ramBuscada.Trim().ToUpper())
-                                .Take(5)
-                                .ToList();
-
-                            if (motherboardsCompatibles.Any())
+                            if (mensajeUsuario.Contains("compatible") ||
+                                mensajeUsuario.Contains("sirve") ||
+                                mensajeUsuario.Contains("funciona"))
                             {
                                 return Ok(new
                                 {
-                                    texto =
-                                        $"Motherboards compatibles con memoria {ramBuscada}:\n\n" +
-
-                                        string.Join("\n",
-                                            motherboardsCompatibles.Select(m =>
-                                                $"- {m.Nombre} | Socket: {m.Socket} | RAM: {m.TipoMemoria} | Precio: ${m.Precio}"
-                                            )
-                                        ),
-
-                                    opciones = motherboardsCompatibles
-                                        .Select(m => m.Nombre)
-                                        .Take(5)
-                                        .ToList()
+                                    texto = compatibles
+                                        ? $"Sí, el {cpu.Nombre} es compatible con la {motherboard.Nombre} porque ambos usan socket {cpu.Socket}."
+                                        : $"No, el {cpu.Nombre} no es compatible con la {motherboard.Nombre}. El CPU usa socket {cpu.Socket} y la motherboard usa socket {motherboard.Socket}.",
+                                    opciones = new List<string>()
                                 });
                             }
                         }
+
 
                         // --- Motherboards compatibles con RAM --- //
                         if (

@@ -65,7 +65,7 @@ namespace ArmatuXPC.Backend.Services
                     build.Motherboard))
                 {
                     errores.Add(
-                        "CPU y motherboard no comparten socket.");
+                        "CPU y motherboard no comparten el mismo socket.");
                 }
             }
 
