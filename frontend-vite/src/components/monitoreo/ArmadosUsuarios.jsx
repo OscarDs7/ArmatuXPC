@@ -10,7 +10,6 @@ export default function ArmadosUsuarios({ onBack }) {
   const loadData = async () => {
     try {
       const data = await getArmados();
-      console.log("DATOS DE LA API:", data[0]); // Mira esto en la consola del navegador (F12)
       setArmados(data);
       setFiltered(data);
     } catch (error) {
