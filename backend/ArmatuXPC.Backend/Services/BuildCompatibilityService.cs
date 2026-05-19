@@ -36,6 +36,25 @@ namespace ArmatuXPC.Backend.Services
                    motherboard.TipoMemoria.Trim().ToUpper();
         }
 
+        // Motherboard ↔ Gabinete
+        public bool MotherboardCompatibleGabinete(
+            Componente? motherboard,
+            Componente? gabinete)
+        {
+            if (motherboard == null || gabinete == null)
+                return false;
+
+            if (
+                string.IsNullOrWhiteSpace(motherboard.FactorForma) ||
+                string.IsNullOrWhiteSpace(gabinete.FactorForma)
+            )
+                return false;
+
+            return gabinete.FactorForma
+                .ToUpper()
+                .Contains(motherboard.FactorForma.ToUpper());
+        }
+
         // PSU suficiente
         public bool FuenteSuficiente(
             Componente? fuente,
@@ -65,7 +84,7 @@ namespace ArmatuXPC.Backend.Services
                     build.Motherboard))
                 {
                     errores.Add(
-                        "CPU y motherboard no comparten socket.");
+                        "CPU y motherboard no comparten el mismo socket.");
                 }
             }
 
@@ -154,6 +173,30 @@ namespace ArmatuXPC.Backend.Services
                         RAMCompatibleMotherboard(
                             origen,
                             candidato);
+                }
+
+                // Motherboard -> Gabinete
+                else if (
+                    origen.Tipo == TipoComponente.PlacaBase &&
+                    candidato.Tipo == TipoComponente.Gabinete
+                )
+                {
+                    esCompatible =
+                        MotherboardCompatibleGabinete(
+                            origen,
+                            candidato);
+                }
+
+                // Gabinete -> Motherboard
+                else if (
+                    origen.Tipo == TipoComponente.Gabinete &&
+                    candidato.Tipo == TipoComponente.PlacaBase
+                )
+                {
+                    esCompatible =
+                        MotherboardCompatibleGabinete(
+                            candidato,
+                            origen);
                 }
 
                 if (esCompatible)
