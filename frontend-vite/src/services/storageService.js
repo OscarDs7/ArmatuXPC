@@ -23,7 +23,7 @@ export const subirImagen = async (file, tipo, modelo) => {
     .replace(/\s+/g, "-")}`;
   
   // Construimos la ruta de almacenamiento en Firebase Storage utilizando el tipo y modelo del componente para organizar las imágenes de manera estructurada, lo que facilita su gestión y acceso posterior
-  const ruta = `componentesAdmin/${tipoSeguro}/${modeloSeguro}/${nombreArchivo}`;
+  const ruta = `componentes/${tipoSeguro}/${modeloSeguro}/${nombreArchivo}`;
 
   const storageRef = ref(storage, ruta); // Creamos una referencia al archivo en Firebase Storage utilizando la ruta construida
 
