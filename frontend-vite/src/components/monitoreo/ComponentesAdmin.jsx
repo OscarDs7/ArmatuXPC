@@ -352,6 +352,8 @@ const formatearTipo = (tipo) => {
             <th className="text-center">Tipo</th>
             <th className="text-center">Socket</th>
             <th className="text-center">Memoria</th> 
+            <th className="text-center">Chipset</th> 
+            <th className="text-center">F.F</th> 
             <th className="text-center">Marca</th>
             <th className="text-center">Modelo</th>
             <th className="text-center">Precio</th>
@@ -384,6 +386,8 @@ const formatearTipo = (tipo) => {
               {/* Nuevos campos técnicos editables */}
               {renderCeldaEditable(c, "socket")}
               {renderCeldaEditable(c, "tipoMemoria")}
+              {renderCeldaEditable(c, "chipset")}
+              {renderCeldaEditable(c, "factorforma")}
               {renderCeldaEditable(c, "marca")}
               {renderCeldaEditable(c, "modelo")}
               {renderCeldaEditable(c, "precio", "number")}
