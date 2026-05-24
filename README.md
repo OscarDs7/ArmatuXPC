@@ -63,18 +63,9 @@ This project was developed as a software engineering initiative focused on scala
 
 # 🏗️ System Architecture
 
-```text
-Frontend (React + Vite + Three.js)
-            ↓
-Backend API (ASP.NET Core)
-            ↓
-PostgreSQL Database
-            ↓
-Firebase Services
-(Auth + Firestore + Storage)
-            ↓
-AI Service (Ollama + NLP + Compatibility Logic)
-```
+<p align="center">
+  <img src="./docs/arquitectura.png" alt="ArmatuXPC Banner" width="100%" />
+</p>
 
 ---
 
@@ -132,10 +123,19 @@ ArmatuXPC integrates a hybrid AI assistant capable of:
 
 # 📂 Project Structure
 
-<p align="center">
-  <img src="./docs/arquitectura.png" alt="ArmatuXPC Banner" width="100%" />
-</p>
-
+```text
+ArmatuXPC/
+│
+├── frontend-vite/              # React + Vite frontend
+│
+├── backend/
+│   └── ArmatuXPC.Backend/      # ASP.NET Core backend
+    └── IA/                     # AI services and NLP logic
+├── docker-compose-development.yml
+├── docker-compose-production.yml
+│
+└── README.md
+```
 
 ---
 
