@@ -188,7 +188,7 @@ docker compose -f docker-compose-development.yml up --build
 
 Docker Backend:
 ```text
-http://localhost:5000/api
+http://localhost:5001/api
 ```
 
 ---
@@ -260,18 +260,26 @@ https://vacancy-impulse-sixtyfold.ngrok-free.dev
 # 📸 Screenshots
 
 > Add platform screenshots here:
-- Login interface
-- PC Builder
+- **PC Builder:**
+  <p align="center">
+    <img src="./docs/builder.jpg" alt="ArmatuXPC Banner" width="100%" />
+  </p>
 - Compatibility alerts
+  <p align="center">
+    <img src="./docs/alerts.jpg" alt="ArmatuXPC Banner" width="100%" />
+  </p>
 - AI assistant
+  <p align="center">
+    <img src="./docs/chatbot.jpg" alt="ArmatuXPC Banner" width="100%" />
+  </p>
 - 3D visualization
-- Admin dashboard
-
-Example:
-
-```md
-![PC Builder](./docs/screenshots/builder.png)
-```
+  <p align="center">
+    <img src="./docs/3D-visualization.jpg" alt="ArmatuXPC Banner" width="100%" />
+  </p>
+- Admin dashboard:
+    <p align="center">
+    <img src="./docs/panel-admin.jpg" alt="ArmatuXPC Banner" width="100%" />
+  </p>
 
 ---
 
