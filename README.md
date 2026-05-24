@@ -3,7 +3,7 @@
 Interactive web platform for custom desktop PC assembly with an AI-powered mentor, real-time compatibility validation, and 3D visualization.
 
 <p align="center">
-  <img src="./docs/banner.png" alt="ArmatuXPC Banner" width="100%" />
+  <img src="./docs/banner.jpg" alt="ArmatuXPC Banner" width="100%" />
 </p>
 
 ---
