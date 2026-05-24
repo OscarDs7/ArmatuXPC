@@ -260,7 +260,6 @@ https://vacancy-impulse-sixtyfold.ngrok-free.dev
 
 # 📸 Screenshots
 
-> Add platform screenshots here:
 - **PC Builder:**
   <p align="center">
     <img src="./docs/builder.jpg" alt="ArmatuXPC Banner" width="100%" />
