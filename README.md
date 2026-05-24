@@ -270,7 +270,7 @@ https://vacancy-impulse-sixtyfold.ngrok-free.dev
   </p>
 - AI assistant
   <p align="center">
-    <img src="./docs/chatbot.jpg" alt="ArmatuXPC Banner" width="100%" />
+    <img src="./docs/chatbot.jpg" alt="ArmatuXPC Banner" width="50%" />
   </p>
 - 3D visualization
   <p align="center">
@@ -291,6 +291,8 @@ https://vacancy-impulse-sixtyfold.ngrok-free.dev
 - Multi-language support
 - Advanced 3D assembly simulation
 - Performance analytics dashboard
+- Preventive maintenance on the assemblies
+- Educational modules for fun learning in assembling desktop computers
 
 ---
 
