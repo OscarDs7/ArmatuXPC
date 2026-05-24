@@ -264,26 +264,26 @@ https://vacancy-impulse-sixtyfold.ngrok-free.dev
   <p align="center">
     <img src="./docs/builder.jpg" alt="ArmatuXPC Banner" width="100%" />
   </p>
-- Compatibility alerts
+- **Compatibility alerts:**
   <p align="center">
     <img src="./docs/alerts.jpg" alt="ArmatuXPC Banner" width="100%" />
   </p>
-- AI assistant
+- **AI assistant:**
   <p align="center">
     <img src="./docs/chatbot.jpg" alt="ArmatuXPC Banner" width="50%" />
   </p>
-- 3D visualization
+- **3D visualization:**
   <p align="center">
     <img src="./docs/3D-visualization.jpg" alt="ArmatuXPC Banner" width="100%" />
   </p>
-- Admin dashboard:
+- **Admin dashboard:**
     <p align="center">
     <img src="./docs/panel-admin.jpg" alt="ArmatuXPC Banner" width="100%" />
   </p>
 
 ---
 
-# 🔮 Future Improvements
+# 🚀 Future Improvements
 
 - Advanced recommendation systems
 - Benchmark-based component scoring
