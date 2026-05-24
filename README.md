@@ -132,21 +132,10 @@ ArmatuXPC integrates a hybrid AI assistant capable of:
 
 # 📂 Project Structure
 
-```text
-ArmatuXPC/
-│
-├── frontend-vite/              # React + Vite frontend
-│
-├── backend/
-│   └── ArmatuXPC.Backend/      # ASP.NET Core backend
-│
-├── IA/                         # AI services and NLP logic
-│
-├── docker-compose-development.yml
-├── docker-compose-production.yml
-│
-└── README.md
-```
+<p align="center">
+  <img src="./docs/arquitectura.png" alt="ArmatuXPC Banner" width="100%" />
+</p>
+
 
 ---
 
