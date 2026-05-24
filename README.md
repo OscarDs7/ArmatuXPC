@@ -81,7 +81,7 @@ ArmatuXPC integrates a hybrid AI assistant capable of:
 
 ### Technologies Used
 - Ollama
-- llama3.2
+- llama3.2:3b
 - NLP-based prompt engineering
 - Rule-based compatibility system
 - SSE streaming architecture
@@ -95,6 +95,8 @@ ArmatuXPC integrates a hybrid AI assistant capable of:
 - Vite
 - Tailwind CSS
 - Three.js
+- HTML
+- CSS
 
 ## Backend
 - ASP.NET Core (.NET 8)
@@ -114,7 +116,6 @@ ArmatuXPC integrates a hybrid AI assistant capable of:
 ## DevOps & Deployment
 - Docker
 - Docker Compose
-- GitHub Actions
 - Vercel
 - Render
 - ngrok
