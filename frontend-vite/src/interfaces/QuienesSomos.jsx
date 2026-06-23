@@ -23,7 +23,7 @@ export default function QuienesSomos() {
     },
     { 
       nombre: "Eduardo Medina", 
-      rol: "Modelado 3D", 
+      rol: "Modelado 3D/Frontend", 
       correo: "eduardomedrub@gmail.com",
       imagen: eduardo,
       descripcion: "Responsable del modelado 3D de los componentes de computadora, creando una guía interactiva y visual para saber cómo instalar o desinstalar cada componente de la computadora."
