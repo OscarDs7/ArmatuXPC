@@ -8,6 +8,7 @@ import bryan from "../assets/integrantes/bryan.jpeg";
 import diego from "../assets/integrantes/diego.jpeg";
 import logoProyecto from "../assets/Armatuxpc.png"; 
 
+
 export default function QuienesSomos() {
   const navigate = useNavigate();
   const [flippedIndex, setFlippedIndex] = useState(null); // Para controlar qué tarjeta está volteada
@@ -23,7 +24,7 @@ export default function QuienesSomos() {
     { 
       nombre: "Eduardo Medina", 
       rol: "Modelado 3D", 
-      correo: "a22310398@ceti.mx",
+      correo: "eduardomedrub@gmail.com",
       imagen: eduardo,
       descripcion: "Responsable del modelado 3D de los componentes de computadora, creando una guía interactiva y visual para saber cómo instalar o desinstalar cada componente de la computadora."
       },
